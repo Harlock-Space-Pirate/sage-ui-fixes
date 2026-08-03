@@ -7,25 +7,59 @@ Client-side browser extension that applies small UI corrections on [sage.staratl
 
 ## Credits
 
-### Bullit — QA from hyperspace
+### ★ BULLIT — LEGEND PLAQUE ★
+
+```text
+  ╔══════════════════════════════════════════════════════════╗
+  ║   ★  HIGH SCORE  ★   BULLIT   ★  INSERT COIN  ★          ║
+  ║                                                          ║
+  ║     READY.                                               ║
+  ║     LOAD "*",8,1                                         ║
+  ║     SEARCHING FOR BULLIT                                 ║
+  ║     LOADING  ████████████████  OK                        ║
+  ║     RUN                                                  ║
+  ║                                                          ║
+  ║     ↑ ↑ ↓ ↓ ← → ← →  B  A  ·  START                     ║
+  ║     (Konami Code unlocked: infinite QA continues)        ║
+  ╚══════════════════════════════════════════════════════════╝
+
+        .     *        .   ✦     .
+    *      🍄     .    🚀      *     .
+        .    ☁️  WEED  ☁️    .      ✦
+   ✦   *    👁️  DMT  👁️      *   .
+        .      🍄🍄🍄      .
+```
 
 **Bullit** is the reason this ship still warps after every patch.
 
-Commodore kid. Nintendo kid. Grew up on CRT glow, cartridge dust, and the sacred art of *blowing on the contacts and praying*. Same generation that learned physics from *Elite*, ethics from *Star Control*, and patience from a tape deck that said `FOUND` after three minutes of screeching. If the galaxy map glitches, he is already mid-jump with a controller in one hand and a thesis on why the starbase bar is lying.
+Commodore kid. Nintendo kid. Grew up on CRT glow, cartridge dust, and the sacred art of *blowing on the contacts and praying*. Same generation that learned physics from *Elite*, ethics from *Star Control*, and patience from a tape deck that screamed for three minutes before whispering `FOUND`. If the galaxy map glitches, he is already mid-jump — one hand on the stick, one hand mid-thesis on why the starbase bar is lying through its teeth.
 
 He does not “QA.” He **tinkers in the void**:
 
 - Spots dead fleet pins like a stoner spotting the **mushroom** in the wallpaper that was *definitely* always a face  
-- Files bug reports that hit harder than a **DMT** blast and somehow still include reproduction steps  
-- Brings ideas that smell like garage science, **weed** philosophy, and 1992 sci-fi paperbacks left open on a beanbag  
-- Stress-tests combat and ownership UIs until Neutral Zone stops gaslighting us  
-- Will say “bro what if…” and then it becomes a real fix three deploys later  
+- Files bug reports that hit harder than a **DMT** launch window and somehow still include reproduction steps, screenshots, and a joke  
+- Brings ideas that smell like garage science, **weed** philosophy, and 1992 sci-fi paperbacks left open on a beanbag next to a C64  
+- Stress-tests combat and ownership UIs until Neutral Zone stops gaslighting the whole sector  
+- Will say “bro what if…” — and three deploys later it’s a real fix with a body count of regressions he already killed  
+- Keeps mashing **Start** while the rest of us are still stuck on `PRESS PLAY ON TAPE`
 
-If this extension feels less cursed than stock SAGE, thank the pilot who kept mashing **Start** while the rest of us were still loading from cassette.
+```text
+  **** COMMODORE 64 BASIC V2 ****
+  64K RAM SYSTEM  38911 BASIC BYTES FREE
+  READY.
+  10 REM BULLIT MODE
+  20 POKE 53280,0 : POKE 53281,0
+  30 PRINT "QA FROM HYPERSPACE"
+  40 GOTO 30
+  RUN
+```
 
-*Bullit — co-conspirator, idea factory, live-fire tester. We see you, legend.*
+If this extension feels less cursed than stock SAGE, thank the pilot on the **legend plaque**.
+
+*Bullit — co-conspirator · idea factory · live-fire tester · void tinkerer · high score forever.*
 
 **Author / shipwright:** LEEKS · **Produce Bandit ltd**
+
 ## What it fixes
 
 - Destroyed fleets lingering on the map / in combat target lists
