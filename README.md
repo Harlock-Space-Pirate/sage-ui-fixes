@@ -5,6 +5,10 @@ Client-side browser extension that applies small UI corrections on [sage.staratl
 **Author:** LEEKS · **Produce Bandit ltd**  
 **Not affiliated with Star Atlas, ATMTA, or the official SAGE client.**
 
+## Credits
+
+Huge thanks to **Bullit** for testing every build, catching regressions in the wild, and helping tinker through map, combat, and ownership fixes. This release is better because of that feedback loop.
+
 ## What it fixes
 
 - Destroyed fleets lingering on the map / in combat target lists
