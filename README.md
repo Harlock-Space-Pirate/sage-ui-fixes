@@ -7,7 +7,7 @@ Client-side browser extension that applies small UI corrections on [sage.staratl
 
 ## Credits
 
-Huge thanks to **Bullit** for testing every build, catching regressions in the wild, and helping tinker through map, combat, and ownership fixes. This release is better because of that feedback loop.
+Huge thanks to **Bullit** for testing every build, catching regressions in the wild, bringing ideas for what to fix next, and helping tinker through map, combat, and ownership fixes. This release is better because of that collaboration.
 
 ## What it fixes
 
