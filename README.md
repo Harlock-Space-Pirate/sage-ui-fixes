@@ -67,6 +67,14 @@ If this extension feels less cursed than stock SAGE, thank the pilot on the **le
 - Post-capture ownership / NEUTRAL lag on system views
 - Live HUD ownership and related display sync after capture or attack
 
+## Findings / engineering report
+
+Full write-up of the **starbase destruction display loop** Bullit scoped (tier dots, faction border, skull → station icon, infocard, refetch) plus stock function names and annotated screenshots:
+
+→ **[docs/bug-report-starbase-ui.md](./docs/bug-report-starbase-ui.md)**
+
+(Inline screenshots: small preview, expand for full size + LEEKS captions. Idea/QA/field docs: **Bullit**. Engineering packaging: **LEEKS / Produce Bandit ltd**.)
+
 ## Install
 
 ### Option A — Load unpacked (development / from source)
