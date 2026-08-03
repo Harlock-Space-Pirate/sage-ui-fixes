@@ -7,8 +7,25 @@ Client-side browser extension that applies small UI corrections on [sage.staratl
 
 ## Credits
 
-Huge thanks to **Bullit** for testing every build, catching regressions in the wild, bringing ideas for what to fix next, and helping tinker through map, combat, and ownership fixes. This release is better because of that collaboration.
+### Bullit — QA from hyperspace
 
+**Bullit** is the reason this ship still warps after every patch.
+
+Commodore kid. Nintendo kid. Grew up on CRT glow, cartridge dust, and the sacred art of *blowing on the contacts and praying*. Same generation that learned physics from *Elite*, ethics from *Star Control*, and patience from a tape deck that said `FOUND` after three minutes of screeching. If the galaxy map glitches, he is already mid-jump with a controller in one hand and a thesis on why the starbase bar is lying.
+
+He does not “QA.” He **tinkers in the void**:
+
+- Spots dead fleet pins like a stoner spotting the **mushroom** in the wallpaper that was *definitely* always a face  
+- Files bug reports that hit harder than a **DMT** blast and somehow still include reproduction steps  
+- Brings ideas that smell like garage science, **weed** philosophy, and 1992 sci-fi paperbacks left open on a beanbag  
+- Stress-tests combat and ownership UIs until Neutral Zone stops gaslighting us  
+- Will say “bro what if…” and then it becomes a real fix three deploys later  
+
+If this extension feels less cursed than stock SAGE, thank the pilot who kept mashing **Start** while the rest of us were still loading from cassette.
+
+*Bullit — co-conspirator, idea factory, live-fire tester. We see you, legend.*
+
+**Author / shipwright:** LEEKS · **Produce Bandit ltd**
 ## What it fixes
 
 - Destroyed fleets lingering on the map / in combat target lists
