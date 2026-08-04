@@ -2,3 +2,6 @@ node_modules/
 dist/
 .DS_Store
 _metadata/
+
+# Local audit scratch (not shipped)
+docs/builder-menu-audit/

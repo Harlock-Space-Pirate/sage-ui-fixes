@@ -66,6 +66,8 @@ If this extension feels less cursed than stock SAGE, thank the pilot on the **le
 - Starbase HP bar presentation
 - Post-capture ownership / NEUTRAL lag on system views
 - Live HUD ownership and related display sync after capture or attack
+- Combat hit/miss feedback and claim-builder layout/scroll quirks (see [CHANGELOG](./CHANGELOG.md))
+- **Toolbar click:** shows installed **version** and a link to **GitHub release notes**
 
 ## Findings / engineering report
 

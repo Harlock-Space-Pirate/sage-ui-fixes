@@ -1,0 +1,142 @@
+:root {
+  color-scheme: dark;
+  --bg: #0a0f19;
+  --panel: #111827;
+  --line: rgba(0, 229, 255, 0.35);
+  --ice: #00e5ff;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --gold: #fbbf24;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  width: 300px;
+  padding: 14px 14px 12px;
+  background: linear-gradient(165deg, #0d2137 0%, var(--bg) 55%, #0a0f19 100%);
+  color: var(--text);
+  font: 13px/1.4 ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif;
+}
+
+header {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.mark {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  background: rgba(0, 229, 255, 0.1);
+  border: 1px solid var(--line);
+}
+
+.titles h1 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.byline {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.version-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+}
+
+.version-card .label {
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.version {
+  font: 800 16px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--ice);
+}
+
+.blurb {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.blurb strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btn {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-weight: 700;
+  font-size: 12px;
+  border: 1px solid transparent;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.btn.primary {
+  background: rgba(0, 229, 255, 0.16);
+  border-color: var(--line);
+  color: var(--ice);
+}
+
+.btn.primary:hover {
+  background: rgba(0, 229, 255, 0.28);
+}
+
+.btn.ghost {
+  background: transparent;
+  border-color: rgba(148, 163, 184, 0.35);
+  color: var(--muted);
+}
+
+.btn.ghost:hover {
+  border-color: rgba(148, 163, 184, 0.6);
+  color: var(--text);
+}
+
+footer {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(148, 163, 184, 0.15);
+  color: var(--muted);
+  font-size: 10px;
+  text-align: center;
+}
