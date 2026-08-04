@@ -132,11 +132,67 @@ function apply(src) {
   let n = 0;
   for (const [find, rep] of PATCHES) {
     if (out.split(find).length - 1 !== 1) {
-      console.warn(LOG, "miss", find.slice(0, 40));
       continue;
     }
     out = out.replace(find, rep);
     n++;
+  }
+
+  const REGEX_PATCHES = [
+    [
+      /if\(mt==="Docked"\|\|mt==="StarbaseLoadingBay"\|\|mt==="Respawn"\)\{/g,
+      'if(mt==="Docked"||mt==="StarbaseLoadingBay"||mt==="Respawn"||mt==="Destroyed"){'
+    ],
+    [
+      /return ([A-Za-z0-9_$]+)\.nearbyFleets\.filter\(([A-Za-z0-9_$]+)=>\{const ([A-Za-z0-9_$]+)=([A-Za-z0-9_$]+)\(([^,]+),([^,]+),\2\.coordinates\[0\],\2\.coordinates\[1\]\)<=([^,]+),([A-Za-z0-9_$]+)=toFactionEnum\(\2\.faction\),([A-Za-z0-9_$]+)=\8!==([A-Za-z0-9_$]+)&&!\(\10===w\.Unaligned&&\8===w\.Unaligned\),([A-Za-z0-9_$]+)=String\(\2\.fleetKey\)!==String\(\1\.fleetData\?\.fleetKey\);return \3&&\9&&\11\}\)/g,
+      'return $1.nearbyFleets.filter($2=>{const $3=$4($5,$6,$2.coordinates[0],$2.coordinates[1])<=$7,$8=toFactionEnum($2.faction),$9=$8!=$10&&!($10===w.Unaligned&&$8===w.Unaligned),$11=String($2.fleetKey)!==String($1.fleetData?.fleetKey),dead=$2.fleetAccount?.data?.state?.__kind==="Destroyed"||Number($2.fleetAccount?.data?.hp??0)<=0;return $3&&$9&&$11&&!dead})'
+    ],
+    [
+      /if\(([A-Za-z0-9_$]+)\)\{const ([A-Za-z0-9_$]+)=\1\.hp\+\1\.pendingHp;([A-Za-z0-9_$]+)=\2>0\?\1\.hp\/\2:0\}/g,
+      'if($1){const $2=Math.max(1,520+Number($1.level||0)*180);$3=Math.min(1,Math.max(0,Number($1.hp||0)/$2))}'
+    ],
+    [
+      /Object\.values\(([A-Za-z0-9_$]+)\)\.map\(([A-Za-z0-9_$]+)=>\`\$\{\2\.name\}@\$\{\2\.coordinates\[0\]\},\$\{\2\.coordinates\[1\]\}:\$\{\2\.owner\?\?"none"\}:L\$\{\2\.starbaseLevel\?\?0\}:\$\{\2\.core\?"core":"not"\}:\$\{\2\.planetCount\}:\$\{\2\.asteroidCount\}:\$\{\(\2\.stars\?\?\[\]\)\.length\}\`\)/g,
+      'Object.values($1).map($2=>`${$2.name}@${$2.coordinates[0]},${$2.coordinates[1]}:${$2.owner??"none"}:L${$2.starbaseLevel??0}:H${(($2.starbaseHpFraction??0)*100)|0}:${$2.core?"core":"not"}:${$2.planetCount}:${$2.asteroidCount}:${($2.stars??[]).length}`)'
+    ],
+    [
+      /ht=nt\?\.hp\?\?mt,vt=Math\.max\(nt\?\.maxHp\?\?mt,ht\),St=nt\?\.sp\?\?ft,Ct=Math\.max\(nt\?\.maxSp\?\?ft,St\)/g,
+      'ht=nt?.hp??0,vt=Math.max(nt?.maxHp??mt,ht),St=nt?.sp??0,Ct=Math.max(nt?.maxSp??ft,St)'
+    ],
+    [
+      /function resolveDisplayOwner\(ee,Se,nt,at\)\{const mt=nt\.get\(String\(ee\)\);return mt&&at\.hasStarbase&&String\(mt\.gameId\)===String\(at\.gameId\)&&mt\.capturedSeqId===at\.systemSeqId&&mt\.controllingFaction>0\?mt\.controllingFaction:Se\}/g,
+      'function resolveDisplayOwner(ee,Se,nt,at){const mt=nt.get(String(ee));const f=mt!=null?Number(mt.controllingFaction):NaN;return mt&&at.hasStarbase&&String(mt.gameId)===String(at.gameId)&&(f===1||f===2||f===3)?f:Se}'
+    ],
+    [
+      /console\.log\("✅ Attack starbase transaction sent"\),(.*?),await ([A-Za-z0-9_$]+)\(\{fleetKey:([A-Za-z0-9_$]+)\.address,fleetInfo:([A-Za-z0-9_$]+),game:([A-Za-z0-9_$]+),character:([A-Za-z0-9_$]+),gw:([A-Za-z0-9_$]+),actionLabel:"Attack",onFleetRefreshed:([A-Za-z0-9_$]+)\.createCounterstrikeRefreshHandler\(([^,]+),([^,]+),0?\.8\)\}/g,
+      'console.log("✅ Attack starbase transaction sent"),$1;const _sbHpPre=Number($5?.data?.starbase?.value?.hp??0);await $2({fleetKey:$3.address,fleetInfo:$4,game:$5,character:$6,gw:$7,actionLabel:"Attack",onFleetRefreshed:$8.createCounterstrikeRefreshHandler($9,$10,.8)});const _sbHpPost=Number($5?.data?.starbase?.value?.hp??0),_sbDmg=Math.max(0,_sbHpPre-_sbHpPost);window.__SA_LOG_COMBAT_EVENT?.({type:"STARBASE",target:"Starbase",damage:_sbDmg,x:$9?.target?.x,y:$9?.target?.y});Pt(_sbDmg>0?`🎯 HIT! Dealt ${_sbDmg.toLocaleString()} damage to starbase.`:`❌ MISS! Attack against starbase missed.`,_sbDmg>0?"success":"warning",{presentation:"feed",title:_sbDmg>0?"Starbase Hit":"Starbase Miss"});(async()=>{const sa=async()=>{try{Kt?.refetch?.starSystem&&await Kt.refetch.starSystem();Kt?.refetch?.factionOwnership&&await Kt.refetch.factionOwnership()}catch(_e){}};await sa();[2e3,5e3,1e4].forEach(ms=>setTimeout(sa,ms))})()'
+    ],
+    [
+      /console\.error\("Failed to attack starbase:",([A-Za-z0-9_$]+)\),([A-Za-z0-9_$]+)\(([A-Za-z0-9_$]+)\(\1\),"error",\{title:"Starbase attack failed",targets:\[([^\]]+)\]\}\)/g,
+      'console.error("Failed to attack starbase:",$1);const _errStr=String($1?.message||$1?.stack||JSON.stringify($1)||"");if(/1367933016|0x51890058|Starbase contested/i.test(_errStr)){window.__SA_LOG_COMBAT_EVENT?.({type:"CONTESTED",target:"Starbase",damage:0});$2(`🛡️ Starbase is CONTESTED and under protection/cooldown! (0x51890058)`,"error",{title:"Starbase Contested",targets:[$4]})}else if(/1367933091|0x51890023|resource=ap/i.test(_errStr)){$2("⚡ Insufficient AP! Reload fleet AP or top up ammo.","error",{title:"AP Depleted",targets:[$4]})}else{$2($3($1),"error",{title:"Starbase attack failed",targets:[$4]})}'
+    ],
+    [
+      /console\.log\("✅ Attack fleet transaction sent"\),await ([A-Za-z0-9_$]+)\(\{fleetKey:([A-Za-z0-9_$]+)\.address,fleetInfo:([A-Za-z0-9_$]+),game:([A-Za-z0-9_$]+),character:([A-Za-z0-9_$]+),gw:([A-Za-z0-9_$]+),actionLabel:"Attack",onFleetRefreshed:([A-Za-z0-9_$]+)\.createCounterstrikeRefreshHandler\(([^,]+),([^,]+),0?\.6\)\}/g,
+      'console.log("✅ Attack fleet transaction sent");const _hpPre=Number(Qh?.fleetAccount?.data?.hp??0);await $1({fleetKey:$2.address,fleetInfo:$3,game:$4,character:$5,gw:$6,actionLabel:"Attack",onFleetRefreshed:$7.createCounterstrikeRefreshHandler($8,$9,.6)});const _hpPost=Number(Qh?.fleetAccount?.data?.hp??0),_dmg=Math.max(0,_hpPre-_hpPost),_st=Qh?.fleetAccount?.data?.state?.__kind,_flee=_st==="MoveWarp"||_st==="MoveSubwarp";window.__SA_LOG_COMBAT_EVENT?.({type:_flee?"FLEE":(_dmg>0?"HIT":"MISS"),target:"Target Fleet",damage:_dmg,x:$8?.target?.x,y:$8?.target?.y});Pt(_flee?"🏃 FLEE! Target fleet fled the area!":(_dmg>0?`🎯 HIT! Dealt ${_dmg.toLocaleString()} damage.`:"❌ MISS! Attack missed."),_flee?"info":(_dmg>0?"success":"warning"),{presentation:"feed",title:_flee?"Fled":(_dmg>0?"Hit":"Miss")});'
+    ],
+    [
+      /console\.error\("Failed to attack fleet:",([A-Za-z0-9_$]+)\),([A-Za-z0-9_$]+)\(([A-Za-z0-9_$]+)\(\1\),"error",\{title:"Fleet attack failed",targets:\[([^\]]+)\]\}\)/g,
+      'console.error("Failed to attack fleet:",$1);const _errStr=String($1?.message||$1?.stack||JSON.stringify($1)||"");if(/1367933091|0x51890023|resource=ap/i.test(_errStr)){$2("⚡ Insufficient AP! Reload fleet AP or top up ammo.","error",{title:"AP Depleted",targets:[$4]})}else if(/xp\\.rs:132|overflow/i.test(_errStr)){$2("⚠️ SAGE Program Panic (XP Overflow). Retrying attack may succeed.","error",{title:"Program Panic",targets:[$4]})}else{$2($3($1),"error",{title:"Fleet attack failed",targets:[$4]})}'
+    ],
+    [
+      /It=createMemo\(\(\)=>ee\.system\?\.owner\?\?w\.Unaligned\)/g,
+      'It=createMemo(()=>{const gn=ee.system;if(!gn)return w.Unaligned;const Jr=gn._systemId;const Sn=Jr!=null?(Se.state.map?.systems?.[Jr]??Se.state.map?.systems?.[String(Jr)]):null;return Sn?.owner??gn.owner??w.Unaligned})'
+    ],
+    [
+      /updateDetailFaction\(Se,nt\)\{const at=FACTION_COLORS\[nt\]\|\|FACTION_COLORS\.DEFAULT_GLOW;for\(const St of Se\.warpLanes\|\|\[\]\)St\.container&&St\.container\.parent&&St\.container\.parent\.removeChild\(St\.container\),St\.container\.destroy\(\{children:!0\}\);for\(const St of Se\.warpGates\|\|\[\]\)\{for\(const Ct of St\.clouds\|\|\[\]\)Ct\.sprite&&Ct\.sprite\.parent&&Ct\.sprite\.parent\.removeChild\(Ct\.sprite\),Ct\.sprite\.destroy\(\);St\.sprite&&St\.sprite\.parent&&St\.sprite\.parent\.removeChild\(St\.sprite\),St\.sprite\.destroy\(\)\}const mt=\(Se\.planets\.length\+Se\.asteroidBelts\.length\)\*SYSTEM_DETAIL_CONFIG\.PLANET\.ORBIT_SPACING\+SYSTEM_DETAIL_CONFIG\.PLANET\.MIN_ORBIT_RADIUS,ft=\.6,ht=Se\.system\._systemId\|\|Se\.system\.name,vt=this\.createWarpConnections\(Se\.system,ht,nt,at,Se\.container,Se\.centerX,Se\.centerY,mt,ft\);Se\.warpGates=vt\.warpGates,Se\.warpLanes=vt\.warpLanes,this\.moveStarGlowsToTop\(Se\.container,Se\.stars\),Se\.faction=nt\}/g,
+      'updateDetailFaction(Se,nt){const sys=Se.system,cx=Se.centerX,cy=Se.centerY,key=Se.systemKey,vis=!!Se.isVisible,alpha=Se.container&&Se.container.alpha,tp=Se.transitionProgress,parent=Se.container&&Se.container.parent;this.removeDetailView(Se),this.activeDetails.delete(key);const ht=this.createDetailView(sys,cx,cy,nt,key);this.activeDetails.set(key,ht),(parent||this.viewport).addChild(ht.container),vis&&(ht.isVisible=!0,ht.container.renderable=!0,typeof alpha=="number"&&(ht.container.alpha=alpha),typeof tp=="number"&&(ht.transitionProgress=tp),this.hideStarSprite(key))}'
+    ]
+  ];
+
+  for (const [re, rep] of REGEX_PATCHES) {
+    const prev = out.length;
+    out = out.replace(re, rep);
+    if (out.length !== prev) n++;
   }
   const logInit = `
 window.__SA_LOG_COMBAT_EVENT=window.__SA_LOG_COMBAT_EVENT||(function(){let min=!1;const c=document.createElement("div");c.id="sa-combat-log-box";c.style.cssText="position:fixed;bottom:16px;left:16px;width:360px;max-height:220px;background:rgba(10,15,25,0.92);backdrop-filter:blur(8px);border:1px solid rgba(0,229,255,0.35);border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,0.7);font-family:monospace;color:#e2e8f0;font-size:11px;z-index:999999;display:flex;flex-direction:column;overflow:hidden;transition:all 0.25s ease;";const h=document.createElement("div");h.style.cssText="background:rgba(0,229,255,0.15);padding:6px 10px;display:flex;align-items:center;justify-content:space-between;font-weight:bold;color:#00e5ff;letter-spacing:0.5px;user-select:none;border-bottom:1px solid rgba(0,229,255,0.2);";h.innerHTML='<span>⚔️ COMBAT LOG</span><div><button id="sa-cl-cls" style="background:none;border:none;color:#94a3b8;cursor:pointer;margin-right:6px;" title="Clear">🗑️</button><button id="sa-cl-min" style="background:none;border:none;color:#00e5ff;cursor:pointer;font-weight:bold;">[−]</button></div>';const b=document.createElement("div");b.style.cssText="padding:6px 8px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:4px;max-height:175px;";c.appendChild(h);c.appendChild(b);const mount=()=>{if(document.body)document.body.appendChild(c);else setTimeout(mount,100)};mount();h.querySelector("#sa-cl-cls").onclick=()=>{b.innerHTML=""};h.querySelector("#sa-cl-min").onclick=()=>{min=!min;c.style.maxHeight=min?"30px":"220px";b.style.display=min?"none":"flex";h.querySelector("#sa-cl-min").textContent=min?"[+]":"[−]"};return function(e){const time=new Date().toLocaleTimeString("en-US",{hour12:!1});const r=document.createElement("div");r.style.cssText="line-height:1.35;border-bottom:1px solid rgba(255,255,255,0.06);padding-bottom:2px;";let icon="🎯",color="#f87171",msg="";if(e.type==="HIT"){icon="🎯";color="#f87171";msg=\`<span style="color:#ef4444;font-weight:bold;">HIT</span> vs <b style="color:#fff">\${e.target}</b> <span style="color:#f87171;font-weight:bold;">-\${e.damage.toLocaleString()} HP</span>\`}else if(e.type==="MISS"){icon="❌";color="#9ca3af";msg=\`<span style="color:#9ca3af;font-weight:bold;">MISS</span> vs <b style="color:#fff">\${e.target}</b> (0 DMG)\`}else if(e.type==="STARBASE"){icon="🏰";color=e.damage>0?"#f87171":"#9ca3af";msg=\`<span style="color:\${color};font-weight:bold;">STARBASE</span> vs <b style="color:#fff">\${e.target}</b> \${e.damage>0?\`<span style="color:#f87171;font-weight:bold;">-\${e.damage.toLocaleString()} HP</span>\`:"(0 DMG)"}\`}else if(e.type==="FLEE"){icon="🏃";color="#fbbf24";msg=\`<span style="color:#fbbf24;font-weight:bold;">FLEE</span> <b style="color:#fff">\${e.target}</b> warped away / exited sector!\`}r.innerHTML=\`<span style="color:#64748b;">[\${time}]</span> \${icon} \${msg}\`;b.appendChild(r);b.scrollTop=b.scrollHeight;if(e.x&&e.y){const txt=e.damage>0?\`-\${e.damage.toLocaleString()} HP\`:(e.type==="FLEE"?"FLED!":"MISS");const pop=document.createElement("div");pop.textContent=txt;pop.style.cssText=\`position:fixed;left:\${e.x}px;top:\${e.y-25}px;transform:translate(-50%,-50%);font-family:monospace;font-weight:900;font-size:22px;color:\${color};text-shadow:0 0 8px #000,2px 2px 0 #000;pointer-events:none;z-index:999999;animation:saFloatUp 1.4s cubic-bezier(0.2,0.8,0.2,1) forwards;\`;if(!document.getElementById("sa-c-style")){const s=document.createElement("style");s.id="sa-c-style";s.textContent="@keyframes saFloatUp{0%{opacity:0;transform:translate(-50%,0) scale(.6)}15%{opacity:1;transform:translate(-50%,-20px) scale(1.25)}70%{opacity:1;transform:translate(-50%,-45px) scale(1)}100%{opacity:0;transform:translate(-50%,-65px) scale(.8)}}";document.head.appendChild(s)}document.body.appendChild(pop);setTimeout(()=>pop.remove(),1400)}}})();
