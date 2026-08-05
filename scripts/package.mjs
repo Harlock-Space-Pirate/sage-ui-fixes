@@ -14,20 +14,25 @@ const out = path.join(outDir, `sage-ui-fixes-${ver}.zip`);
 await mkdir(outDir, { recursive: true });
 await rm(out, { force: true });
 
-// Runtime only — docs, scripts, package.json stay out of the zip.
+// Runtime only — never include docs, stock dumps, sprites, analytics, or local scratch.
+// Explicit allow-list (paths relative to repo root).
+const include = [
+  "manifest.json",
+  "background.js",
+  "content.js",
+  "popup.html",
+  "popup.css",
+  "popup.js",
+  "rules.json",
+  "icons",
+];
+
 execFileSync(
   "zip",
   [
     "-r",
     out,
-    "manifest.json",
-    "background.js",
-    "content.js",
-    "popup.html",
-    "popup.css",
-    "popup.js",
-    "rules.json",
-    "icons",
+    ...include,
     "-x",
     "*.DS_Store",
     "-x",
@@ -36,8 +41,11 @@ execFileSync(
     "*_metadata*",
     "-x",
     "*_metadata/*",
+    "-x",
+    "*/.git/*",
   ],
   { cwd: root, stdio: "inherit" },
 );
 
 console.log(`wrote ${out}`);
+console.log(`includes: ${include.join(", ")}`);

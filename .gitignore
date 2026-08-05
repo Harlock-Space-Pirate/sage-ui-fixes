@@ -3,5 +3,15 @@ dist/
 .DS_Store
 _metadata/
 
-# Local audit scratch (not shipped)
+# Local / private — never ship or commit
+.tmp*
+*.tmp.*
+sprites/
+stock-snapshots/
 docs/builder-menu-audit/
+
+# OS / editor
+.idea/
+.vscode/
+*.swp
+*~
