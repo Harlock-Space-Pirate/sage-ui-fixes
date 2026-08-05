@@ -24,6 +24,32 @@
       Client-only UI fixes for <strong>sage.staratlas.com</strong> (map, combat, claim builder, ownership). No wallet access.
     </p>
 
+    <section class="debug-card trails-card" aria-labelledby="trails-title">
+      <div class="debug-head">
+        <div>
+          <h2 id="trails-title">Warp trails</h2>
+          <p class="debug-sub">Particle trails on warp / subwarp. OFF can help FPS.</p>
+        </div>
+        <button type="button" id="trails-toggle" class="toggle on" aria-pressed="true" title="Toggle warp trails on the open SAGE tab">
+          ON
+        </button>
+      </div>
+      <p id="trails-status" class="debug-status">Open sage.staratlas.com, then toggle.</p>
+    </section>
+
+    <section class="debug-card zoom-card" aria-labelledby="zoom-title">
+      <div class="debug-head">
+        <div>
+          <h2 id="zoom-title">Zoom counter</h2>
+          <p class="debug-sub">Live map zoom + center (troubleshoot marquee / fleets).</p>
+        </div>
+        <button type="button" id="zoom-toggle" class="toggle off" aria-pressed="false" title="Toggle zoom HUD on the open SAGE tab">
+          OFF
+        </button>
+      </div>
+      <p id="zoom-status" class="debug-status">Open sage.staratlas.com, then toggle.</p>
+    </section>
+
     <section class="debug-card" aria-labelledby="debug-title">
       <div class="debug-head">
         <div>

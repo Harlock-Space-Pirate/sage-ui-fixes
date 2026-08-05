@@ -101,6 +101,22 @@ header {
   border: 1px solid rgba(251, 191, 36, 0.35);
 }
 
+.debug-card.trails-card {
+  border-color: rgba(0, 229, 255, 0.35);
+}
+
+.debug-card.trails-card h2 {
+  color: var(--ice);
+}
+
+.debug-card.zoom-card {
+  border-color: rgba(255, 190, 77, 0.4);
+}
+
+.debug-card.zoom-card h2 {
+  color: var(--gold);
+}
+
 .debug-head {
   display: flex;
   align-items: flex-start;

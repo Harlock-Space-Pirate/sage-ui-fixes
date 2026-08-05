@@ -15,3 +15,8 @@ docs/builder-menu-audit/
 .vscode/
 *.swp
 *~
+
+# Local design / QA captures (not for public repo)
+docs/design-system/
+docs/screenshots/test-*.png
+docs/screenshots/test-*.jpg

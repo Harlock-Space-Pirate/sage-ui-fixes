@@ -1,5 +1,125 @@
 # Changelog
 
+## 1.0.32
+
+- **Zoom counter HUD** (popup toggle): live map scale `×N.NN` + world/game center coords (top-right amber chip)
+- Preference: `localStorage.saZoomHud=1` · console `__SA_ZOOM_HUD__.on()` / `.off()`
+
+## 1.0.31
+
+- **Combat log restyle** to match Wings / action-bar amber HUD (Orbitron, gold accents, square corners, same button scale as other panels)
+- Combat / Flight tabs use amber active underline instead of cyan
+
+## 1.0.30
+
+- **Warp trails toggle** ([#1](https://github.com/Harlock-Space-Pirate/sage-ui-fixes/issues/1)): extension popup ON/OFF; OFF skips `createWarpTrail` (FPS) and clears existing trails
+- Preference: `localStorage.saNoWarpTrails=1` · runtime `__SA_WARP_TRAILS__.enable()` / `.disable()`
+
+## 1.0.29
+
+- **Wings panel:** resizable corner handle; size + position saved (`saWingsPanelPos.v1`)
+- **Compact fleet cards** closer to stock My Fleets: size bars, `UNDOCKED / IDLE` / `DOCKED` status colors, location, segmented HP/SP/fuel bars
+- **Per-wing colors** on columns and action-bar chips [1–5]
+- **Larger Wings buttons** (header + Use wing / delete) matching other pop-up controls
+
+## 1.0.28
+
+- Wings panel resize foundation; fleet card pips; column accents; button sizing pass
+
+## 1.0.27
+
+- **Wings editor = floating compact panel** (not full-screen modal): map stays interactive
+- Opens centered; **drag header** to park on the side (position remembered)
+- Denser amber HUD layout (Orbitron, smaller columns/cards)
+
+## 1.0.26
+
+- **Wing WARP/SWARP without Movement Planner pane:** click map only → compact Ready/Blocked confirm → stock `submit` batch (same preflight/math as planner)
+- Planner left rail stays closed (`active:false` / `primeBatch`); no more huge left panel for multi-fleet moves
+
+## 1.0.25
+
+- **Shift+drag marquee** on the map: select owned fleets only (ignores systems/starbases) into temporary wing **[0]**
+- Action bar: **[0]** marquee chip, then **[1–5]**, then extra space before **[×]** (harder to mis-click)
+- Key **0** selects marquee wing; temp group is memory-only (not saved across refresh)
+
+## 1.0.24
+
+- **Wing groups survive refresh:** fixed wipe on load — no longer prune/save empty membership before fleets are ready
+- Persist `groups` + labels in `localStorage` (`saFleetGroups.v1`) with safer load/save
+
+## 1.0.23
+
+- **Chain wings:** Ctrl/Cmd+click wing chips (or Ctrl+1…5) to link groups for one shared destination
+- Visual **chain links** between selected chips + count badge; plain click = solo wing; ×/Esc clears chain
+- WARP/SWARP with multiple wings merges fleets into one stock multi-order (same preflight confirm)
+
+## 1.0.22
+
+- **Cancel** during warp/swarp pick sits **above** the wing chips bar (not replacing action tiles)
+- Action tiles stay visible; active mode (WARP/SWARP) highlighted while picking
+
+## 1.0.21
+
+- **Simple action bar:** `[1][2][3][4][5] [×]` + `|WARP|SWARP|SCAN|ATK|` — no outer border panel
+- **Wing keys 1–5 / Esc=×** clear selection; cancel map pick
+- **Single fleet:** WARP/SWARP/SCAN/ATK use stock paths
+- **Wing + WARP/SWARP:** map pick → compact Ready/Blocked confirm → stock multi-fleet batch (preflight)
+- Stock Movement Planner chrome hidden during wing order (logic kept)
+
+## 1.0.20
+
+- **Wing + Subwarp:** use **stock multi-fleet movement planner** (same path as checkbox multi-select)
+  - Pre-selects all wing fleets, **map targeting** for the normal click-map pick
+  - Auto **Issue Movement Orders** after destination → stock preflight + `executeMovementOrderBatch`
+  - No more custom overlay / sequential fallback when planner is ready
+- Flight log: clearer PICK/SUBMIT messages for wing orders
+
+## 1.0.19
+
+- **Action bar restyle:** stock-like **Fleet actions** panel (cyan frame, Orbitron labels) matching movement-order UI
+- **Wing mini-bar** above actions: buttons **1–9** for each wing (count badge); key **1–9** selects wing
+- **Wing + Subwarp:** custom map pick (crosshair overlay) → multi-subwarp all ships in wing via stock planner batch when available
+- **Flight log tab** on combat log window (Combat | Flight); per-fleet skip/error/cooldown notes; clear respects active tab
+- Planner + map math exposes for multi-orders (`__SA_PLANNER__`, `__SA_MAP_MATH__`, `__SA_WING_PICK__`, `__SA_FLIGHT_LOG__`)
+
+## 1.0.18
+
+- **Fix "Unreal Engine is not available":** stock `showSubwarp`/`showWarp` call `getEngine()` (web SAGE has no UE bridge). Action bar + wrappers now use **map movement** (`__SA_MOVEMENT__.start` / `tp`) and DOM Subwarp fallback — never the broken getEngine path
+- Register `__SA_MOVEMENT__` at map init (`Ap` createMemo boot) so Space/bar work without a prior subwarp
+
+## 1.0.17
+
+- **Fleet Wings — all owned fleets:** Unassigned lists every fleet you own (from live `peekFleets` + player profile), not only the selected one
+- **Selected highlight:** current fleet is pinned to the **top** of Unassigned/wing lists with a cyan highlight
+- **Refresh** button on the Wings board if fleets load after open
+
+## 1.0.16
+
+- **Combat log concurrent attacks:** each resolve has a unique `id` so multi-hits on the same starbase no longer leave a stuck **RESOLVING** row or clobber each other
+- **Pre-attack HP snapshot:** capture starbase HP at `⚔️ Attacking starbase…` (before wallet confirm), not only after confirm — fixes first-hit damage missed when chain already applied
+- **HP tracking:** peak/trough across polls so late RPC/cache still yields a delta
+- **Recorder:** `__SA_COMBAT_RECORDER__.dump()` / `.clear()` — last ~150 events in `localStorage` (`saCombatLog.v1`)
+
+## 1.0.15
+
+- **Boot fix:** SyntaxError `Unexpected token 'var'` — ASI missing after `__SA_SAGE_ACTIONS__` assign; removed illegal comma-chain inject before `Ap=` that broke the minified module parse
+- Movement API now registers safely inside `tp` / `zp` function bodies
+
+## 1.0.14
+
+- **Styled fly confirm** — game-style modal (not browser `confirm`); Shift+click / Meta+click still skips and launches immediately
+- **No leftover Start Subwarp bar** — auto-launch uses stock `zp()` submit path (shows Submitting, then clears)
+- **Bottom fleet action bar** — Subwarp / Warp / Attack / Scan / Stop (no Destruct); becomes **Cancel move** while ordering/moving
+- **Rebindable hotkeys** — double-click a key badge on the bar to capture a new shortcut (saved in `localStorage`)
+- **Fleet Wings board** — Trello-style groups (drag fleets, rename, SUBWARP WING, add group); open with **Wings** or hotkey `G`
+
+## 1.0.13
+
+- **Combat log UX:** text wraps to width (`overflow-wrap`); custom thin cyan scrollbar; **draggable** by header
+- **Fleet Space → subwarp pick:** with a fleet selected, **Space** starts subwarp destination mode (map pick)
+- **Map destination:** **click** asks “Fly subwarp/warp to …?”; **Shift+click** flies immediately (no prompt); Cancel exits pick mode
+
 ## 1.0.12
 
 - **Map debugger for non-techies:** extension popup **ON/OFF toggle** + **Copy ON / Copy OFF** one-liners

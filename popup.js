@@ -1,4 +1,4 @@
-/** Popup: version + map-debug toggle. LEEKS / Produce Bandit ltd */
+/** Popup: version + map-debug + warp-trails toggles. LEEKS / Produce Bandit ltd */
 const REPO_RELEASES = "https://github.com/Harlock-Space-Pirate/sage-ui-fixes/releases";
 const SAGE_MATCH = "https://sage.staratlas.com/*";
 
@@ -69,6 +69,96 @@ async function setDebugState(tabId, on) {
   );
 }
 
+/** Warp trails: ON = stock trails, OFF = disabled for FPS (issue #1). */
+async function readTrailsState(tabId) {
+  return pageEval(tabId, () => {
+    try {
+      const noTrails = localStorage.getItem("saNoWarpTrails") === "1";
+      const flag = !!window.__SA_NO_WARP_TRAILS__;
+      const api = window.__SA_WARP_TRAILS__;
+      const enabled = api && typeof api.isEnabled === "function" ? api.isEnabled() : !noTrails && !flag;
+      return { on: enabled, noTrails, hasApi: !!api };
+    } catch (e) {
+      return { on: true, error: String(e?.message || e) };
+    }
+  });
+}
+
+async function setTrailsState(tabId, enabled) {
+  return pageEval(
+    tabId,
+    (on) => {
+      try {
+        if (window.__SA_WARP_TRAILS__?.setEnabled) {
+          window.__SA_WARP_TRAILS__.setEnabled(!!on);
+          return { ok: true, on: !!window.__SA_WARP_TRAILS__.isEnabled?.() };
+        }
+        // Fallback before patched bundle boots
+        if (on) {
+          localStorage.removeItem("saNoWarpTrails");
+          try {
+            window.__SA_NO_WARP_TRAILS__ = false;
+          } catch (_) {}
+        } else {
+          localStorage.setItem("saNoWarpTrails", "1");
+          try {
+            window.__SA_NO_WARP_TRAILS__ = true;
+          } catch (_) {}
+        }
+        return { ok: true, on: !!on, needsReload: true };
+      } catch (e) {
+        return { ok: false, error: String(e?.message || e) };
+      }
+    },
+    [enabled],
+  );
+}
+
+/** Zoom counter HUD: ON = live scale/center overlay for map troubleshooting. */
+async function readZoomState(tabId) {
+  return pageEval(tabId, () => {
+    try {
+      const stored = localStorage.getItem("saZoomHud") === "1";
+      const api = window.__SA_ZOOM_HUD__;
+      const on = api && typeof api.isOn === "function" ? api.isOn() : stored;
+      const snap = api && typeof api.read === "function" ? api.read() : null;
+      return {
+        on,
+        stored,
+        hasApi: !!api,
+        scale: snap && Number.isFinite(snap.scale) ? snap.scale : null,
+      };
+    } catch (e) {
+      return { on: false, error: String(e?.message || e) };
+    }
+  });
+}
+
+async function setZoomState(tabId, enabled) {
+  return pageEval(
+    tabId,
+    (on) => {
+      try {
+        if (window.__SA_ZOOM_HUD__?.setEnabled) {
+          window.__SA_ZOOM_HUD__.setEnabled(!!on);
+          const snap = window.__SA_ZOOM_HUD__.read?.();
+          return {
+            ok: true,
+            on: !!window.__SA_ZOOM_HUD__.isOn?.(),
+            scale: snap && Number.isFinite(snap.scale) ? snap.scale : null,
+          };
+        }
+        if (on) localStorage.setItem("saZoomHud", "1");
+        else localStorage.removeItem("saZoomHud");
+        return { ok: true, on: !!on, needsReload: true };
+      } catch (e) {
+        return { ok: false, error: String(e?.message || e) };
+      }
+    },
+    [enabled],
+  );
+}
+
 async function copyText(text) {
   try {
     await navigator.clipboard.writeText(text);
@@ -103,6 +193,42 @@ function setToggleUi(btn, statusEl, state, note) {
   }
 }
 
+function setTrailsUi(btn, statusEl, state, note) {
+  const on = !!(state && state.on);
+  if (btn) {
+    btn.textContent = on ? "ON" : "OFF";
+    btn.classList.toggle("on", on);
+    btn.classList.toggle("off", !on);
+    btn.setAttribute("aria-pressed", on ? "true" : "false");
+  }
+  if (statusEl) {
+    if (note) statusEl.textContent = note;
+    else if (!state) statusEl.textContent = "Open sage.staratlas.com, then toggle.";
+    else if (state.error) statusEl.textContent = "Could not read page: " + state.error;
+    else if (on) statusEl.textContent = "Trails ON — warp/subwarp particle FX active.";
+    else statusEl.textContent = "Trails OFF — createWarpTrail skipped (better FPS).";
+  }
+}
+
+function setZoomUi(btn, statusEl, state, note) {
+  const on = !!(state && state.on);
+  if (btn) {
+    btn.textContent = on ? "ON" : "OFF";
+    btn.classList.toggle("on", on);
+    btn.classList.toggle("off", !on);
+    btn.setAttribute("aria-pressed", on ? "true" : "false");
+  }
+  if (statusEl) {
+    if (note) statusEl.textContent = note;
+    else if (!state) statusEl.textContent = "Open sage.staratlas.com, then toggle.";
+    else if (state.error) statusEl.textContent = "Could not read page: " + state.error;
+    else if (on) {
+      const sc = state.scale != null && Number.isFinite(Number(state.scale)) ? ` · now ×${Number(state.scale).toFixed(2)}` : "";
+      statusEl.textContent = `Zoom HUD ON — top-right counter${sc}.`;
+    } else statusEl.textContent = "Zoom HUD OFF.";
+  }
+}
+
 try {
   const { version } = chrome.runtime.getManifest();
   const verEl = document.getElementById("version");
@@ -124,12 +250,20 @@ const toggleBtn = document.getElementById("debug-toggle");
 const statusEl = document.getElementById("debug-status");
 const copyOn = document.getElementById("copy-on");
 const copyOff = document.getElementById("copy-off");
+const trailsBtn = document.getElementById("trails-toggle");
+const trailsStatus = document.getElementById("trails-status");
+const zoomBtn = document.getElementById("zoom-toggle");
+const zoomStatus = document.getElementById("zoom-status");
 
 (async () => {
   const tab = await getSageTab();
   if (!tab?.id) {
     setToggleUi(toggleBtn, statusEl, null, "Open sage.staratlas.com first, then click the extension icon.");
+    setTrailsUi(trailsBtn, trailsStatus, null, "Open sage.staratlas.com first, then click the extension icon.");
+    setZoomUi(zoomBtn, zoomStatus, null, "Open sage.staratlas.com first, then click the extension icon.");
     if (toggleBtn) toggleBtn.disabled = true;
+    if (trailsBtn) trailsBtn.disabled = true;
+    if (zoomBtn) zoomBtn.disabled = true;
     return;
   }
   try {
@@ -138,6 +272,20 @@ const copyOff = document.getElementById("copy-off");
   } catch (e) {
     setToggleUi(toggleBtn, statusEl, null, "Refresh the SAGE tab, then try again.");
     console.warn("[sa-ui-fixes] read debug", e);
+  }
+  try {
+    const trails = await readTrailsState(tab.id);
+    setTrailsUi(trailsBtn, trailsStatus, trails);
+  } catch (e) {
+    setTrailsUi(trailsBtn, trailsStatus, null, "Refresh the SAGE tab, then try again.");
+    console.warn("[sa-ui-fixes] read trails", e);
+  }
+  try {
+    const zoom = await readZoomState(tab.id);
+    setZoomUi(zoomBtn, zoomStatus, zoom);
+  } catch (e) {
+    setZoomUi(zoomBtn, zoomStatus, null, "Refresh the SAGE tab, then try again.");
+    console.warn("[sa-ui-fixes] read zoom", e);
   }
 
   toggleBtn?.addEventListener("click", async () => {
@@ -164,6 +312,64 @@ const copyOff = document.getElementById("copy-off");
       console.warn("[sa-ui-fixes] toggle", e);
     } finally {
       toggleBtn.disabled = false;
+    }
+  });
+
+  trailsBtn?.addEventListener("click", async () => {
+    trailsBtn.disabled = true;
+    try {
+      const cur = await readTrailsState(tab.id);
+      const next = !cur?.on;
+      const res = await setTrailsState(tab.id, next);
+      if (!res?.ok) {
+        setTrailsUi(trailsBtn, trailsStatus, cur, res?.error || "Toggle failed — hard refresh SAGE and retry.");
+      } else {
+        const state = await readTrailsState(tab.id);
+        setTrailsUi(
+          trailsBtn,
+          trailsStatus,
+          state,
+          next
+            ? "Trails ON — new warps will show particle trails."
+            : res.needsReload
+              ? "Trails OFF saved — hard-refresh SAGE once so the patch applies."
+              : "Trails OFF — existing trails cleared; new warps skip FX.",
+        );
+      }
+    } catch (e) {
+      setTrailsUi(trailsBtn, trailsStatus, null, "Toggle failed — is the SAGE tab loaded?");
+      console.warn("[sa-ui-fixes] trails toggle", e);
+    } finally {
+      trailsBtn.disabled = false;
+    }
+  });
+
+  zoomBtn?.addEventListener("click", async () => {
+    zoomBtn.disabled = true;
+    try {
+      const cur = await readZoomState(tab.id);
+      const next = !cur?.on;
+      const res = await setZoomState(tab.id, next);
+      if (!res?.ok) {
+        setZoomUi(zoomBtn, zoomStatus, cur, res?.error || "Toggle failed — hard refresh SAGE and retry.");
+      } else {
+        const state = await readZoomState(tab.id);
+        setZoomUi(
+          zoomBtn,
+          zoomStatus,
+          state,
+          next
+            ? res.needsReload
+              ? "Zoom HUD saved — hard-refresh SAGE once so it appears."
+              : `Zoom HUD ON — top-right${res.scale != null ? ` · ×${Number(res.scale).toFixed(2)}` : ""}.`
+            : "Zoom HUD OFF.",
+        );
+      }
+    } catch (e) {
+      setZoomUi(zoomBtn, zoomStatus, null, "Toggle failed — is the SAGE tab loaded?");
+      console.warn("[sa-ui-fixes] zoom toggle", e);
+    } finally {
+      zoomBtn.disabled = false;
     }
   });
 })();

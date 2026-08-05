@@ -77,6 +77,13 @@ Full write-up of the **starbase destruction display loop** Bullit scoped (tier d
 
 (Inline screenshots: small preview, expand for full size + LEEKS captions. Idea/QA/field docs: **Bullit**. Engineering packaging: **LEEKS / Produce Bandit ltd**.)
 
+## Design system (stock SAGE look)
+
+When building or reviewing **any** injected UI, use the stock Golden Era language (fleet action **icon tiles**, amber HUD frames, Orbitron chrome) — not a parallel cyan panel.
+
+→ **[docs/design-system/README.md](./docs/design-system/README.md)** · tokens · component catalog · do/don’t  
+→ Interactive mock: [`docs/design-system/prototypes/stock-fleet-action-bar.html`](./docs/design-system/prototypes/stock-fleet-action-bar.html)
+
 ## Install
 
 ### Option A — Load unpacked (development / from source)
