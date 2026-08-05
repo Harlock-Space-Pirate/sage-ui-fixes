@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.0.35
+
+- **Shift+click skips warp/subwarp confirm** (single fleet + wing): marquee no longer steals Shift while destination pick is active
+- Wing map pick tip: Shift+click skip · headless GO READY when shift held
+- More robust mod-key detect (`__SA_MOD_SKIP__`, Pixi originalEvent)
+
+## 1.0.34
+
+- **Toggle fleet action bar** (popup): OFF hides wings/Warp/Swarp/Scan/Atk strip — stock **click fleet + map pick** still works
+- **Toggle combat log panel** (popup): hide HIT/MISS/flight log when you want a clean map
+- Prefs: `saHideActionBar=1`, `saHideCombatLog=1` · console `__SA_ACTION_BAR__.hide()` / `.show()`, `__SA_LOG_COMBAT_EVENT.hide()` / `.show()`
+
+## 1.0.33
+
+- **Draggable combat log** + **fleet action bar** with clear SAGE UI Fixes labels
+- Drag combat log header / gold fleet-bar grip; position remembered (`saCombatLogPos.v1`, `saActionBarPos.v1`)
+- Double-click header/grip to reset position
+- Overlay identity: titles + `data-sa-overlay` (`combat-log` / `action-bar`) so you know what is covering UI
+
 ## 1.0.32
 
 - **Zoom counter HUD** (popup toggle): live map scale `×N.NN` + world/game center coords (top-right amber chip)

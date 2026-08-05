@@ -114,6 +114,76 @@ async function setTrailsState(tabId, enabled) {
   );
 }
 
+/** Fleet action bar: ON = wings/SWARP/ATK strip; OFF = stock click-fleet + map only. */
+async function readBarState(tabId) {
+  return pageEval(tabId, () => {
+    try {
+      const hidden = localStorage.getItem("saHideActionBar") === "1";
+      const api = window.__SA_ACTION_BAR__;
+      const on = api && typeof api.isVisible === "function" ? !!api.isVisible() : !hidden;
+      return { on, hidden, hasApi: !!api };
+    } catch (e) {
+      return { on: true, error: String(e?.message || e) };
+    }
+  });
+}
+
+async function setBarState(tabId, enabled) {
+  return pageEval(
+    tabId,
+    (on) => {
+      try {
+        if (window.__SA_ACTION_BAR__?.setVisible) {
+          window.__SA_ACTION_BAR__.setVisible(!!on);
+          return { ok: true, on: !!window.__SA_ACTION_BAR__.isVisible?.() };
+        }
+        if (on) localStorage.removeItem("saHideActionBar");
+        else localStorage.setItem("saHideActionBar", "1");
+        return { ok: true, on: !!on, needsReload: true };
+      } catch (e) {
+        return { ok: false, error: String(e?.message || e) };
+      }
+    },
+    [enabled],
+  );
+}
+
+/** Combat log panel: ON = HIT/MISS/flight log; OFF = hidden (logging still works if re-shown). */
+async function readCombatState(tabId) {
+  return pageEval(tabId, () => {
+    try {
+      const hidden = localStorage.getItem("saHideCombatLog") === "1";
+      const api = window.__SA_LOG_COMBAT_EVENT;
+      const on = api && typeof api.isVisible === "function" ? !!api.isVisible() : !hidden;
+      return { on, hidden, hasApi: !!api };
+    } catch (e) {
+      return { on: true, error: String(e?.message || e) };
+    }
+  });
+}
+
+async function setCombatState(tabId, enabled) {
+  return pageEval(
+    tabId,
+    (on) => {
+      try {
+        if (window.__SA_LOG_COMBAT_EVENT?.setVisible) {
+          window.__SA_LOG_COMBAT_EVENT.setVisible(!!on);
+          return { ok: true, on: !!window.__SA_LOG_COMBAT_EVENT.isVisible?.() };
+        }
+        if (on) localStorage.removeItem("saHideCombatLog");
+        else localStorage.setItem("saHideCombatLog", "1");
+        const el = document.getElementById("sa-combat-log-box");
+        if (el) el.style.display = on ? "" : "none";
+        return { ok: true, on: !!on, needsReload: !window.__SA_LOG_COMBAT_EVENT?.setVisible };
+      } catch (e) {
+        return { ok: false, error: String(e?.message || e) };
+      }
+    },
+    [enabled],
+  );
+}
+
 /** Zoom counter HUD: ON = live scale/center overlay for map troubleshooting. */
 async function readZoomState(tabId) {
   return pageEval(tabId, () => {
@@ -229,6 +299,40 @@ function setZoomUi(btn, statusEl, state, note) {
   }
 }
 
+function setBarUi(btn, statusEl, state, note) {
+  const on = !!(state && state.on);
+  if (btn) {
+    btn.textContent = on ? "ON" : "OFF";
+    btn.classList.toggle("on", on);
+    btn.classList.toggle("off", !on);
+    btn.setAttribute("aria-pressed", on ? "true" : "false");
+  }
+  if (statusEl) {
+    if (note) statusEl.textContent = note;
+    else if (!state) statusEl.textContent = "Open sage.staratlas.com, then toggle.";
+    else if (state.error) statusEl.textContent = "Could not read page: " + state.error;
+    else if (on) statusEl.textContent = "Fleet bar ON — wings / warp / scan / atk strip visible.";
+    else statusEl.textContent = "Fleet bar OFF — use stock click fleet + map pick to move.";
+  }
+}
+
+function setCombatUi(btn, statusEl, state, note) {
+  const on = !!(state && state.on);
+  if (btn) {
+    btn.textContent = on ? "ON" : "OFF";
+    btn.classList.toggle("on", on);
+    btn.classList.toggle("off", !on);
+    btn.setAttribute("aria-pressed", on ? "true" : "false");
+  }
+  if (statusEl) {
+    if (note) statusEl.textContent = note;
+    else if (!state) statusEl.textContent = "Open sage.staratlas.com, then toggle.";
+    else if (state.error) statusEl.textContent = "Could not read page: " + state.error;
+    else if (on) statusEl.textContent = "Combat log ON — bottom-left panel (drag header).";
+    else statusEl.textContent = "Combat log OFF — panel hidden.";
+  }
+}
+
 try {
   const { version } = chrome.runtime.getManifest();
   const verEl = document.getElementById("version");
@@ -254,6 +358,10 @@ const trailsBtn = document.getElementById("trails-toggle");
 const trailsStatus = document.getElementById("trails-status");
 const zoomBtn = document.getElementById("zoom-toggle");
 const zoomStatus = document.getElementById("zoom-status");
+const barBtn = document.getElementById("bar-toggle");
+const barStatus = document.getElementById("bar-status");
+const combatBtn = document.getElementById("combat-toggle");
+const combatStatus = document.getElementById("combat-status");
 
 (async () => {
   const tab = await getSageTab();
@@ -261,9 +369,13 @@ const zoomStatus = document.getElementById("zoom-status");
     setToggleUi(toggleBtn, statusEl, null, "Open sage.staratlas.com first, then click the extension icon.");
     setTrailsUi(trailsBtn, trailsStatus, null, "Open sage.staratlas.com first, then click the extension icon.");
     setZoomUi(zoomBtn, zoomStatus, null, "Open sage.staratlas.com first, then click the extension icon.");
+    setBarUi(barBtn, barStatus, null, "Open sage.staratlas.com first, then click the extension icon.");
+    setCombatUi(combatBtn, combatStatus, null, "Open sage.staratlas.com first, then click the extension icon.");
     if (toggleBtn) toggleBtn.disabled = true;
     if (trailsBtn) trailsBtn.disabled = true;
     if (zoomBtn) zoomBtn.disabled = true;
+    if (barBtn) barBtn.disabled = true;
+    if (combatBtn) combatBtn.disabled = true;
     return;
   }
   try {
@@ -286,6 +398,20 @@ const zoomStatus = document.getElementById("zoom-status");
   } catch (e) {
     setZoomUi(zoomBtn, zoomStatus, null, "Refresh the SAGE tab, then try again.");
     console.warn("[sa-ui-fixes] read zoom", e);
+  }
+  try {
+    const bar = await readBarState(tab.id);
+    setBarUi(barBtn, barStatus, bar);
+  } catch (e) {
+    setBarUi(barBtn, barStatus, null, "Refresh the SAGE tab, then try again.");
+    console.warn("[sa-ui-fixes] read bar", e);
+  }
+  try {
+    const combat = await readCombatState(tab.id);
+    setCombatUi(combatBtn, combatStatus, combat);
+  } catch (e) {
+    setCombatUi(combatBtn, combatStatus, null, "Refresh the SAGE tab, then try again.");
+    console.warn("[sa-ui-fixes] read combat", e);
   }
 
   toggleBtn?.addEventListener("click", async () => {
@@ -370,6 +496,68 @@ const zoomStatus = document.getElementById("zoom-status");
       console.warn("[sa-ui-fixes] zoom toggle", e);
     } finally {
       zoomBtn.disabled = false;
+    }
+  });
+
+  barBtn?.addEventListener("click", async () => {
+    barBtn.disabled = true;
+    try {
+      const cur = await readBarState(tab.id);
+      const next = !cur?.on;
+      const res = await setBarState(tab.id, next);
+      if (!res?.ok) {
+        setBarUi(barBtn, barStatus, cur, res?.error || "Toggle failed — hard refresh SAGE and retry.");
+      } else {
+        const state = await readBarState(tab.id);
+        setBarUi(
+          barBtn,
+          barStatus,
+          state,
+          next
+            ? res.needsReload
+              ? "Fleet bar ON saved — hard-refresh SAGE once so it appears."
+              : "Fleet bar ON — wings / warp / scan / atk strip visible."
+            : res.needsReload
+              ? "Fleet bar OFF saved — hard-refresh SAGE once so it hides."
+              : "Fleet bar OFF — stock click fleet + map pick to move.",
+        );
+      }
+    } catch (e) {
+      setBarUi(barBtn, barStatus, null, "Toggle failed — is the SAGE tab loaded?");
+      console.warn("[sa-ui-fixes] bar toggle", e);
+    } finally {
+      barBtn.disabled = false;
+    }
+  });
+
+  combatBtn?.addEventListener("click", async () => {
+    combatBtn.disabled = true;
+    try {
+      const cur = await readCombatState(tab.id);
+      const next = !cur?.on;
+      const res = await setCombatState(tab.id, next);
+      if (!res?.ok) {
+        setCombatUi(combatBtn, combatStatus, cur, res?.error || "Toggle failed — hard refresh SAGE and retry.");
+      } else {
+        const state = await readCombatState(tab.id);
+        setCombatUi(
+          combatBtn,
+          combatStatus,
+          state,
+          next
+            ? res.needsReload
+              ? "Combat log ON saved — hard-refresh SAGE once so it appears."
+              : "Combat log ON — bottom-left panel."
+            : res.needsReload
+              ? "Combat log OFF saved — hard-refresh SAGE once so it hides."
+              : "Combat log OFF — panel hidden.",
+        );
+      }
+    } catch (e) {
+      setCombatUi(combatBtn, combatStatus, null, "Toggle failed — is the SAGE tab loaded?");
+      console.warn("[sa-ui-fixes] combat toggle", e);
+    } finally {
+      combatBtn.disabled = false;
     }
   });
 })();
