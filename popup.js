@@ -360,6 +360,7 @@ const zoomBtn = document.getElementById("zoom-toggle");
 const zoomStatus = document.getElementById("zoom-status");
 const barBtn = document.getElementById("bar-toggle");
 const barStatus = document.getElementById("bar-status");
+const barReset = document.getElementById("bar-reset");
 const combatBtn = document.getElementById("combat-toggle");
 const combatStatus = document.getElementById("combat-status");
 
@@ -527,6 +528,29 @@ const combatStatus = document.getElementById("combat-status");
       console.warn("[sa-ui-fixes] bar toggle", e);
     } finally {
       barBtn.disabled = false;
+    }
+  });
+
+  barReset?.addEventListener("click", async () => {
+    barReset.disabled = true;
+    try {
+      const res = await pageEval(tab.id, () => {
+        try {
+          if (window.__SA_BAR_RESET__) {
+            window.__SA_BAR_RESET__();
+            return { ok: true };
+          }
+          return { ok: false, error: "bar not loaded" };
+        } catch (e) {
+          return { ok: false, error: String(e?.message || e) };
+        }
+      });
+      if (barStatus) barStatus.textContent = res?.ok ? "Fleet bar re-centered; saved positions cleared." : "Reset failed — is the SAGE tab loaded?";
+    } catch (e) {
+      if (barStatus) barStatus.textContent = "Reset failed — is the SAGE tab loaded?";
+      console.warn("[sa-ui-fixes] bar reset", e);
+    } finally {
+      barReset.disabled = false;
     }
   });
 

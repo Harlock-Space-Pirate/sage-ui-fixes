@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.42
+
+- **Compact minimize:** minimizing the log now shrinks its width to fit the tab titles; restoring (+) brings back the exact previous width, height and position
+- **Per-screen-size bar positions:** the action bar saves its position per screen size and jumps back when you return to that size; a new/unknown canvas size re-centers it
+- **Reset bar position:** new "Reset bar position" button in the extension popup re-centers the fleet bar and clears saved positions (for when it's dragged out of sight)
+
 ## 1.0.41
 
 - **Notch follows the button:** the fuel notch now sits above the WARP tile and the ammo notch above the ATTACK tile (the button that cares), borderless and slightly narrower than the tile so it reads as a tab on that button
