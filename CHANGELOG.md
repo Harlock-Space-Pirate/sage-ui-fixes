@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.39
+
+- **HUD appears after login only:** fleet bar + combat log stay hidden on the splash menu and show once you're in-game (fleets loaded / header present)
+- **Fleet table (right):** owned-fleets-only list with state + fuel bar; double-click centers the map on that fleet and selects it; auto-shows on login, closable
+- **Fleet overview cleanup:** stock Movement Planner button removed; `_fleetStoreChipGrid` resource chips compacted to slim percentage tiles that blink red when nearly empty
+- **Action-bar notch fixed:** fuel/ammo notch now grows out of the combat-button row (top-rounded, black, attached via a 1px black seam); the button row sits on a black rounded backing with rounded outer corners
+- **Subtle drag grip:** the big "SAGE UI FIXES · FLEET BAR" banner is now a faint ⋮⋮ handle
+- **Log width resize:** diagonal grip in the log's bottom-right corner drags it wider/taller
+- **Top bar:** logo removed entirely; dark notch bars undone; header + echo-header (`_headerEchoMain`) utility icons get solid dark chips so they're always legible
+
 ## 1.0.38
 
 - **Resource gates + notify:** Warp / Subwarp now check fuel of the selected fleets — all-dry blocks with an OUT OF FUEL alert (Comms tab + top strip), partial-dry or ≤25% total warns; Attack does the same for ammo; clicking a dimmed tile tells you why in Comms
