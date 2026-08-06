@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.41
+
+- **Notch follows the button:** the fuel notch now sits above the WARP tile and the ammo notch above the ATTACK tile (the button that cares), borderless and slightly narrower than the tile so it reads as a tab on that button
+- **Starbase view clears the bar:** entering a starbase (`_menuContent_`) hides the action bar for an unobstructed view
+
 ## 1.0.40
 
 - **Notch orientation forced:** fuel/ammo notch is now guaranteed top-rounded and attached to the combat-button row (`!important`), so it reads as growing out of the combat bar, never hanging from the wings

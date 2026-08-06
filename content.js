@@ -1812,7 +1812,7 @@ window.__SA_ACTION_BAR__=window.__SA_ACTION_BAR__||(function(){
     saIsolate(root);
     root.setAttribute("data-fc-floating-utility","true");
     root.title="SAGE UI Fixes — Fleet action bar (wings · SWARP/WARP · ATK). Drag the gold strip to move; double-click strip to reset.";
-    root.innerHTML='<div class="sa-bar-grip" data-drag title="SAGE UI Fixes · Fleet bar · drag to move · dbl-click reset"><span class="hint">⋮⋮</span></div><div class="sa-cancel-row" data-cancel></div><div class="sa-row" data-wings></div><div class="sa-lamp-row"><span class="sa-lamp" data-lamp></span><span class="sa-lamp fuel" data-lamp-fuel></span></div><div class="sa-acts" data-acts></div><div class="sa-tools"><button type="button" data-a="groups">Wings</button><button type="button" data-a="flight">Log</button></div>';
+    root.innerHTML='<div class="sa-bar-grip" data-drag title="SAGE UI Fixes · Fleet bar · drag to move · dbl-click reset"><span class="hint">⋮⋮</span></div><div class="sa-cancel-row" data-cancel></div><div class="sa-row" data-wings></div><div class="sa-acts" data-acts></div><div class="sa-tools"><button type="button" data-a="groups">Wings</button><button type="button" data-a="flight">Log</button></div>';
     document.body.appendChild(root);
     root.querySelector('[data-a="groups"]').onclick=function(){openGroups()};
     root.querySelector('[data-a="flight"]').onclick=function(){try{window.__SA_LOG_COMBAT_EVENT&&window.__SA_LOG_COMBAT_EVENT.showTab&&window.__SA_LOG_COMBAT_EVENT.showTab("flight")}catch(e){}};
@@ -2008,6 +2008,7 @@ window.__SA_ACTION_BAR__=window.__SA_ACTION_BAR__||(function(){
 
   function paint(){
     if(!isBarVisible()||!(window.__SA_IN_GAME&&window.__SA_IN_GAME())){if(root&&root.isConnected)root.style.display="none";return}
+    try{if(document.querySelector('[class*="menuContent_"]')){if(root&&root.isConnected)root.style.display="none";return}}catch(e){}
     var bar=ensure();
     try{bar.style.display=""}catch(e){}
     var wingsEl=bar.querySelector("[data-wings]");
@@ -2124,25 +2125,27 @@ window.__SA_ACTION_BAR__=window.__SA_ACTION_BAR__||(function(){
       b.ondblclick=function(e){e.preventDefault();if(a.dim)return;captureAction=a.id==="swarp"?"subwarp":a.id==="atk"?"attack":a.id;if(window.__SA_HOTKEYS__)window.__SA_HOTKEYS__.setCapture(captureAction);paint()};
       actsEl.appendChild(b);
     });
-    var lamp=bar.querySelector("[data-lamp]");
-    if(lamp){
+    (function(){
+      function notch(actId,cls,txt,title){
+        var old=actsEl.querySelector('.sa-notch[data-for="'+actId+'"]');if(old)old.remove();
+        if(!cls)return;
+        var tile=actsEl.querySelector('[data-act="'+actId+'"]');if(!tile)return;
+        var el=document.createElement("div");el.className="sa-notch "+cls;el.setAttribute("data-for",actId);
+        el.style.width=Math.max(30,tile.offsetWidth-10)+"px";
+        el.style.left=(tile.offsetLeft+5)+"px";
+        el.innerHTML='<span class="bulb"></span><span class="txt">'+txt+"</span>";
+        el.title=title||"";
+        actsEl.appendChild(el);
+      }
       var am=ammoState();
-      lamp.className="sa-lamp"+(am.out?" out":am.low?" low":"");
-      lamp.innerHTML=(am.out||am.low)?'<span class="bulb"></span><span class="txt">'+(am.out?"Ammo":"Low")+"</span>":"";
-      lamp.title=am.out?("OUT OF AMMO — "+(am.lines.join(" · ")||"fleet")+" · restock at a station"):am.low?("LOW AMMO — "+am.cur+"/"+am.cap):"";
-      var atk=actsEl.querySelector('[data-act="atk"]');
-      if(atk)atk.classList.toggle("no-ammo",!!am.out);
-    }
-    var lampF=bar.querySelector("[data-lamp-fuel]");
-    if(lampF){
+      notch("atk",am.out?"out":am.low?"low":"",am.out?"Ammo":am.low?"Low":"",am.out?"OUT OF AMMO \u2014 restock at a station":am.low?"LOW AMMO":"");
+      var atk=actsEl.querySelector('[data-act="atk"]');if(atk)atk.classList.toggle("no-ammo",!!am.out);
       var fsL=fuelState();
-      lampF.className="sa-lamp fuel"+(fsL.allOut?" out":fsL.low?" low":"");
-      lampF.innerHTML=(fsL.allOut||fsL.low)?'<span class="bulb"></span><span class="txt">'+(fsL.allOut?"Fuel":"Fuel low")+"</span>":"";
-      lampF.title=fsL.allOut?("OUT OF FUEL \u2014 "+(fsL.lines.join(" \u00b7 ")||"fleet")+" \u00b7 refuel at a station"):fsL.low?("LOW FUEL \u2014 "+Math.round(fsL.cur)+"/"+fsL.cap):"";
+      notch("warp",fsL.allOut?"fuelout":fsL.low?"fuellow":"",fsL.allOut?"Fuel":fsL.low?"Fuel":"",fsL.allOut?"OUT OF FUEL \u2014 refuel at a station":fsL.low?"LOW FUEL":"");
       var w1=actsEl.querySelector('[data-act="warp"]'),w2=actsEl.querySelector('[data-act="swarp"]');
       if(w1)w1.classList.toggle("no-fuel",!!fsL.allOut);
       if(w2)w2.classList.toggle("no-fuel",!!fsL.allOut);
-    }
+    })();
   }
   function onKey(e){
     if(e.target&&(e.target.closest&&e.target.closest("input,textarea,select,[contenteditable=true]")||e.target.isContentEditable))return;
@@ -2308,6 +2311,15 @@ window.__SA_PANEL_TWEAKS__=window.__SA_PANEL_TWEAKS__||(function(){
 +"[class*='dominionChipRow']{width:auto!important;flex-wrap:nowrap;gap:6px}"
 +"[class*='dominionSection']{padding-left:6px}"
 +"[class*='floatingChip']{flex:0 0 auto}"
++"#sa-action-bar .sa-notch{position:absolute;top:-13px;height:15px;background:#000;border:none;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:center;gap:5px;z-index:3;pointer-events:auto;cursor:help}"
++"#sa-action-bar .sa-notch .bulb{width:7px;height:7px;transform:rotate(45deg)}"
++"#sa-action-bar .sa-notch .txt{font:800 7px Orbitron,sans-serif;letter-spacing:.12em;text-transform:uppercase}"
++"#sa-action-bar .sa-notch.out .bulb,#sa-action-bar .sa-notch.fuelout .bulb{background:#ff2b2b;box-shadow:0 0 8px rgba(255,40,40,.9)}"
++"#sa-action-bar .sa-notch.out .txt,#sa-action-bar .sa-notch.fuelout .txt{color:#ff6b6b}"
++"#sa-action-bar .sa-notch.low .bulb{background:#ffb020;box-shadow:0 0 6px rgba(255,176,32,.8)}"
++"#sa-action-bar .sa-notch.low .txt{color:#ffb020}"
++"#sa-action-bar .sa-notch.fuellow .bulb{background:#38b6ff;box-shadow:0 0 6px rgba(56,182,255,.8)}"
++"#sa-action-bar .sa-notch.fuellow .txt{color:#38b6ff}"
 +"#sa-action-bar .sa-lamp-row{margin:0 0 -8px!important}"
 +"#sa-action-bar .sa-lamp-row .sa-lamp{border-radius:12px 12px 0 0!important;border-bottom:none!important;border-top:1px solid rgba(255,190,77,.35)!important}"
 ;document.documentElement.appendChild(st)}
