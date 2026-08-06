@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.0.37
+
+- **Action bar absorbs stock Fleet Actions:** Dock / Gate / Stims / Mine / Destruct tiles join Warp / Swarp / Scan / Atk (clicks forward to the stock buttons, so game logic + confirms stay stock); the bulky stock "Fleet actions" section is hidden; tiles slimmed to fit
+- **Movement Orders panel docks top:** the movement planner opens just under the top bar instead of the bottom sheet
+- **Compact support tiles:** Fuel / Ammo / Food / Toolkit tiles shrink to slim chips with a percent fill bar + % readout (gold → amber ≤40% → red ≤15%) instead of tall empty boxes
+- **COMMS tab in the log viewer:** every game pop-up/toast is captured into a third tab (Combat / Flight / Comms); new pop-ups blink the tab and flash a top-center strip for 6s (click strip → opens Comms); rows are copy-pasteable, long messages stay one-line until clicked, then expand big
+- **Flexible wing chains:** plain click toggles a wing in/out (pick 1+3 freely), Shift+click daisy-chains the range, Alt+click solos; consecutive active wings get a gold connector, disjoint actives read as separate chains
+- **Attack mirrors stock:** the Attack tile is disabled (not hidden) when the stock fleet panel shows no Attack button (nothing in range); bar buttons renamed to stock labels (Subwarp / Warp Gate / Attack / Destruct) with matching line icons
+- **Top bar polish:** dark notch behind the header clusters (resources / dominion icons / utilities / account card) for contrast; dominion chips no longer overlap on small screens; STAR ATLAS wordmark replaced by a compact icon-only mark
+- **Log text size:** A− / A+ buttons resize the log text (9–14px, persisted) — WoW-chat style
+- **Log viewer slimmed:** title bar removed — A− / A+ / CLR / collapse now sit on the tab row; drag the tab row to move, dbl-click resets; fixed body height so switching Combat/Flight/Comms no longer resizes the box
+- **Bar readability:** translucent dark backdrop panel behind the whole fleet bar
+- **COMMS captures everything:** the big INFO cards (with copy button) and green warp/success toasts now land in the Comms tab; the stock notification stack is moved to the top-right so it no longer covers the action bar
+- **Dock ⇄ Undock:** the Dock tile relabels to Undock when the stock panel offers it (and forwards correctly)
+- **Cancel Warp floats** above the drag bar instead of pushing the bar down
+
+## 1.0.36
+
+- **Out-of-ammo warning lamp:** blinking red diamond + AMMO label centered on the fleet bar when your selected fleet / active wing draws ammo and sits at 0 (same rule as stock "Resource deficient": `totalAmmoDraw > 0 && ammoCurrent <= 0`); ATK tile pulses red too; hover the lamp for the empty fleet list
+- **HUD clicks no longer leak into the game:** fleet bar, combat log, wings board and confirm modals stop pointer/mouse event propagation — dragging the bar or clicking the log while docked no longer kicks you out of the space-station view
+- **Movement confirms restyled:** warp/subwarp fly confirm + wing confirm now use the chamfered gold-frame Star Atlas skin (Orbitron, angular, WARP/SUBWARP mode chip, Enter/Esc/Shift+click hints) instead of the browser-ish cyan rounded card
+- **Security:** fleet labels and system names are on-chain untrusted strings; they are now HTML-escaped in combat log, flight log and confirms, so a hostile fleet name cannot inject markup/script into the page
+
 ## 1.0.35
 
 - **Shift+click skips warp/subwarp confirm** (single fleet + wing): marquee no longer steals Shift while destination pick is active
