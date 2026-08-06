@@ -1400,8 +1400,6 @@ window.__SA_ACTION_BAR__=window.__SA_ACTION_BAR__||(function(){
 +"#sa-action-bar .sa-chip{background:#141008!important}"
 +"#sa-action-bar .sa-chip:hover{background:#1d1710!important}"
 +"#sa-action-bar .sa-chip.on{background:#0a0805!important;box-shadow:inset 0 0 0 1px var(--chip-accent),0 0 10px color-mix(in srgb,var(--chip-accent) 40%,transparent);color:#fff8e8}"
-+"#sa-action-bar .sa-lamp-row{height:auto;min-height:0;margin-top:-4px}"
-+"#sa-action-bar .sa-lamp{padding:5px 16px 7px;background:#04060a;border:1px solid rgba(255,190,77,.3);border-top:none;border-radius:0 0 14px 14px;box-shadow:0 8px 18px rgba(0,0,0,.55)}"
 +"#sa-action-bar .sa-lamp.out{border-color:rgba(255,80,80,.55)}"
 +"#sa-action-bar .sa-lamp.low{border-color:rgba(255,176,32,.55)}"
 +"#sa-action-bar .sa-lamp.fuel.low{border-color:rgba(56,182,255,.55)}";
@@ -1487,6 +1485,7 @@ window.__SA_ACTION_BAR__=window.__SA_ACTION_BAR__||(function(){
       stims:'<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M18 6 L26 14"/><path d="M22 10 L10 22 L6 26 L10 26 L22 14"/><path d="M14 18 L18 22"/></svg>',
       mine:'<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 26 L20 14"/><path d="M14 8 C20 6 26 10 26 16"/><path d="M14 8 L20 14"/></svg>',
       destruct:'<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 6 L28 26 H4 Z"/><path d="M16 14 V20"/><path d="M16 23 V24"/></svg>',
+      lock:'<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="9" y="14" width="14" height="11" rx="2"/><path d="M12 14 V10 a4 4 0 0 1 8 0 V14"/></svg>',
       cancel:'<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 8 L24 24 M24 8 L8 24"/></svg>'
     };
     return sv[name]||"";
@@ -1552,6 +1551,10 @@ window.__SA_ACTION_BAR__=window.__SA_ACTION_BAR__||(function(){
       var okA=clickLabel(/^\s*attack\s*$/i);
       if(okA)markPendingTx("atk");
       return okA;
+    }
+    if(action==="lock"){
+      try{var sel=window.__SA_SELECTED_FLEET__&&window.__SA_SELECTED_FLEET__.key;if(sel){var all=typeof window.__SA_PEEK_FLEETS__==="function"?window.__SA_PEEK_FLEETS__():[];var f=null,prof=window.__SA_PLAYER_PROFILE__;for(var i2=0;i2<all.length;i2++){if(String(all[i2].address||all[i2].key)===String(sel)){f=all[i2];break}}var kind="friendly";if(f&&f.data&&f.data.ownerProfile&&prof&&String(f.data.ownerProfile)!==String(prof))kind="enemy";var lbl=(f&&f.data&&f.data.fleetLabel)||String(sel).slice(0,10);window.__SA_FLEET_LOCKS__.lock(String(sel),lbl,kind);return!0}}catch(e){}
+      return!1;
     }
     if(action==="groups")return openGroups();
   }
@@ -2106,6 +2109,7 @@ window.__SA_ACTION_BAR__=window.__SA_ACTION_BAR__||(function(){
       {id:"atk",lb:"Attack",ico:"atk",hk:m.attack||"A",dim:busy||!hasAtk||am.out,noammo:am.out,why:busy?"Attack is single-fleet \u2014 clear wings":(!hasAtk?"Nothing in range to attack":(am.out?"Out of ammo \u2014 restock":""))},
       {id:"mine",lb:"Mine",ico:"mine",fwd:1,dim:busy||!hasSec,why:busy?"Mine is single-fleet \u2014 clear wings":(!hasSec?"Mine needs an asteroid field":"")},
       {id:"scan",lb:"Scan",ico:"scan",hk:m.scan||"C",dim:busy,why:busy?"Scan is single-fleet \u2014 clear wings":""},
+      {id:"lock",lb:"Lock",ico:"lock",dim:!1,why:""},
       {id:"destruct",lb:"Destruct",ico:"destruct",fwd:1,cls:"danger",dim:!hasSec,why:!hasSec?"Destruct needs a station":""}
     ];
     actions.forEach(function(a){
@@ -2192,6 +2196,40 @@ window.__SA_ACTION_BAR__=window.__SA_ACTION_BAR__||(function(){
   return{paint:paint,run:run,openGroups:openGroups,selectWing:selectWing,clearSelection:clearSelection,getActiveWings:function(){return activeWingIds.slice()},isVisible:isBarVisible,setVisible:setBarVisible,show:function(){return setBarVisible(!0)},hide:function(){return setBarVisible(!1)}};
 })();
 
+window.__SA_FLEET_LOCKS__=window.__SA_FLEET_LOCKS__||(function(){
+  var KEY="saFleetLocks.v1",wrap=null,locks=[];
+  try{locks=JSON.parse(localStorage.getItem(KEY)||"[]")||[]}catch(e){}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(locks))}catch(e){}}
+  function css(){if(document.getElementById("sa-lk-style"))return;var st=document.createElement("style");st.id="sa-lk-style";st.textContent=""
++"#sa-fleet-locks{position:fixed;inset:0;pointer-events:none;z-index:999988}"
++".sa-lock-plate{position:absolute;pointer-events:auto;min-width:120px;max-width:170px;padding:6px 16px 6px 8px;background:#0d1117;border:1px solid rgba(255,190,77,.4);border-radius:4px;cursor:grab;font-family:Orbitron,ui-sans-serif,sans-serif;color:#e8d9a8;box-shadow:0 8px 20px rgba(0,0,0,.5)}"
++".sa-lock-plate.friendly{border-color:rgba(52,255,136,.45)}"
++".sa-lock-plate.enemy{border-color:rgba(255,100,100,.55)}"
++".sa-lock-plate .lp-nm{font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}"
++".sa-lock-plate .lp-tag{font-size:8px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}"
++".sa-lock-plate .lp-x{position:absolute;top:1px;right:4px;color:#888;cursor:pointer;font-size:12px;line-height:1}"
++".sa-lock-plate .lp-x:hover{color:#f87171}";
+    document.documentElement.appendChild(st)}
+  function ensure(){if(wrap)return;css();wrap=document.createElement("div");wrap.id="sa-fleet-locks";saIsolate(wrap);document.body.appendChild(wrap)}
+  function render(){if(!wrap)return;wrap.innerHTML="";locks.forEach(function(L,i){
+    var pl=document.createElement("div");pl.className="sa-lock-plate "+(L.kind||"friendly");
+    pl.style.left=(L.x!=null?L.x:window.innerWidth-190)+"px";pl.style.top=(L.y!=null?L.y:80+i*44)+"px";
+    pl.innerHTML='<span class="lp-x" title="Unlock">\u00d7</span><div class="lp-nm"></div><div class="lp-tag" style="color:'+(L.kind==="enemy"?"#ff6b6b":"#34ff88")+'">'+(L.kind==="enemy"?"ENEMY \u00b7 ATTACK":"FRIEND \u00b7 HEAL")+'</div>';
+    pl.querySelector(".lp-nm").textContent=L.label||String(L.key).slice(0,10);
+    pl.querySelector(".lp-x").onclick=function(e){e.stopPropagation();locks=locks.filter(function(x){return x.key!==L.key});save();render()};
+    (function(plate,rec){var drag=!1,sx=0,sy=0,ox=0,oy=0;
+      plate.addEventListener("pointerdown",function(e){if(e.target&&e.target.classList&&e.target.classList.contains("lp-x"))return;if(e.button!==0)return;drag=!0;sx=e.clientX;sy=e.clientY;ox=plate.offsetLeft;oy=plate.offsetTop;try{plate.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault();e.stopPropagation()});
+      plate.addEventListener("pointermove",function(e){if(!drag)return;plate.style.left=(ox+e.clientX-sx)+"px";plate.style.top=(oy+e.clientY-sy)+"px"});
+      var up=function(){if(!drag)return;drag=!1;rec.x=plate.offsetLeft;rec.y=plate.offsetTop;save()};
+      plate.addEventListener("pointerup",up);plate.addEventListener("pointercancel",up);
+    })(pl,L);
+    wrap.appendChild(pl);});}
+  function lock(key,label,kind){ensure();if(!locks.some(function(x){return x.key===key}))locks.push({key:key,label:label,kind:kind,x:null,y:null});save();render();}
+  function unlock(key){locks=locks.filter(function(x){return x.key!==key});save();render();}
+  function boot(){if(!document.body){setTimeout(boot,400);return}ensure();render()}
+  setTimeout(boot,2400);
+  return{lock:lock,unlock:unlock,list:function(){return locks.slice()},render:render};
+})();
 window.__SA_FLEET_TABLE__=window.__SA_FLEET_TABLE__||(function(){
   var root=null;
   function css(){if(document.getElementById("sa-ft-style"))return;var st=document.createElement("style");st.id="sa-ft-style";st.textContent=""
@@ -2265,6 +2303,13 @@ window.__SA_PANEL_TWEAKS__=window.__SA_PANEL_TWEAKS__||(function(){
 +"[class*='globalHeaderContainer'] button,[class*='headerEchoMain'] button,[class*='secondaryActionsCluster'] a{background:#0d1117!important;border:1px solid rgba(255,190,77,.28)!important;border-radius:6px;color:#e8d9a8!important}"
 +"[class*='globalHeaderContainer'] button svg,[class*='headerEchoMain'] button svg{stroke:#e8d9a8}"
 +"[class*='globalHeaderContainer'] a,[class*='headerEchoMain'] a{background:#0d1117!important;border:1px solid rgba(255,190,77,.28)!important;border-radius:6px;color:#e8d9a8!important}"
++"[class*='globalHeaderContainer'] [role='button'],[class*='headerEchoMain'] [role='button']{background:#0d1117!important;border:1px solid rgba(255,190,77,.28)!important;border-radius:6px;color:#e8d9a8!important}"
++"[class*='dominionHeaderBarContainer']{width:fit-content!important;flex:0 1 auto;min-width:0;padding-left:8px}"
++"[class*='dominionChipRow']{width:auto!important;flex-wrap:nowrap;gap:6px}"
++"[class*='dominionSection']{padding-left:6px}"
++"[class*='floatingChip']{flex:0 0 auto}"
++"#sa-action-bar .sa-lamp-row{margin:0 0 -8px!important}"
++"#sa-action-bar .sa-lamp-row .sa-lamp{border-radius:12px 12px 0 0!important;border-bottom:none!important;border-top:1px solid rgba(255,190,77,.35)!important}"
 ;document.documentElement.appendChild(st)}
   function nums(t){var out=[],cur="";for(var i=0;i<t.length;i++){var c=t[i];if((c>="0"&&c<="9")||c===","){cur+=c}else{if(cur){out.push(parseFloat(cur.split(",").join("")));cur=""}}}if(cur)out.push(parseFloat(cur.split(",").join("")));return out}
   function decorate(t,cur,cap){

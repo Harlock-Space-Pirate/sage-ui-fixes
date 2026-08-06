@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.40
+
+- **Notch orientation forced:** fuel/ammo notch is now guaranteed top-rounded and attached to the combat-button row (`!important`), so it reads as growing out of the combat bar, never hanging from the wings
+- **Consistent header chips:** My Fleet / Inventory / Crew and any `[role=button]` in the header + echo header get the same solid dark chip look as `_headerEchoMain`
+- **Dominion bar shrink-wrap:** `_dominionHeaderBarContainer` sizes to its chips (`fit-content`) with extra left spacing so the logo/icons no longer stick out
+- **Locked fleets:** new **Lock** tile pins the currently selected fleet to a persistent on-screen plate (FRIEND · HEAL green / ENEMY · ATTACK red); plates are draggable and their positions are saved; × to unlock
+
 ## 1.0.39
 
 - **HUD appears after login only:** fleet bar + combat log stay hidden on the splash menu and show once you're in-game (fleets loaded / header present)
