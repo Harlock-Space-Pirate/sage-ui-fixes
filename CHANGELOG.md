@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.38
+
+- **Resource gates + notify:** Warp / Subwarp now check fuel of the selected fleets — all-dry blocks with an OUT OF FUEL alert (Comms tab + top strip), partial-dry or ≤25% total warns; Attack does the same for ammo; clicking a dimmed tile tells you why in Comms
+- **Fuel notch:** fuel alert sits in an iPhone-style notch between the wing chips and the action tiles (blue low / red out), next to the ammo lamp
+- **Pending-tx clock:** Dock/Undock, Warp, Subwarp, Mine, Gate, Destruct, Attack show a pressed-in tile with a sweeping clock overlay until the fleet's on-chain state actually changes (then it clears; safety timeout otherwise)
+- **Bar readability v2:** frameless bar with solid dark tiles; gold icons/labels back, Dock/Undock in stock blue, Destruct red; unusable tiles go darker (dark-red for danger) instead of rainbow; selected tile reads pressed
+- **Log viewer fixed + reworked:** minimize no longer locks you out — collapsed strip keeps a label + "+" and click-to-restore, and snaps to the bottom edge to free screen space; A− / A+ now really resize the text; A− / A+ / CLR moved behind a ⋮ menu; new ⠿ six-dot drag grip
+- **Support chips:** battery-style pulse when low (amber ≤40%, red pulse ≤15%) with colored % readout
+- **Undock on first paint:** the Dock tile reads the selected fleet's real docked state (not the lagging stock button), so a docked fleet shows Undock immediately
+
 ## 1.0.37
 
 - **Action bar absorbs stock Fleet Actions:** Dock / Gate / Stims / Mine / Destruct tiles join Warp / Swarp / Scan / Atk (clicks forward to the stock buttons, so game logic + confirms stay stock); the bulky stock "Fleet actions" section is hidden; tiles slimmed to fit
