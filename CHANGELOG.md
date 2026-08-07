@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.43
+
+Performance triage of three community reports ([#2](https://github.com/Harlock-Space-Pirate/sage-ui-fixes/issues/2), [#3](https://github.com/Harlock-Space-Pirate/sage-ui-fixes/issues/3), [#4](https://github.com/Harlock-Space-Pirate/sage-ui-fixes/issues/4)). All three confirmed against the live bundle `index-CZzek2X2.js`.
+
+- **Culler no longer walks the scene graph for nothing (#2):** stock registers PixiJS `CullerPlugin`, but SAGE never sets `cullable = true` on a single display object (10 sites set it to `false`, zero set it to `true`). The result was a full recursive walk of every node in the stage, every rendered frame, that culled exactly nothing. The cull pass is now gated. `cullable` became an accessor that re-arms culling automatically the moment anything opts in, so the fix cannot silently hide objects in a future deploy; `window.__SA_FORCE_CULL__ = true` restores stock behaviour on demand.
+- **`sageStore` no longer rebuilds the world on every update (#4):** one aggregate memo depended on twelve data-source collections, so a loyalty contribution or reward-config change re-spread every star system into a fresh `Map`, re-derived all ship/cargo definition maps, and re-flattened every region. The three heavy derivations are now their own memos — a loyalty update rebuilds loyalty data only. Each call site falls back to the stock expression if the injection does not land.
+- **Startup-debug effect goes idle (#3):** the `sage-game-resolution` effect rebuilt a 16-key object and `JSON.stringify`'d it on every data-source change, then handed it to `startupDebugLog()`, which no-ops unless `fc-startup-debug` is set. It now bails before reading the store, so it tracks no signals and never re-runs while debug is off — and behaves exactly as stock when it is on.
+
 ## 1.0.42
 
 - **Compact minimize:** minimizing the log now shrinks its width to fit the tab titles; restoring (+) brings back the exact previous width, height and position

@@ -67,6 +67,7 @@ If this extension feels less cursed than stock SAGE, thank the pilot on the **le
 - Post-capture ownership / NEUTRAL lag on system views
 - Live HUD ownership and related display sync after capture or attack
 - Combat hit/miss feedback and claim-builder layout/scroll quirks (see [CHANGELOG](./CHANGELOG.md))
+- **Frame-rate:** bypasses the PixiJS cull pass that walks the whole scene graph every frame without culling anything (nothing in SAGE opts into `cullable`), and stops `sageStore` rebuilding the entire world model — star systems, ship/cargo definitions, regions — every time any one of twelve account collections changes
 - **Toolbar click:** shows installed **version** and a link to **GitHub release notes**
 
 ## Findings / engineering report

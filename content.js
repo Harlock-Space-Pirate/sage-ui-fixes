@@ -283,6 +283,51 @@ const PATCHES = [
     "go=(ls,fc,pc)=>{const bd=lo().find(Jc=>Jc.buildingId===ls);return!bd||(at(ls),yn(bd,fc))?!1:(fc>0&&us(ls),ft(xs(ls,fc)),fc>0&&jr(bd,pc),fc<0&&Jr(ls),!0)}",
     'go=(ls,fc,pc)=>{const bd=lo().find(Jc=>Jc.buildingId===ls);if(!bd)return!1;at(ls);const _e=yn(bd,fc);if(_e){window.__SA_BUILDER_TIP?.(_e);return!1}return(fc>0&&us(ls),ft(xs(ls,fc)),fc>0&&jr(bd,pc),fc<0&&Jr(ls),!0)}',
   ],
+  // --- Issue #2: Culler is a per-frame no-op walk (github.com/Harlock-Space-Pirate/sage-ui-fixes/issues/2) ---
+  // SAGE never sets cullable=true on ANY display object (10 sites set it to false, zero set true), so
+  // _cullRecursive walks the entire scene graph every rendered frame and culls exactly nothing. Gate the
+  // pass. The cullable accessor below re-arms it the instant anything opts in; window.__SA_FORCE_CULL__=true
+  // forces stock behaviour back on.
+  [
+    'const tempBounds=new Bounds,_Culler=class{cull(Se,nt,at=!0){this._cullRecursive(Se,nt,at)}',
+    'const tempBounds=new Bounds,_Culler=class{cull(Se,nt,at=!0){if(window.__SA_FORCE_CULL__!==!0&&!window.__SA_ANY_CULLABLE__)return;this._cullRecursive(Se,nt,at)}',
+  ],
+  // Auto re-arm: pixi applies this mixin with defineProperties, so accessors survive.
+  [
+    'const cullingMixin={cullArea:null,cullable:!1,cullableChildren:!0};',
+    'const cullingMixin={cullArea:null,get cullable(){return this._saCullable===!0},set cullable(ee){this._saCullable=ee===!0,ee===!0&&(window.__SA_ANY_CULLABLE__=!0)},cullableChildren:!0};',
+  ],
+  // --- Issue #3: sage-game-resolution debug effect (issues/3) ---
+  // Rebuilt a 16-key object + JSON.stringify on every data-source change, then handed it to
+  // startupDebugLog() which no-ops unless fc-startup-debug is set. Bail before touching the store so the
+  // effect tracks no signals and never re-runs when debug is off; behaviour is unchanged when it is on.
+  [
+    'createEffect(()=>{const At="EKEj47SzaCjPM3m4T4vRXrrsVtkEmiNgPMMFye3AkXj4",It=nt.get("games").map(Lt=>Lt.address).sort(),Et={dataSource:"rpc"',
+    'createEffect(()=>{if(!(typeof isStartupDebugEnabled=="function"&&isStartupDebugEnabled()))return;const At="EKEj47SzaCjPM3m4T4vRXrrsVtkEmiNgPMMFye3AkXj4",It=nt.get("games").map(Lt=>Lt.address).sort(),Et={dataSource:"rpc"',
+  ],
+  // --- Issue #4: sageStore rebuilt the whole world on any change (issues/4) ---
+  // One aggregate memo depended on 12 collections, so a loyalty/reward update re-spread every star system
+  // and re-derived every ship + cargo definition. Split the three heavy derivations into their own memos.
+  // 1) declare the sub-memos next to the aggregate memo
+  [
+    'const St=createMemo(()=>{const At="EKEj47SzaCjPM3m4T4vRXrrsVtkEmiNgPMMFye3AkXj4",It=nt.get("games").find(kr=>String(kr.address)===String(At)),',
+    'const __saSysMemo=createMemo(()=>{const _m=new Map;for(const _s of nt.get("starSystems"))_m.set(_s.address,{..._s.data,key:_s.address});return _m}),__saRegionMemo=createMemo(()=>nt.get("regionTracker").flatMap(_t=>_t.data.regions.unsizedList)),__saShipMemo=createMemo(()=>{if(typeof getShipIdFromConfigId!="function")return null;const _g=nt.get("games").find(_x=>String(_x.address)==="EKEj47SzaCjPM3m4T4vRXrrsVtkEmiNgPMMFye3AkXj4"),_d=_g&&_g.data,_a=new Map,_b=new Map,_c=new Map,_e=new Map,_f=new Map,_h=new Map,_i=new Map;let _j=new Map;if(_d){const _n=new Map(_d.shipDefinitions.ships.unsizedList.map(_x=>[_x.id,_x]));if(_d.shipDefinitions.mintToId.unsizedList.forEach((_x,_k)=>{const _l=[..._x],_cfg=_l.find(_y=>_n.get(_y)?.name?.endsWith(" Default Config"))??_l[0],_sid=getShipIdFromConfigId(_cfg),_mint=_d.shipDefinitions.mintToId.offsetList[_k].key;_a.set(_mint,_cfg),_b.set(_cfg,_mint),_l.forEach(_y=>{_c.set(_y,_mint),_e.set(_y,_cfg)});const _nm=_n.get(_cfg)?.name??"";_f.set(_cfg,{shipId:_sid,defaultShipConfigId:_cfg,name:_nm.replace(" Default Config",""),mint:_mint})}),_d.cargoDefinitions.mintToId.forEach((_x,_k)=>{_h.set(_k,_x),_i.set(_x,_k)}),_j=_d.cargoDefinitions.cargoTypes,_j.size!==_h.size)throw new Error("Mismatch: cargoTypes.size ("+_j.size+") !== cargoMintsToIds.size ("+_h.size+")");if(_d.shipDefinitions.ships.offsetList.length!==_d.shipDefinitions.ships.unsizedList.length)throw new Error("Mismatch: gameData.shipDefinitions.ships.offsetList.length ("+_d.shipDefinitions.ships.offsetList.length+") !== gameData.shipDefinitions.ships.unsizedList.length ("+_d.shipDefinitions.ships.unsizedList.length+")")}return{a:_a,b:_b,c:_c,d:_e,e:_f,f:_h,g:_i,h:_j}});/*sa4*/const St=createMemo(()=>{const At="EKEj47SzaCjPM3m4T4vRXrrsVtkEmiNgPMMFye3AkXj4",It=nt.get("games").find(kr=>String(kr.address)===String(At)),',
+  ],
+  // 2) systems map — only rebuilds when starSystems changes; typeof guard keeps this safe if (1) missed
+  [
+    'const yr=Nr.reduce((Un,Po)=>(Un.set(Po.address,{...Po.data,key:Po.address}),Un),new Map),vr=String(At.address),',
+    'const yr=typeof __saSysMemo=="function"?__saSysMemo():Nr.reduce((Un,Po)=>(Un.set(Po.address,{...Po.data,key:Po.address}),Un),new Map),vr=String(At.address),',
+  ],
+  // 3) regions — only rebuilds when regionTracker changes
+  [
+    'regions:_r.flatMap(Un=>Un.data.regions.unsizedList),',
+    'regions:typeof __saRegionMemo=="function"?__saRegionMemo():_r.flatMap(Un=>Un.data.regions.unsizedList),',
+  ],
+  // 4) ship/cargo definition maps — only rebuild when the game account changes
+  [
+    'const Ar=At.data,kr=new Map,$r=new Map,Zt=new Map,Vt=new Map,Pt=new Map,Ut=new Map,Yt=new Map;let Xt=new Map;if(Ar){const Un=new Map(Ar.shipDefinitions.ships.unsizedList.map(Po=>[Po.id,Po]));if(Ar.shipDefinitions.mintToId.unsizedList.forEach((Po,Jn)=>{const An=[...Po],Yn=An.find(wo=>Un.get(wo)?.name?.endsWith(" Default Config"))??An[0],Hn=getShipIdFromConfigId(Yn),pi=Ar.shipDefinitions.mintToId.offsetList[Jn].key;kr.set(pi,Yn),$r.set(Yn,pi),An.forEach(wo=>{Zt.set(wo,pi),Vt.set(wo,Yn)});const Ki=Un.get(Yn)?.name??"";Pt.set(Yn,{shipId:Hn,defaultShipConfigId:Yn,name:Ki.replace(" Default Config",""),mint:pi})}),Ar.cargoDefinitions.mintToId.forEach((Po,Jn)=>{Ut.set(Jn,Po),Yt.set(Po,Jn)}),Xt=Ar.cargoDefinitions.cargoTypes,Xt.size!==Ut.size)throw new Error(`Mismatch: cargoTypes.size (${Xt.size}) !== cargoMintsToIds.size (${Ut.size})`);if(Ar.shipDefinitions.ships.offsetList.length!==Ar.shipDefinitions.ships.unsizedList.length)throw new Error(`Mismatch: gameData.shipDefinitions.ships.offsetList.length (${Ar.shipDefinitions.ships.offsetList.length}) !== gameData.shipDefinitions.ships.unsizedList.length (${Ar.shipDefinitions.ships.unsizedList.length})`)}',
+    'const Ar=At.data,_saSD=typeof __saShipMemo=="function"?__saShipMemo():null,kr=_saSD?_saSD.a:new Map,$r=_saSD?_saSD.b:new Map,Zt=_saSD?_saSD.c:new Map,Vt=_saSD?_saSD.d:new Map,Pt=_saSD?_saSD.e:new Map,Ut=_saSD?_saSD.f:new Map,Yt=_saSD?_saSD.g:new Map;let Xt=_saSD?_saSD.h:new Map;if(!_saSD&&Ar){const Un=new Map(Ar.shipDefinitions.ships.unsizedList.map(Po=>[Po.id,Po]));if(Ar.shipDefinitions.mintToId.unsizedList.forEach((Po,Jn)=>{const An=[...Po],Yn=An.find(wo=>Un.get(wo)?.name?.endsWith(" Default Config"))??An[0],Hn=getShipIdFromConfigId(Yn),pi=Ar.shipDefinitions.mintToId.offsetList[Jn].key;kr.set(pi,Yn),$r.set(Yn,pi),An.forEach(wo=>{Zt.set(wo,pi),Vt.set(wo,Yn)});const Ki=Un.get(Yn)?.name??"";Pt.set(Yn,{shipId:Hn,defaultShipConfigId:Yn,name:Ki.replace(" Default Config",""),mint:pi})}),Ar.cargoDefinitions.mintToId.forEach((Po,Jn)=>{Ut.set(Jn,Po),Yt.set(Po,Jn)}),Xt=Ar.cargoDefinitions.cargoTypes,Xt.size!==Ut.size)throw new Error(`Mismatch: cargoTypes.size (${Xt.size}) !== cargoMintsToIds.size (${Ut.size})`);if(Ar.shipDefinitions.ships.offsetList.length!==Ar.shipDefinitions.ships.unsizedList.length)throw new Error(`Mismatch: gameData.shipDefinitions.ships.offsetList.length (${Ar.shipDefinitions.ships.offsetList.length}) !== gameData.shipDefinitions.ships.unsizedList.length (${Ar.shipDefinitions.ships.unsizedList.length})`)}',
+  ],
 ];
 
 const msg = (m) =>
@@ -478,6 +523,42 @@ function apply(src) {
     [
       /const ([A-Za-z0-9_$]+)=([A-Za-z0-9_$]+)=>\{\2\.key==="Escape"&&([A-Za-z0-9_$]+)\(\)\.active&&!([A-Za-z0-9_$]+)&&\(([A-Za-z0-9_$]+)\(\),([A-Za-z0-9_$]+)\(\)\)\};window\.addEventListener\("keydown",\1\)/g,
       'const $1=$2=>{if($2.key==="Escape"&&$3().active&&!$4)return $5(),$6();if(($2.code==="Space"||$2.key===" ")&&!$2.repeat&&!$2.metaKey&&!$2.ctrlKey&&!$2.altKey){const el=$2.target;if(el&&((el.closest&&el.closest("input,textarea,select,[contenteditable=true]"))||el.tagName==="INPUT"||el.tagName==="TEXTAREA"||el.isContentEditable))return;if(typeof hc==="function"&&hc().active)return;$2.preventDefault();if(window.__SA_HOTKEYS__&&window.__SA_HOTKEYS__.isCapture&&window.__SA_HOTKEYS__.isCapture())return;if($3().active&&typeof Rp==="function"&&Rp($3())&&!$4){typeof zp==="function"?zp():up($3());return}if($3().active)return;const f=typeof hf==="function"?hf():null;if(f)tp($2.shiftKey?"warp":"subwarp")}};window.addEventListener("keydown",$1)'
+    ],
+    // --- Issue #2/#3/#4 fallbacks (name-agnostic; minifier renames locals every deploy) ---
+    // #2 gate the no-op cull pass
+    [
+      /const ([A-Za-z0-9_$]+)=new Bounds,([A-Za-z0-9_$]+)=class\{cull\(([A-Za-z0-9_$]+),([A-Za-z0-9_$]+),([A-Za-z0-9_$]+)=!0\)\{this\._cullRecursive\(\3,\4,\5\)\}/g,
+      'const $1=new Bounds,$2=class{cull($3,$4,$5=!0){if(window.__SA_FORCE_CULL__!==!0&&!window.__SA_ANY_CULLABLE__)return;this._cullRecursive($3,$4,$5)}'
+    ],
+    // #2 auto re-arm when anything opts into culling
+    [
+      /const ([A-Za-z0-9_$]+)=\{cullArea:null,cullable:!1,cullableChildren:!0\};/g,
+      'const $1={cullArea:null,get cullable(){return this._saCullable===!0},set cullable(_v){this._saCullable=_v===!0,_v===!0&&(window.__SA_ANY_CULLABLE__=!0)},cullableChildren:!0};'
+    ],
+    // #3 startup-debug effect: bail before it tracks the store
+    [
+      /createEffect\(\(\)=>\{const ([A-Za-z0-9_$]+)="EKEj47SzaCjPM3m4T4vRXrrsVtkEmiNgPMMFye3AkXj4",([A-Za-z0-9_$]+)=([A-Za-z0-9_$]+)\.get\("games"\)\.map\(/g,
+      'createEffect(()=>{if(!(typeof isStartupDebugEnabled=="function"&&isStartupDebugEnabled()))return;const $1="EKEj47SzaCjPM3m4T4vRXrrsVtkEmiNgPMMFye3AkXj4",$2=$3.get("games").map('
+    ],
+    // #4 ship/cargo defs -> own memo (runs before the injector so it cannot match injected text)
+    [
+      /const ([A-Za-z0-9_$]+)=([A-Za-z0-9_$]+)\.data,([A-Za-z0-9_$]+)=new Map,([A-Za-z0-9_$]+)=new Map,([A-Za-z0-9_$]+)=new Map,([A-Za-z0-9_$]+)=new Map,([A-Za-z0-9_$]+)=new Map,([A-Za-z0-9_$]+)=new Map,([A-Za-z0-9_$]+)=new Map;let ([A-Za-z0-9_$]+)=new Map;if\(\1\)\{([\s\S]{0,1600}?\.unsizedList\.length\}\)`\))\}/g,
+      'const $1=$2.data,_saSD=typeof __saShipMemo=="function"?__saShipMemo():null,$3=_saSD?_saSD.a:new Map,$4=_saSD?_saSD.b:new Map,$5=_saSD?_saSD.c:new Map,$6=_saSD?_saSD.d:new Map,$7=_saSD?_saSD.e:new Map,$8=_saSD?_saSD.f:new Map,$9=_saSD?_saSD.g:new Map;let $10=_saSD?_saSD.h:new Map;if(!_saSD&&$1){$11}'
+    ],
+    // #4 systems map -> own memo
+    [
+      /const ([A-Za-z0-9_$]+)=([A-Za-z0-9_$]+)\.reduce\(\(([A-Za-z0-9_$]+),([A-Za-z0-9_$]+)\)=>\(\3\.set\(\4\.address,\{\.\.\.\4\.data,key:\4\.address\}\),\3\),new Map\),/g,
+      'const $1=typeof __saSysMemo=="function"?__saSysMemo():$2.reduce(($3,$4)=>($3.set($4.address,{...$4.data,key:$4.address}),$3),new Map),'
+    ],
+    // #4 regions -> own memo
+    [
+      /regions:([A-Za-z0-9_$]+)\.flatMap\(([A-Za-z0-9_$]+)=>\2\.data\.regions\.unsizedList\),/g,
+      'regions:typeof __saRegionMemo=="function"?__saRegionMemo():$1.flatMap($2=>$2.data.regions.unsizedList),'
+    ],
+    // #4 declare the sub-memos ($2 = memo factory, $5 = data-source store — both renamable)
+    [
+      /(?<!\/\*sa4\*\/)const ([A-Za-z0-9_$]+)=([A-Za-z0-9_$]+)\(\(\)=>\{const ([A-Za-z0-9_$]+)="EKEj47SzaCjPM3m4T4vRXrrsVtkEmiNgPMMFye3AkXj4",([A-Za-z0-9_$]+)=([A-Za-z0-9_$]+)\.get\("games"\)\.find\(/g,
+      'const __saSysMemo=$2(()=>{const _m=new Map;for(const _s of $5.get("starSystems"))_m.set(_s.address,{..._s.data,key:_s.address});return _m}),__saRegionMemo=$2(()=>$5.get("regionTracker").flatMap(_t=>_t.data.regions.unsizedList)),__saShipMemo=$2(()=>{if(typeof getShipIdFromConfigId!="function")return null;const _g=$5.get("games").find(_x=>String(_x.address)==="EKEj47SzaCjPM3m4T4vRXrrsVtkEmiNgPMMFye3AkXj4"),_d=_g&&_g.data,_a=new Map,_b=new Map,_c=new Map,_e=new Map,_f=new Map,_h=new Map,_i=new Map;let _j=new Map;if(_d){const _n=new Map(_d.shipDefinitions.ships.unsizedList.map(_x=>[_x.id,_x]));if(_d.shipDefinitions.mintToId.unsizedList.forEach((_x,_k)=>{const _l=[..._x],_cfg=_l.find(_y=>_n.get(_y)?.name?.endsWith(" Default Config"))??_l[0],_sid=getShipIdFromConfigId(_cfg),_mint=_d.shipDefinitions.mintToId.offsetList[_k].key;_a.set(_mint,_cfg),_b.set(_cfg,_mint),_l.forEach(_y=>{_c.set(_y,_mint),_e.set(_y,_cfg)});const _nm=_n.get(_cfg)?.name??"";_f.set(_cfg,{shipId:_sid,defaultShipConfigId:_cfg,name:_nm.replace(" Default Config",""),mint:_mint})}),_d.cargoDefinitions.mintToId.forEach((_x,_k)=>{_h.set(_k,_x),_i.set(_x,_k)}),_j=_d.cargoDefinitions.cargoTypes,_j.size!==_h.size)throw new Error("Mismatch: cargoTypes.size ("+_j.size+") !== cargoMintsToIds.size ("+_h.size+")");if(_d.shipDefinitions.ships.offsetList.length!==_d.shipDefinitions.ships.unsizedList.length)throw new Error("Mismatch: gameData.shipDefinitions.ships.offsetList.length ("+_d.shipDefinitions.ships.offsetList.length+") !== gameData.shipDefinitions.ships.unsizedList.length ("+_d.shipDefinitions.ships.unsizedList.length+")")}return{a:_a,b:_b,c:_c,d:_e,e:_f,f:_h,g:_i,h:_j}});/*sa4*/const $1=$2(()=>{const $3="EKEj47SzaCjPM3m4T4vRXrrsVtkEmiNgPMMFye3AkXj4",$4=$5.get("games").find('
     ],
   ];
 
@@ -2621,6 +2702,7 @@ neutralize();
     slog("info", "🗺️", "map debug → __SA_MAP_DEBUG__.on() / .off()  ·  popup toggle  ·  ?saMapDebug=1");
     slog("info", "🚀", "warp trails → __SA_WARP_TRAILS__.enable() / .disable()  ·  popup toggle  ·  localStorage saNoWarpTrails");
     slog("info", "🔎", "zoom hud → __SA_ZOOM_HUD__.on() / .off()  ·  popup toggle  ·  localStorage saZoomHud");
+    slog("info", "🧹", "perf (issues #2/#3/#4): culler bypass · sageStore memo split · startup-debug effect idle  ·  stock culler → __SA_FORCE_CULL__=true");
 
     for (const id of ["root", "modal-root"]) {
       const el = document.getElementById(id);
