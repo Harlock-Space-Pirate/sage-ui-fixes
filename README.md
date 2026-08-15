@@ -5,6 +5,8 @@ Client-side browser extension that applies small UI corrections on [sage.staratl
 **Author:** LEEKS · **Produce Bandit ltd**  
 **Not affiliated with Star Atlas, ATMTA, or the official SAGE client.**
 
+**Target client (v2.0.0):** live SAGE **0.0.355** / `assets/index-DY7IU6C2.js` (2026-08-14).
+
 ## Credits
 
 ### ★ BULLIT — LEGEND PLAQUE ★
@@ -22,68 +24,51 @@ Client-side browser extension that applies small UI corrections on [sage.staratl
   ║     ↑ ↑ ↓ ↓ ← → ← →  B  A  ·  START                     ║
   ║     (Konami Code unlocked: infinite QA continues)        ║
   ╚══════════════════════════════════════════════════════════╝
-
-        .     *        .   ✦     .
-    *      🍄     .    🚀      *     .
-        .    ☁️  WEED  ☁️    .      ✦
-   ✦   *    👁️  DMT  👁️      *   .
-        .      🍄🍄🍄      .
 ```
 
 **Bullit** is the reason this ship still warps after every patch.
 
-Commodore kid. Nintendo kid. Grew up on CRT glow, cartridge dust, and the sacred art of *blowing on the contacts and praying*. Same generation that learned physics from *Elite*, ethics from *Star Control*, and patience from a tape deck that screamed for three minutes before whispering `FOUND`. If the galaxy map glitches, he is already mid-jump — one hand on the stick, one hand mid-thesis on why the starbase bar is lying through its teeth.
-
-He does not “QA.” He **tinkers in the void**:
-
-- Spots dead fleet pins like a stoner spotting the **mushroom** in the wallpaper that was *definitely* always a face  
-- Files bug reports that hit harder than a **DMT** launch window and somehow still include reproduction steps, screenshots, and a joke  
-- Brings ideas that smell like garage science, **weed** philosophy, and 1992 sci-fi paperbacks left open on a beanbag next to a C64  
-- Stress-tests combat and ownership UIs until Neutral Zone stops gaslighting the whole sector  
-- Will say “bro what if…” — and three deploys later it’s a real fix with a body count of regressions he already killed  
-- Keeps mashing **Start** while the rest of us are still stuck on `PRESS PLAY ON TAPE`
-
-```text
-  **** COMMODORE 64 BASIC V2 ****
-  64K RAM SYSTEM  38911 BASIC BYTES FREE
-  READY.
-  10 REM BULLIT MODE
-  20 POKE 53280,0 : POKE 53281,0
-  30 PRINT "QA FROM HYPERSPACE"
-  40 GOTO 30
-  RUN
-```
-
-If this extension feels less cursed than stock SAGE, thank the pilot on the **legend plaque**.
+Commodore kid. Nintendo kid. Grew up on CRT glow, cartridge dust, and the sacred art of *blowing on the contacts and praying*. If the galaxy map glitches, he is already mid-jump.
 
 *Bullit — co-conspirator · idea factory · live-fire tester · void tinkerer · high score forever.*
 
 **Author / shipwright:** LEEKS · **Produce Bandit ltd**
 
-## What it fixes
+## What it fixes (v2)
 
 - Destroyed fleets lingering on the map / in combat target lists
 - Starbase HP bar presentation
 - Post-capture ownership / NEUTRAL lag on system views
-- Live HUD ownership and related display sync after capture or attack
-- Combat hit/miss feedback and claim-builder layout/scroll quirks (see [CHANGELOG](./CHANGELOG.md))
-- **Frame-rate:** bypasses the PixiJS cull pass that walks the whole scene graph every frame without culling anything (nothing in SAGE opts into `cullable`), and stops `sageStore` rebuilding the entire world model — star systems, ship/cargo definitions, regions — every time any one of twelve account collections changes
-- **Toolbar click:** shows installed **version** and a link to **GitHub release notes**
+- Yellow wash from oversized star glows
+- PixiJS cull pass that walked the whole scene graph for nothing
+- Startup-debug effect that re-ran on every store tick
+- Post-attack refetch storm (2s/5s/10s → 1.5s/6s)
+- Contested-starbase / AP-depleted attack errors
+- Starbase Attack from a Jorvik/Baron-tagged player hull (stock omits FO + FA)
+- Hab-builder diagram pulse (30 fps → 1 Hz) and catalog autoscroll
+- Optional warp-trail disable for FPS (`__SA_WARP_TRAILS__.disable()`)
+- **Fleet action bar** — one row of stock tiles (stock 3-row fleet panel hidden); drag to move, position saved per screen size. Second row: 8 assignable fleet slots.
 
-## Findings / engineering report
+v1 fleet bar / combat-log HUD / wings are archived and will return as modules.
 
-Full write-up of the **starbase destruction display loop** Bullit scoped (tier dots, faction border, skull → station icon, infocard, refetch) plus stock function names and annotated screenshots:
+## How it works
 
-→ **[docs/bug-report-starbase-ui.md](./docs/bug-report-starbase-ui.md)**
+1. Content script finds `assets/index-*.js`.
+2. Background DNR blocks the stock entry.
+3. Extension fetches the live minified module, applies once-only string patches, injects it as a MAIN-world ES module.
 
-(Inline screenshots: small preview, expand for full size + LEEKS captions. Idea/QA/field docs: **Bullit**. Engineering packaging: **LEEKS / Produce Bandit ltd**.)
+```text
+sage.staratlas.com  →  DNR block entry  →  fetch + patches.js  →  inject MAIN
+```
 
-## Design system (stock SAGE look)
+Refresh stock after a SAGE deploy:
 
-When building or reviewing **any** injected UI, use the stock Golden Era language (fleet action **icon tiles**, amber HUD frames, Orbitron chrome) — not a parallel cyan panel.
+```bash
+npm run fetch-stock
+npm run probe
+```
 
-→ **[docs/design-system/README.md](./docs/design-system/README.md)** · tokens · component catalog · do/don’t  
-→ Interactive mock: [`docs/design-system/prototypes/stock-fleet-action-bar.html`](./docs/design-system/prototypes/stock-fleet-action-bar.html)
+`probe` must print every patch `ok` and `node --check OK`. If SAGE shipped a new hash, update the `find` strings in `patches.js`.
 
 ## Install
 
@@ -99,7 +84,7 @@ When building or reviewing **any** injected UI, use the stock Golden Era languag
 2. Unzip it.
 3. Chrome → **Load unpacked** → select the unzipped folder.
 
-Only published GitHub Releases for this repository are supported installs. Do not load arbitrary third-party zips claiming to be this extension.
+Only published GitHub Releases for this repository are supported installs.
 
 ## Permissions
 

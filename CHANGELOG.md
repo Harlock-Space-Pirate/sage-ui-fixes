@@ -1,284 +1,95 @@
 # Changelog
 
-## 1.0.43
+## 2.3.8
 
-Performance triage of three community reports ([#2](https://github.com/Harlock-Space-Pirate/sage-ui-fixes/issues/2), [#3](https://github.com/Harlock-Space-Pirate/sage-ui-fixes/issues/3), [#4](https://github.com/Harlock-Space-Pirate/sage-ui-fixes/issues/4)). All three confirmed against the live bundle `index-CZzek2X2.js`.
+- **Starbase attack** now sends the fleet FactionOwnership sidecar and the
+  Jorvik (or Baron) FactionAccount. Stock SAGE leaves those optionals empty,
+  which is `npc_attacker_ownership_missing`. Tagged hulls can Attack from
+  the official button. Fleet must be idle on the target system.
 
-- **Culler no longer walks the scene graph for nothing (#2):** stock registers PixiJS `CullerPlugin`, but SAGE never sets `cullable = true` on a single display object (10 sites set it to `false`, zero set it to `true`). The result was a full recursive walk of every node in the stage, every rendered frame, that culled exactly nothing. The cull pass is now gated. `cullable` became an accessor that re-arms culling automatically the moment anything opts in, so the fix cannot silently hide objects in a future deploy; `window.__SA_FORCE_CULL__ = true` restores stock behaviour on demand.
-- **`sageStore` no longer rebuilds the world on every update (#4):** one aggregate memo depended on twelve data-source collections, so a loyalty contribution or reward-config change re-spread every star system into a fresh `Map`, re-derived all ship/cargo definition maps, and re-flattened every region. The three heavy derivations are now their own memos — a loyalty update rebuilds loyalty data only. Each call site falls back to the stock expression if the injection does not land.
-- **Startup-debug effect goes idle (#3):** the `sage-game-resolution` effect rebuilt a 16-key object and `JSON.stringify`'d it on every data-source change, then handed it to `startupDebugLog()`, which no-ops unless `fc-startup-debug` is set. It now bails before reading the store, so it tracks no signals and never re-runs while debug is off — and behaves exactly as stock when it is on.
+## 2.3.7
 
-## 1.0.42
+- Comms resolves **profile names** (not raw wallets) and shows a **faction badge** (MUD / ONI / Ustur).
+- Comms inner tabs: **Channels** (Galia, MUD, ONI, Ustur) and **Teams** (Arcade, Vanguard).
+- Right-click a message: Add contact · Block/Unblock · Copy wallet · Reply · Delete (own). Right-click a channel: Hide/Show. Same `ink-chat-settings` store as official chat.
 
-- **Compact minimize:** minimizing the log now shrinks its width to fit the tab titles; restoring (+) brings back the exact previous width, height and position
-- **Per-screen-size bar positions:** the action bar saves its position per screen size and jumps back when you return to that size; a new/unknown canvas size re-centers it
-- **Reset bar position:** new "Reset bar position" button in the extension popup re-centers the fleet bar and clears saved positions (for when it's dragged out of sight)
+## 2.3.6
 
-## 1.0.41
+- Clicking an assigned fleet slot no longer blows up PixiMap (`coordinates.x` on null). Select only runs with real game coords (`data.location`, 2^56 scale). Double-click pans.
 
-- **Notch follows the button:** the fuel notch now sits above the WARP tile and the ammo notch above the ATTACK tile (the button that cares), borderless and slightly narrower than the tile so it reads as a tab on that button
-- **Starbase view clears the bar:** entering a starbase (`_menuContent_`) hides the action bar for an unobstructed view
+## 2.3.5
 
-## 1.0.40
+- Combat / Comms window was falling out of the viewport (`position:relative` after `fixed`). It is pinned again. Double-click the tab row to reset position.
 
-- **Notch orientation forced:** fuel/ammo notch is now guaranteed top-rounded and attached to the combat-button row (`!important`), so it reads as growing out of the combat bar, never hanging from the wings
-- **Consistent header chips:** My Fleet / Inventory / Crew and any `[role=button]` in the header + echo header get the same solid dark chip look as `_headerEchoMain`
-- **Dominion bar shrink-wrap:** `_dominionHeaderBarContainer` sizes to its chips (`fit-content`) with extra left spacing so the logo/icons no longer stick out
-- **Locked fleets:** new **Lock** tile pins the currently selected fleet to a persistent on-screen plate (FRIEND · HEAL green / ENEMY · ATTACK red); plates are draggable and their positions are saved; × to unlock
+## 2.3.4
 
-## 1.0.39
+- Action tiles that **cannot** be used are dark bronze; ready tiles stay bright gold (Destruct ready stays red).
 
-- **HUD appears after login only:** fleet bar + combat log stay hidden on the splash menu and show once you're in-game (fleets loaded / header present)
-- **Fleet table (right):** owned-fleets-only list with state + fuel bar; double-click centers the map on that fleet and selects it; auto-shows on login, closable
-- **Fleet overview cleanup:** stock Movement Planner button removed; `_fleetStoreChipGrid` resource chips compacted to slim percentage tiles that blink red when nearly empty
-- **Action-bar notch fixed:** fuel/ammo notch now grows out of the combat-button row (top-rounded, black, attached via a 1px black seam); the button row sits on a black rounded backing with rounded outer corners
-- **Subtle drag grip:** the big "SAGE UI FIXES · FLEET BAR" banner is now a faint ⋮⋮ handle
-- **Log width resize:** diagonal grip in the log's bottom-right corner drags it wider/taller
-- **Top bar:** logo removed entirely; dark notch bars undone; header + echo-header (`_headerEchoMain`) utility icons get solid dark chips so they're always legible
+## 2.3.3
 
-## 1.0.38
+- **Fleet slots** under the action bar (8). Empty slot → fleet list; drag a fleet onto a slot (or click the row). Filled slot selects + pans to that fleet. × or right-click clears. Saved as `saFleetSlots.v1`.
 
-- **Resource gates + notify:** Warp / Subwarp now check fuel of the selected fleets — all-dry blocks with an OUT OF FUEL alert (Comms tab + top strip), partial-dry or ≤25% total warns; Attack does the same for ammo; clicking a dimmed tile tells you why in Comms
-- **Fuel notch:** fuel alert sits in an iPhone-style notch between the wing chips and the action tiles (blue low / red out), next to the ammo lamp
-- **Pending-tx clock:** Dock/Undock, Warp, Subwarp, Mine, Gate, Destruct, Attack show a pressed-in tile with a sweeping clock overlay until the fleet's on-chain state actually changes (then it clears; safety timeout otherwise)
-- **Bar readability v2:** frameless bar with solid dark tiles; gold icons/labels back, Dock/Undock in stock blue, Destruct red; unusable tiles go darker (dark-red for danger) instead of rainbow; selected tile reads pressed
-- **Log viewer fixed + reworked:** minimize no longer locks you out — collapsed strip keeps a label + "+" and click-to-restore, and snaps to the bottom edge to free screen space; A− / A+ now really resize the text; A− / A+ / CLR moved behind a ⋮ menu; new ⠿ six-dot drag grip
-- **Support chips:** battery-style pulse when low (amber ≤40%, red pulse ≤15%) with colored % readout
-- **Undock on first paint:** the Dock tile reads the selected fleet's real docked state (not the lagging stock button), so a docked fleet shows Undock immediately
+## 2.3.2
 
-## 1.0.37
+- Fleet bar tiles drop the stock glass classes. Solid fill, icons fill the button (our stroke set — stock glyphs were 0.95rem and washed out).
 
-- **Action bar absorbs stock Fleet Actions:** Dock / Gate / Stims / Mine / Destruct tiles join Warp / Swarp / Scan / Atk (clicks forward to the stock buttons, so game logic + confirms stay stock); the bulky stock "Fleet actions" section is hidden; tiles slimmed to fit
-- **Movement Orders panel docks top:** the movement planner opens just under the top bar instead of the bottom sheet
-- **Compact support tiles:** Fuel / Ammo / Food / Toolkit tiles shrink to slim chips with a percent fill bar + % readout (gold → amber ≤40% → red ≤15%) instead of tall empty boxes
-- **COMMS tab in the log viewer:** every game pop-up/toast is captured into a third tab (Combat / Flight / Comms); new pop-ups blink the tab and flash a top-center strip for 6s (click strip → opens Comms); rows are copy-pasteable, long messages stay one-line until clicked, then expand big
-- **Flexible wing chains:** plain click toggles a wing in/out (pick 1+3 freely), Shift+click daisy-chains the range, Alt+click solos; consecutive active wings get a gold connector, disjoint actives read as separate chains
-- **Attack mirrors stock:** the Attack tile is disabled (not hidden) when the stock fleet panel shows no Attack button (nothing in range); bar buttons renamed to stock labels (Subwarp / Warp Gate / Attack / Destruct) with matching line icons
-- **Top bar polish:** dark notch behind the header clusters (resources / dominion icons / utilities / account card) for contrast; dominion chips no longer overlap on small screens; STAR ATLAS wordmark replaced by a compact icon-only mark
-- **Log text size:** A− / A+ buttons resize the log text (9–14px, persisted) — WoW-chat style
-- **Log viewer slimmed:** title bar removed — A− / A+ / CLR / collapse now sit on the tab row; drag the tab row to move, dbl-click resets; fixed body height so switching Combat/Flight/Comms no longer resizes the box
-- **Bar readability:** translucent dark backdrop panel behind the whole fleet bar
-- **COMMS captures everything:** the big INFO cards (with copy button) and green warp/success toasts now land in the Comms tab; the stock notification stack is moved to the top-right so it no longer covers the action bar
-- **Dock ⇄ Undock:** the Dock tile relabels to Undock when the stock panel offers it (and forwards correctly)
-- **Cancel Warp floats** above the drag bar instead of pushing the bar down
+## 2.3.1
 
-## 1.0.36
+- Fleet bar tiles are **opaque** (solid fill, no glass). Icons fill most of the button.
 
-- **Out-of-ammo warning lamp:** blinking red diamond + AMMO label centered on the fleet bar when your selected fleet / active wing draws ammo and sits at 0 (same rule as stock "Resource deficient": `totalAmmoDraw > 0 && ammoCurrent <= 0`); ATK tile pulses red too; hover the lamp for the empty fleet list
-- **HUD clicks no longer leak into the game:** fleet bar, combat log, wings board and confirm modals stop pointer/mouse event propagation — dragging the bar or clicking the log while docked no longer kicks you out of the space-station view
-- **Movement confirms restyled:** warp/subwarp fly confirm + wing confirm now use the chamfered gold-frame Star Atlas skin (Orbitron, angular, WARP/SUBWARP mode chip, Enter/Esc/Shift+click hints) instead of the browser-ish cyan rounded card
-- **Security:** fleet labels and system names are on-chain untrusted strings; they are now HTML-escaped in combat log, flight log and confirms, so a hostile fleet name cannot inject markup/script into the page
+## 2.3.0
 
-## 1.0.35
+- Comms / Contacts are **our** layout inside the log (no overlaid official window). Messages and send go through the live InkChat/DM engine. Composer + emoji stay at the bottom of the pane.
 
-- **Shift+click skips warp/subwarp confirm** (single fleet + wing): marquee no longer steals Shift while destination pick is active
-- Wing map pick tip: Shift+click skip · headless GO READY when shift held
-- More robust mod-key detect (`__SA_MOD_SKIP__`, Pixi originalEvent)
+## 2.2.3
 
-## 1.0.34
+- Warp/subwarp `_actionBar_138wv_` and `_mapTargetBar_14omi_` sit just above the fleet-bar grip (or below the bar if you dragged it up). Slimmed to planner-strip height.
 
-- **Toggle fleet action bar** (popup): OFF hides wings/Warp/Swarp/Scan/Atk strip — stock **click fleet + map pick** still works
-- **Toggle combat log panel** (popup): hide HIT/MISS/flight log when you want a clean map
-- Prefs: `saHideActionBar=1`, `saHideCombatLog=1` · console `__SA_ACTION_BAR__.hide()` / `.show()`, `__SA_LOG_COMBAT_EVENT.hide()` / `.show()`
+## 2.2.2
 
-## 1.0.33
+- Chat / combat log stays up in **Port of Entry** and other starbase menus (it was hiding on `_menuContent_`). Stacked above that overlay.
 
-- **Draggable combat log** + **fleet action bar** with clear SAGE UI Fixes labels
-- Drag combat log header / gold fleet-bar grip; position remembered (`saCombatLogPos.v1`, `saActionBarPos.v1`)
-- Double-click header/grip to reset position
-- Overlay identity: titles + `data-sa-overlay` (`combat-log` / `action-bar`) so you know what is covering UI
+## 2.2.1
 
-## 1.0.32
+- Comms / Contacts now **host the live SAGE panels** (real channel messages, stock composer + emoji at the bottom, real contact book + DMs). Official launchers stay hidden.
+- Log window size + position, typing-chip position, and fleet bar position all persist.
 
-- **Zoom counter HUD** (popup toggle): live map scale `×N.NN` + world/game center coords (top-right amber chip)
-- Preference: `localStorage.saZoomHud=1` · console `__SA_ZOOM_HUD__.on()` / `.off()`
+## 2.2.0
 
-## 1.0.31
+- Restored the **combat log window** (Combat · Flight · Comms · Contacts). Official Galia dock and Contacts popup are hidden; channels and contacts live in this panel.
+- Minimized chip is the motion-teardown **`.typing`** bubble (dark, 16px/4px tail, 8px dots, 0.16s stagger). Unread turns the dots on and shows a red pip.
+- Contacts no longer opens the stock window.
 
-- **Combat log restyle** to match Wings / action-bar amber HUD (Orbitron, gold accents, square corners, same button scale as other panels)
-- Combat / Flight tabs use amber active underline instead of cyan
+## 2.1.3
 
-## 1.0.30
+- InkChat: lift **Contacts** with the Galia dock above `_footer_1qpfc_762`. Hide the standalone CONTACTS pill; **Comms / Contacts** tabs on the open Galia panel.
+- Galia comms collapsed control is an **icon** (bouncing dots). Unread/mention lights the dots and a red pip.
+- Destruct has **no hotkey**.
 
-- **Warp trails toggle** ([#1](https://github.com/Harlock-Space-Pirate/sage-ui-fixes/issues/1)): extension popup ON/OFF; OFF skips `createWarpTrail` (FPS) and clears existing trails
-- Preference: `localStorage.saNoWarpTrails=1` · runtime `__SA_WARP_TRAILS__.enable()` / `.disable()`
+## 2.1.2
 
-## 1.0.29
+- Fleet bar tiles are **icon-only**. Hover shows the name (so Warp Gate no longer stretches the row).
+- Hotkey badges: **1–9**, **0**, **−** (minus = Destruct). Same keys fire the action.
 
-- **Wings panel:** resizable corner handle; size + position saved (`saWingsPanelPos.v1`)
-- **Compact fleet cards** closer to stock My Fleets: size bars, `UNDOCKED / IDLE` / `DOCKED` status colors, location, segmented HP/SP/fuel bars
-- **Per-wing colors** on columns and action-bar chips [1–5]
-- **Larger Wings buttons** (header + Use wing / delete) matching other pop-up controls
+## 2.1.1
 
-## 1.0.28
+- **InkChat dock:** keep the official comms/contacts pills above command-panel `_footer_1qpfc_762` and raise their z-index so they stay clickable. No replacement dock.
 
-- Wings panel resize foundation; fleet card pips; column accents; button sizing pass
+## 2.1.0
 
-## 1.0.27
+- **Fleet action bar** back: one row of stock 0.0.355 tiles (`_statusActionButton_nsg6t_336 _fleetActionButton_1040r_21`), always painted (inactive tiles stay visible and disabled). Destruct is spaced off the other buttons.
+- Stock fleet-view grid (`_statusActions_nsg6t_313 _fleetActionBar_1040r_863`, the 2-column / 3-row block) is hidden. Our tiles click the hidden stock buttons.
+- Draggable grip; position stored in `localStorage` (`saActionBarPos.v1`) per screen size. Double-click grip resets. Popup can hide the bar (`saHideActionBar`).
 
-- **Wings editor = floating compact panel** (not full-screen modal): map stays interactive
-- Opens centered; **drag header** to park on the side (position remembered)
-- Denser amber HUD layout (Orbitron, smaller columns/cards)
+## 2.0.0
 
-## 1.0.26
+Rewrite against live **sage.staratlas.com 0.0.355** (`assets/index-DY7IU6C2.js`, commit `8240f8c2d`, 2026-08-14).
 
-- **Wing WARP/SWARP without Movement Planner pane:** click map only → compact Ready/Blocked confirm → stock `submit` batch (same preflight/math as planner)
-- Planner left rail stays closed (`active:false` / `primeBatch`); no more huge left panel for multi-fleet moves
+- **New inject engine:** DNR-block stock entry → fetch live minified JS → exact once-only patches in `patches.js` → inject patched MAIN. Same proven boot as v1, without the 3.3k-line all-in-one `content.js`.
+- **Stock kit:** `npm run fetch-stock` downloads every JS/CSS in the live Vite graph into `stock/` (gitignored). `npm run probe` applies patches and `node --check`s the result.
+- **v1 archived** at `archive/v1.0.51-pre-rewrite/` (local only). Fleet action bar, combat-log HUD, wings, lock tables, and zoom HUD are **not** in 2.0.0 — they will be re-ported as separate modules against 355.
+- **Patches that land on 355:** destroyed fleet pins, dead fleets out of attack lists, starbase HP bar, ownership fingerprint + `resolveDisplayOwner`, panel owner memo, warp-trail gate, glow wash clamps, culler bypass, startup-debug idle, systems/regions memo hooks, post-attack poll 1.5s/6s, in-place pin re-tint, detail-faction recreate, attack success hooks + contested/AP error toasts, builder pulse 1000 ms, catalog autoscroll off, `__SA_MAP_MATH__` / `__SA_MAP_CONTROL__` / `__SA_PLANNER__`.
 
-## 1.0.25
+## 1.0.51 and earlier
 
-- **Shift+drag marquee** on the map: select owned fleets only (ignores systems/starbases) into temporary wing **[0]**
-- Action bar: **[0]** marquee chip, then **[1–5]**, then extra space before **[×]** (harder to mis-click)
-- Key **0** selects marquee wing; temp group is memory-only (not saved across refresh)
-
-## 1.0.24
-
-- **Wing groups survive refresh:** fixed wipe on load — no longer prune/save empty membership before fleets are ready
-- Persist `groups` + labels in `localStorage` (`saFleetGroups.v1`) with safer load/save
-
-## 1.0.23
-
-- **Chain wings:** Ctrl/Cmd+click wing chips (or Ctrl+1…5) to link groups for one shared destination
-- Visual **chain links** between selected chips + count badge; plain click = solo wing; ×/Esc clears chain
-- WARP/SWARP with multiple wings merges fleets into one stock multi-order (same preflight confirm)
-
-## 1.0.22
-
-- **Cancel** during warp/swarp pick sits **above** the wing chips bar (not replacing action tiles)
-- Action tiles stay visible; active mode (WARP/SWARP) highlighted while picking
-
-## 1.0.21
-
-- **Simple action bar:** `[1][2][3][4][5] [×]` + `|WARP|SWARP|SCAN|ATK|` — no outer border panel
-- **Wing keys 1–5 / Esc=×** clear selection; cancel map pick
-- **Single fleet:** WARP/SWARP/SCAN/ATK use stock paths
-- **Wing + WARP/SWARP:** map pick → compact Ready/Blocked confirm → stock multi-fleet batch (preflight)
-- Stock Movement Planner chrome hidden during wing order (logic kept)
-
-## 1.0.20
-
-- **Wing + Subwarp:** use **stock multi-fleet movement planner** (same path as checkbox multi-select)
-  - Pre-selects all wing fleets, **map targeting** for the normal click-map pick
-  - Auto **Issue Movement Orders** after destination → stock preflight + `executeMovementOrderBatch`
-  - No more custom overlay / sequential fallback when planner is ready
-- Flight log: clearer PICK/SUBMIT messages for wing orders
-
-## 1.0.19
-
-- **Action bar restyle:** stock-like **Fleet actions** panel (cyan frame, Orbitron labels) matching movement-order UI
-- **Wing mini-bar** above actions: buttons **1–9** for each wing (count badge); key **1–9** selects wing
-- **Wing + Subwarp:** custom map pick (crosshair overlay) → multi-subwarp all ships in wing via stock planner batch when available
-- **Flight log tab** on combat log window (Combat | Flight); per-fleet skip/error/cooldown notes; clear respects active tab
-- Planner + map math exposes for multi-orders (`__SA_PLANNER__`, `__SA_MAP_MATH__`, `__SA_WING_PICK__`, `__SA_FLIGHT_LOG__`)
-
-## 1.0.18
-
-- **Fix "Unreal Engine is not available":** stock `showSubwarp`/`showWarp` call `getEngine()` (web SAGE has no UE bridge). Action bar + wrappers now use **map movement** (`__SA_MOVEMENT__.start` / `tp`) and DOM Subwarp fallback — never the broken getEngine path
-- Register `__SA_MOVEMENT__` at map init (`Ap` createMemo boot) so Space/bar work without a prior subwarp
-
-## 1.0.17
-
-- **Fleet Wings — all owned fleets:** Unassigned lists every fleet you own (from live `peekFleets` + player profile), not only the selected one
-- **Selected highlight:** current fleet is pinned to the **top** of Unassigned/wing lists with a cyan highlight
-- **Refresh** button on the Wings board if fleets load after open
-
-## 1.0.16
-
-- **Combat log concurrent attacks:** each resolve has a unique `id` so multi-hits on the same starbase no longer leave a stuck **RESOLVING** row or clobber each other
-- **Pre-attack HP snapshot:** capture starbase HP at `⚔️ Attacking starbase…` (before wallet confirm), not only after confirm — fixes first-hit damage missed when chain already applied
-- **HP tracking:** peak/trough across polls so late RPC/cache still yields a delta
-- **Recorder:** `__SA_COMBAT_RECORDER__.dump()` / `.clear()` — last ~150 events in `localStorage` (`saCombatLog.v1`)
-
-## 1.0.15
-
-- **Boot fix:** SyntaxError `Unexpected token 'var'` — ASI missing after `__SA_SAGE_ACTIONS__` assign; removed illegal comma-chain inject before `Ap=` that broke the minified module parse
-- Movement API now registers safely inside `tp` / `zp` function bodies
-
-## 1.0.14
-
-- **Styled fly confirm** — game-style modal (not browser `confirm`); Shift+click / Meta+click still skips and launches immediately
-- **No leftover Start Subwarp bar** — auto-launch uses stock `zp()` submit path (shows Submitting, then clears)
-- **Bottom fleet action bar** — Subwarp / Warp / Attack / Scan / Stop (no Destruct); becomes **Cancel move** while ordering/moving
-- **Rebindable hotkeys** — double-click a key badge on the bar to capture a new shortcut (saved in `localStorage`)
-- **Fleet Wings board** — Trello-style groups (drag fleets, rename, SUBWARP WING, add group); open with **Wings** or hotkey `G`
-
-## 1.0.13
-
-- **Combat log UX:** text wraps to width (`overflow-wrap`); custom thin cyan scrollbar; **draggable** by header
-- **Fleet Space → subwarp pick:** with a fleet selected, **Space** starts subwarp destination mode (map pick)
-- **Map destination:** **click** asks “Fly subwarp/warp to …?”; **Shift+click** flies immediately (no prompt); Cancel exits pick mode
-
-## 1.0.12
-
-- **Map debugger for non-techies:** extension popup **ON/OFF toggle** + **Copy ON / Copy OFF** one-liners
-- Console: `__SA_MAP_DEBUG__.on()` / `.off()` (also `enable`/`disable`); persists via `localStorage.saMapDebug`
-
-## 1.0.11
-
-- **Surgical map pins (live CZzek2X2+):** stock `shouldRecreateStarSystemVisuals` destroyed+recreated pins on owner flip (slow + glow wash). Now **in-place** re-tint/retexture (`_starGlow`/`_starCore`/`_softHalo`) + keep container
-- **Dirty fingerprint:** HP fraction in systems signature (`hl` + legacy locals) so HP bars update without full galaxy thrash
-- **Coalesced ownership refresh:** stock 0/2/5/10s `starSystem`+`factionOwnership` storm → single-flight **0 / 1.5s / 6s** (`__SA_COALESCE_MAP_REFRESH__`)
-- **Post-capture bump:** `__SA_MAP_BUMP__` after CAPTURE / refetch to force pin chrome without zoom-to-refresh
-- **Create-time glow clamp:** initial `_starGlow.alpha` min 0.05 (with existing pulse hard-cap)
-- **Legacy pin path** kept for pre-`shouldRecreate` entry hashes
-- Stock snapshots: `stock-snapshots/DIFF-REPORT.md` (A→D comparison)
-
-## 1.0.10
-
-- **Combat log capture:** starbase resolve tracks **owner flip** (Neutral→Ustur etc.), not only HP. Logs `CAPTURE` + toast when system is taken with 0 HP dmg; still HIT when damage only
-- **Map yellow wash (permanent):** harder macro `GLOW` (SIZE 14→3, lower alpha); per-frame `starGlow.alpha` hard-cap 0.04; detail `GLOW_BASE_ALPHA` 0.45→0.08
-- **Map debug:** dump tags loot (`#9b4dca`) vs system glows; `dimWash`/`watch` skip loot markers by default
-
-## 1.0.9
-
-- **Map debug v3:** `watch`/`dimWash` only star-glow sprites (not fleets); no `.width` reads (no mask thrash / blink)
-
-## 1.0.8
-
-- **Map yellow wash:** dump showed Ustur tint `16755200` (#ffaa00) on huge star-glow Sprites (`screen`/`add`). Shrink macro `SYSTEM_STAR_CONFIG.GLOW` (14→4.5, lower alpha); tighter detail glow; ownership tint clamps glow alpha; `dimWash` hard-caps Ustur/add glows
-
-## 1.0.7
-
-- **Combat log:** re-hook starbase attack success on current bundle (`index-CZzek2X2` + extra AP hooks before toast). Stock path confirmed txs but never called `__SA_RESOLVE_COMBAT` → empty combat log / no HIT-MISS UI
-
-## 1.0.6
-
-- **Map debug v2:** screen-space wash scoring (was 7k+ false positives from world-bounds); Pixi v8 `label` only; `markPre`/`markPost` capture diff; tighter `dimWash`
-
-## 1.0.5
-
-- **Map debug:** `__SA_MAP_DEBUG__` runtime tool — `dump` / `dimWash` / `watch` / `restore` / `snapshot` for capture-glow wash; auto via `?saMapDebug=1` or `localStorage.saMapDebug=1`
-
-## 1.0.4
-
-- **Map / capture:** Neutral→Ustur (and MUD/Oni) full-system wash — previous glow patch **never landed** (minifier renamed `wo`→`bo`). Now: exact + name-agnostic regex shrink/dim outer glow, desaturate primary star mesh faction colors, re-hide macro star on detail recreate
-
-## 1.0.3
-
-- **Combat:** log + toast **counterstrike** (stock VFX was immediate; panel/feed were silent)
-- **Combat:** longer starbase hit/miss poll (up to ~30s) so slow chain confirms are not false MISS
-- **Map / capture:** first attempt to soften post-capture star glow (incomplete — see 1.0.4)
-- **Boot:** fix fleet-attack regex that left a stray `)` and crashed the patched entry (`Unexpected token ')'`) — page blank after inject
-
-## 1.0.2
-
-
-Production POC release — map, combat, claim builder, ownership presentation.
-
-- **Toolbar popup:** click the extension icon for version number and a link to GitHub release notes
-- **Combat:** hit/miss resolve without waiting on fleet AP reload; combat log; starbase labels as `STARBASE @ system`
-- **Claim builder:** safer diagram scroll/recenter; catalog autoscroll off; pulse throttle; no fake central-hub preview when none staged; builder tips when `+` is blocked
-- **Map / ownership:** destroyed fleets, starbase HP presentation, post-capture ownership sync (from 1.0.x line)
-- Regex + exact patch engine for minified SAGE client entry bundles
-
-## 1.0.1
-
-- Combat hit/miss floating indicators and feed toasts
-- Starbase contested error intercept
-- Future-proof regex patch engine
-
-## 1.0.0
-
-- First public release
-- Client-only fixes for map destroyed fleets, combat target filter, starbase HP presentation, post-capture ownership UI sync
-- **Bullit** on the legend plaque: live-fire QA and idea co-pilot
+See git history and `archive/v1.0.51-pre-rewrite/CHANGELOG.md`.

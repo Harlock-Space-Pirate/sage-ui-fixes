@@ -19,7 +19,9 @@ await rm(out, { force: true });
 const include = [
   "manifest.json",
   "background.js",
+  "patches.js",
   "content.js",
+  "hud",
   "popup.html",
   "popup.css",
   "popup.js",

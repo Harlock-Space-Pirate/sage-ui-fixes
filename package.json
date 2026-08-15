@@ -1,12 +1,15 @@
 {
   "name": "sage-ui-fixes",
-  "version": "1.0.43",
+  "version": "2.3.8",
   "private": true,
   "description": "Browser extension client UI fixes for sage.staratlas.com",
   "author": "LEEKS (Produce Bandit ltd)",
   "license": "MIT",
   "type": "module",
   "scripts": {
+    "fetch-stock": "node scripts/fetch-stock.mjs",
+    "probe": "node scripts/apply-patches.mjs --check",
+    "apply": "node scripts/apply-patches.mjs",
     "package": "node scripts/package.mjs"
   }
 }

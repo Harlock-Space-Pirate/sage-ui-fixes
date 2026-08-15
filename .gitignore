@@ -8,6 +8,10 @@ _metadata/
 *.tmp.*
 sprites/
 stock-snapshots/
+stock/**
+!stock/README.md
+archive/**
+!archive/README.md
 docs/builder-menu-audit/
 
 # OS / editor

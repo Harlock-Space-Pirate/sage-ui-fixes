@@ -21,36 +21,36 @@
     </section>
 
     <p class="blurb">
-      Client-only UI fixes for <strong>sage.staratlas.com</strong> (map, combat, claim builder, ownership). No wallet access.
+      Client-only UI fixes for <strong>sage.staratlas.com</strong> (map, combat, ownership, builder, fleet bar). No wallet access.
     </p>
+
+    <section class="debug-card combat-card" aria-labelledby="log-title">
+      <div class="debug-head">
+        <div>
+          <h2 id="log-title">Combat / Comms log</h2>
+          <p class="debug-sub">Combat · Flight · Comms · Contacts. Minimize = typing chip.</p>
+        </div>
+        <button type="button" id="log-toggle" class="toggle on" aria-pressed="true" title="Show or hide the log">
+          ON
+        </button>
+      </div>
+      <p id="log-status" class="debug-status">Open sage.staratlas.com, then toggle.</p>
+    </section>
 
     <section class="debug-card bar-card" aria-labelledby="bar-title">
       <div class="debug-head">
         <div>
           <h2 id="bar-title">Fleet action bar</h2>
-          <p class="debug-sub">Wings · Warp/Swarp · Scan/Atk strip. OFF = stock click fleet + map pick only.</p>
+          <p class="debug-sub">One-row stock tiles. OFF = stock 3-row fleet panel.</p>
         </div>
         <button type="button" id="bar-toggle" class="toggle on" aria-pressed="true" title="Show or hide the fleet action bar">
           ON
         </button>
       </div>
       <div class="copy-row">
-        <button type="button" id="bar-reset" class="btn mini ghost" title="Re-center the fleet bar and clear saved per-screen positions">Reset bar position</button>
+        <button type="button" id="bar-reset" class="btn mini ghost" title="Re-center the fleet bar and clear saved positions">Reset bar position</button>
       </div>
       <p id="bar-status" class="debug-status">Open sage.staratlas.com, then toggle.</p>
-    </section>
-
-    <section class="debug-card combat-card" aria-labelledby="combat-title">
-      <div class="debug-head">
-        <div>
-          <h2 id="combat-title">Combat log panel</h2>
-          <p class="debug-sub">HIT/MISS/CAPTURE + flight orders. Drag header when ON.</p>
-        </div>
-        <button type="button" id="combat-toggle" class="toggle on" aria-pressed="true" title="Show or hide the combat / flight log">
-          ON
-        </button>
-      </div>
-      <p id="combat-status" class="debug-status">Open sage.staratlas.com, then toggle.</p>
     </section>
 
     <section class="debug-card trails-card" aria-labelledby="trails-title">
@@ -66,24 +66,11 @@
       <p id="trails-status" class="debug-status">Open sage.staratlas.com, then toggle.</p>
     </section>
 
-    <section class="debug-card zoom-card" aria-labelledby="zoom-title">
-      <div class="debug-head">
-        <div>
-          <h2 id="zoom-title">Zoom counter</h2>
-          <p class="debug-sub">Live map zoom + center (troubleshoot marquee / fleets).</p>
-        </div>
-        <button type="button" id="zoom-toggle" class="toggle off" aria-pressed="false" title="Toggle zoom HUD on the open SAGE tab">
-          OFF
-        </button>
-      </div>
-      <p id="zoom-status" class="debug-status">Open sage.staratlas.com, then toggle.</p>
-    </section>
-
     <section class="debug-card" aria-labelledby="debug-title">
       <div class="debug-head">
         <div>
-          <h2 id="debug-title">Map graphics debugger</h2>
-          <p class="debug-sub">Finds yellow wash / star glows. Safe for fleets.</p>
+          <h2 id="debug-title">Map debug flag</h2>
+          <p class="debug-sub">Sets <code>saMapDebug</code> for glow inspection.</p>
         </div>
         <button type="button" id="debug-toggle" class="toggle off" aria-pressed="false" title="Toggle on the open SAGE tab">
           OFF
@@ -94,9 +81,6 @@
         <button type="button" id="copy-on" class="btn mini" title="Copy enable one-liner">Copy ON</button>
         <button type="button" id="copy-off" class="btn mini ghost" title="Copy disable one-liner">Copy OFF</button>
       </div>
-      <p class="debug-hint">
-        Share with friends: paste <strong>Copy ON</strong> / <strong>Copy OFF</strong> into the browser console (F12 → Console), or use the toggle above.
-      </p>
     </section>
 
     <nav class="actions">

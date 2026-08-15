@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "SAGE UI Fixes",
-  "version": "1.0.43",
-  "description": "Client UI fixes for sage.staratlas.com (map, combat, builder, ownership). LEEKS / Produce Bandit ltd",
+  "version": "2.3.8",
+  "description": "Client UI fixes for sage.staratlas.com 0.0.355 (map, combat, builder, ownership). LEEKS / Produce Bandit ltd",
   "author": "LEEKS",
   "icons": {
     "128": "icons/icon128.png"
@@ -33,10 +33,23 @@
         "https://sage.staratlas.com/*"
       ],
       "js": [
+        "patches.js",
         "content.js"
       ],
       "run_at": "document_start",
       "world": "ISOLATED"
+    },
+    {
+      "matches": [
+        "https://sage.staratlas.com/*"
+      ],
+      "js": [
+        "hud/css-fixes.js",
+        "hud/ops-log.js",
+        "hud/fleet-bar.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
     }
   ],
   "action": {
