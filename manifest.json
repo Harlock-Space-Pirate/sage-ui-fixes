@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "SAGE UI Fixes",
-  "version": "2.3.8",
+  "version": "2.3.9",
   "description": "Client UI fixes for sage.staratlas.com 0.0.355 (map, combat, builder, ownership). LEEKS / Produce Bandit ltd",
   "author": "LEEKS",
   "icons": {

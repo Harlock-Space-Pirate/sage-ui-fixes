@@ -44,7 +44,7 @@ Commodore kid. Nintendo kid. Grew up on CRT glow, cartridge dust, and the sacred
 - Startup-debug effect that re-ran on every store tick
 - Post-attack refetch storm (2s/5s/10s → 1.5s/6s)
 - Contested-starbase / AP-depleted attack errors
-- Starbase Attack from a Jorvik/Baron-tagged player hull (stock omits FO + FA)
+- Starbase Attack from a Jorvik/Baron-tagged player hull (stock omits FO + FA + econ config on capture)
 - Hab-builder diagram pulse (30 fps → 1 Hz) and catalog autoscroll
 - Optional warp-trail disable for FPS (`__SA_WARP_TRAILS__.disable()`)
 - **Fleet action bar** — one row of stock tiles (stock 3-row fleet panel hidden); drag to move, position saved per screen size. Second row: 8 assignable fleet slots.

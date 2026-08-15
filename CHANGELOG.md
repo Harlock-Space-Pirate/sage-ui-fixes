@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.3.9
+
+- Starbase **capture** (last hit / level drop) sends `FactionEconomicsConfig`
+  (`Ej43zV14…`). Stock omits it → `0x51890057` / `faction_economics_config
+  required for an NPC capture`. Sim clean on Bullet2 Vanguard T1 vs
+  `FGigytZV…`.
+
 ## 2.3.8
 
 - **Starbase attack** now sends the fleet FactionOwnership sidecar and the
