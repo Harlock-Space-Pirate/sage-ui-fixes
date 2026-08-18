@@ -475,6 +475,14 @@ function warpCooldownLeft(raw) {
 
 let pendingTx = null;
 
+function saProbe(ev, data) {
+  try {
+    if (window.__SA_PROBE__ && typeof window.__SA_PROBE__.push === "function") window.__SA_PROBE__.push(ev, data);
+  } catch {
+    /* ignore */
+  }
+}
+
 function markPending(actionId) {
   const raw = selectedFleetRaw();
   const key = raw && (raw.address || raw.key);
@@ -486,12 +494,14 @@ function markPending(actionId) {
     min: 1200,
     max: actionId === "dock" ? 180000 : 120000,
   };
+  saProbe("pending", { action: actionId, state: pendingTx.state });
 }
 
 function pendingDone() {
   if (!pendingTx) return true;
   const el = Date.now() - pendingTx.t0;
   if (el >= pendingTx.max) {
+    saProbe("pending-timeout", { action: pendingTx.action, age: el });
     pendingTx = null;
     return true;
   }
@@ -507,6 +517,7 @@ function pendingDone() {
       const f = all[i];
       if (String(f && (f.address || f.key)) !== pendingTx.key) continue;
       if (fleetKind(f) !== pendingTx.state) {
+        saProbe("pending-clear", { action: pendingTx.action, from: pendingTx.state, to: fleetKind(f), age: el });
         pendingTx = null;
         return true;
       }
@@ -1289,6 +1300,16 @@ function selectFleet(key, pan) {
   } catch {
     /* ignore */
   }
+  saProbe("select", {
+    key: String(key).slice(0, 12),
+    pan: !!pan,
+    nd: officialSelectCoords(key, raw),
+    derived: derivedCoords(key),
+    map: mapGameCoords(key),
+    used: coords,
+    pixi: !!window.__SA_PIXI_MAP__,
+    derivedStore: !!window.__SA_DERIVED_FLEETS__,
+  });
   let picked = mapSelectFleet(key, coords);
   if (!picked && okCoords && mc && typeof mc.requestSelectFleet === "function") {
     try {

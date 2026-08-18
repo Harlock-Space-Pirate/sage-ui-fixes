@@ -322,16 +322,68 @@
     if (rec.label) enemies.labels[key] = rec.label;
   }
 
+  function nearbyList() {
+    try {
+      const fn = window.__SA_NEARBY_FLEETS__;
+      const all = typeof fn === "function" ? fn() : fn;
+      return Array.isArray(all) ? all : [];
+    } catch {
+      return [];
+    }
+  }
+
   function visibleEnemies() {
     const me = profileKey();
     const out = [];
-    peekAll().forEach((raw) => {
-      const f = fleetRec(raw);
-      if (!f || f.state === "Destroyed") return;
+    const seen = {};
+    const add = (f) => {
+      if (!f || !f.key || seen[f.key] || f.state === "Destroyed") return;
       if (me && f.owner && f.owner === me) return;
-      const xy = fleetXY(raw);
-      if (!xy || !toClient(xy.x, xy.y)) return;
+      seen[f.key] = 1;
       out.push(f);
+    };
+    try {
+      const map = window.__SA_PIXI_MAP__;
+      if (map && !map.getFleetWorldPosition && map.fleetPins) {
+        /* already bound */
+      } else if (map && typeof map.getFleetWorldPosition === "function") {
+        try {
+          map.getFleetWorldPosition("__sa_bind__");
+        } catch {
+          /* ignore */
+        }
+      }
+      const pins = map && map.fleetPins;
+      if (pins && typeof pins.forEach === "function") {
+        pins.forEach((pin, key) => {
+          if (!pin || pin.destroyed || pin.isOwnedByPlayer) return;
+          if (pin.visible === false) return;
+          const k = String(key);
+          const raw = findRaw(k);
+          const rec = fleetRec(raw) || {
+            key: k,
+            label: String(pin.fleetLabel || pin.name || k).slice(0, 40),
+            owner: pin.ownerPublicKey ? String(pin.ownerPublicKey) : "",
+            state: "",
+            raw: raw || pin,
+          };
+          add(rec);
+        });
+      }
+    } catch {
+      /* ignore */
+    }
+    nearbyList().forEach((n) => {
+      const k = String((n && (n.fleetKey || n.address || n.key)) || "");
+      if (!k) return;
+      const rec = fleetRec(n) || {
+        key: k,
+        label: String((n && (n.fleetLabel || n.label || n.name)) || k).slice(0, 40),
+        owner: "",
+        state: "",
+        raw: n,
+      };
+      add(rec);
     });
     return out;
   }

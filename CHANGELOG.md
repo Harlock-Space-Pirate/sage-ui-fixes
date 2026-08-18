@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.14
+
+- IN VIEW uses **map pins** + official `nearbyFleets`, not peek+broken screen projection. Enemies next to you show even when peek is owned-only.
+
 ## 2.5.13
 
 - Action bar has **Reload AP** again (stock `Reload AP` button, hotkey `P`).

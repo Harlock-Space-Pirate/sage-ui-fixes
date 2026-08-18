@@ -262,6 +262,21 @@ document.getElementById("copy-on")?.addEventListener("click", async () => {
   const ok = await copyText(SNIPPET_ON);
   if (debugStatus) debugStatus.textContent = ok ? "Copied ON one-liner." : "Copy failed.";
 });
+document.getElementById("probe-on")?.addEventListener("click", async () => {
+  const tab = await getSageTab();
+  if (!tab?.id) {
+    if (debugStatus) debugStatus.textContent = "Open sage.staratlas.com first.";
+    return;
+  }
+  await pageEval(tab.id, () => window.__SA_PROBE__?.on?.());
+  if (debugStatus) debugStatus.textContent = "HUD probe ON — bottom-left overlay.";
+});
+document.getElementById("probe-off")?.addEventListener("click", async () => {
+  const tab = await getSageTab();
+  if (!tab?.id) return;
+  await pageEval(tab.id, () => window.__SA_PROBE__?.off?.());
+  if (debugStatus) debugStatus.textContent = "HUD probe OFF.";
+});
 document.getElementById("copy-off")?.addEventListener("click", async () => {
   const ok = await copyText(SNIPPET_OFF);
   if (debugStatus) debugStatus.textContent = ok ? "Copied OFF one-liner." : "Copy failed.";

@@ -10,6 +10,12 @@ globalThis.__SA_PATCHES__ = [
       'if(mt==="Docked"||mt==="StarbaseLoadingBay"||mt==="Respawn"||mt==="Destroyed"){',
   },
   {
+    id: "nearby-fleets",
+    find: "get nearbyStarbases(){return ol()},get nearbyFleets(){return $c()}",
+    replace:
+      "get nearbyStarbases(){return ol()},get nearbyFleets(){return (window.__SA_NEARBY_FLEETS__=$c)()}",
+  },
+  {
     id: "nearby-dead-filter",
     find: "return ee.nearbyFleets.filter(Fc=>{const fu=oc(ol,$c,Fc.coordinates[0],Fc.coordinates[1])<=Ac,sc=toFactionEnum(Fc.faction),fc=sc!==yi&&!(yi===w.Unaligned&&sc===w.Unaligned),ud=String(Fc.fleetKey)!==String(ee.fleetData?.fleetKey);return fu&&fc&&ud})",
     replace:
