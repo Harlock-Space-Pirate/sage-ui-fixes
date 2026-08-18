@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.18
+
+- IN VIEW stays tight: pins must sit in the **viewport world rect**; peek/nearby only if `gameToPixel` lands on screen. Dropped the lossy pixelToGame AABB that dumped the whole map.
+
 ## 2.5.17
 
 - Qwen HUD select: Nd() coords into pixi `selectFleetByKey`; bind map if hook is late. Ships with viewport IN VIEW scan.

@@ -396,9 +396,28 @@
     } catch {
       /* ignore */
     }
-    const box = viewGameBox();
-    if (!box) return false;
-    return gx >= box.minX && gx <= box.maxX && gy >= box.minY && gy <= box.maxY;
+    return false;
+  }
+
+  function pinOnScreen(pin, key, map, vp) {
+    if (!pin || pin.destroyed) return false;
+    let x = Number(pin.x);
+    let y = Number(pin.y);
+    if (!Number.isFinite(x) || !Number.isFinite(y)) {
+      try {
+        const p = map && typeof map.getFleetWorldPosition === "function" ? map.getFleetWorldPosition(key) : null;
+        if (p) {
+          x = Number(p.x);
+          y = Number(p.y);
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+    if (vp && Number.isFinite(x) && Number.isFinite(y)) {
+      return x >= vp.left && x <= vp.right && y >= vp.top && y <= vp.bottom;
+    }
+    return false;
   }
 
   function nearbyList() {
@@ -433,11 +452,12 @@
         }
       }
       const pins = map && map.fleetPins;
+      const vp = window.__SA_MAP_VIEWPORT__;
       if (pins && typeof pins.forEach === "function") {
         pins.forEach((pin, key) => {
           if (!pin || pin.destroyed || pin.isOwnedByPlayer) return;
-          if (pin.visible === false) return;
           const k = String(key);
+          if (!pinOnScreen(pin, k, map, vp)) return;
           const raw = findRaw(k);
           const rec = fleetRec(raw) || {
             key: k,
@@ -455,6 +475,12 @@
     nearbyList().forEach((n) => {
       const k = String((n && (n.fleetKey || n.address || n.key)) || "");
       if (!k) return;
+      const c = n.coordinates || n.location;
+      if (Array.isArray(c) && c.length >= 2) {
+        const x = parseCoord(c[0]);
+        const y = parseCoord(c[1]);
+        if (Number.isFinite(x) && Number.isFinite(y) && !gameOnScreen(x, y)) return;
+      }
       const rec = fleetRec(n) || {
         key: k,
         label: String((n && (n.fleetLabel || n.label || n.name)) || k).slice(0, 40),
@@ -464,16 +490,13 @@
       };
       add(rec);
     });
-    const box = viewGameBox();
     peekAll().forEach((raw) => {
       const f = fleetRec(raw);
       if (!f) return;
       if (me && f.owner && f.owner === me) return;
       const xy = fleetXY(raw);
-      if (!xy) return;
-      if (gameOnScreen(xy.x, xy.y) || (box && xy.x >= box.minX && xy.x <= box.maxX && xy.y >= box.minY && xy.y <= box.maxY)) {
-        add(f);
-      }
+      if (!xy || !gameOnScreen(xy.x, xy.y)) return;
+      add(f);
     });
     return out;
   }
