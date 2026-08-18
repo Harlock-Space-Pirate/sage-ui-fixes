@@ -322,6 +322,85 @@
     if (rec.label) enemies.labels[key] = rec.label;
   }
 
+  function mapZoomNow() {
+    try {
+      const vp = window.__SA_MAP_VIEWPORT__;
+      if (!vp) return NaN;
+      if (typeof vp.scaled === "number" && Number.isFinite(vp.scaled)) return vp.scaled;
+      if (vp.scale && typeof vp.scale.x === "number") return vp.scale.x;
+    } catch {
+      /* ignore */
+    }
+    return NaN;
+  }
+
+  function viewGameBox() {
+    try {
+      const map = window.__SA_PIXI_MAP__;
+      const vp = window.__SA_MAP_VIEWPORT__;
+      if (!vp) return null;
+      const L = Number(vp.left);
+      const T = Number(vp.top);
+      const R = Number(vp.right);
+      const B = Number(vp.bottom);
+      if (![L, T, R, B].every(Number.isFinite)) return null;
+      const corners = [
+        [L, T],
+        [R, T],
+        [R, B],
+        [L, B],
+      ];
+      const pts = [];
+      for (let i = 0; i < corners.length; i++) {
+        let g = null;
+        if (map && typeof map.pixelToGame === "function") g = map.pixelToGame(corners[i][0], corners[i][1]);
+        if (!g) {
+          const math = window.__SA_MAP_MATH__;
+          if (math && typeof math.pixelPointToGamePoint === "function") {
+            g = math.pixelPointToGamePoint({ x: corners[i][0], y: corners[i][1] }, 101, 80);
+          }
+        }
+        if (g && Number.isFinite(g.x) && Number.isFinite(g.y)) pts.push(g);
+      }
+      if (pts.length < 2) return null;
+      const xs = pts.map((p) => p.x);
+      const ys = pts.map((p) => p.y);
+      const box = {
+        minX: Math.min.apply(null, xs),
+        maxX: Math.max.apply(null, xs),
+        minY: Math.min.apply(null, ys),
+        maxY: Math.max.apply(null, ys),
+      };
+      try {
+        window.__SA_VIEW_BOX__ = box;
+      } catch {
+        /* ignore */
+      }
+      return box;
+    } catch {
+      return null;
+    }
+  }
+
+  function gameOnScreen(gx, gy) {
+    if (!Number.isFinite(gx) || !Number.isFinite(gy)) return false;
+    try {
+      const map = window.__SA_PIXI_MAP__;
+      const vp = window.__SA_MAP_VIEWPORT__;
+      if (map && typeof map.gameToPixel === "function" && vp) {
+        const p = map.gameToPixel(gx, gy);
+        if (p && Number.isFinite(p.x) && Number.isFinite(p.y)) {
+          return p.x >= vp.left && p.x <= vp.right && p.y >= vp.top && p.y <= vp.bottom;
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+    const box = viewGameBox();
+    if (!box) return false;
+    return gx >= box.minX && gx <= box.maxX && gy >= box.minY && gy <= box.maxY;
+  }
+
   function nearbyList() {
     try {
       const fn = window.__SA_NEARBY_FLEETS__;
@@ -384,6 +463,17 @@
         raw: n,
       };
       add(rec);
+    });
+    const box = viewGameBox();
+    peekAll().forEach((raw) => {
+      const f = fleetRec(raw);
+      if (!f) return;
+      if (me && f.owner && f.owner === me) return;
+      const xy = fleetXY(raw);
+      if (!xy) return;
+      if (gameOnScreen(xy.x, xy.y) || (box && xy.x >= box.minX && xy.x <= box.maxX && xy.y >= box.minY && xy.y <= box.maxY)) {
+        add(f);
+      }
     });
     return out;
   }
@@ -1499,17 +1589,44 @@
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
   else boot();
+
+  let lastZoomSeen = NaN;
+  let zoomScanTimer = 0;
+  function noteZoomScan() {
+    const z = mapZoomNow();
+    if (!Number.isFinite(z)) return;
+    if (z === lastZoomSeen) return;
+    lastZoomSeen = z;
+    if (zoomScanTimer) clearTimeout(zoomScanTimer);
+    zoomScanTimer = setTimeout(() => {
+      zoomScanTimer = 0;
+      try {
+        watchSpots();
+        paintTargets();
+      } catch {
+        /* ignore */
+      }
+    }, 1500);
+  }
+
   setInterval(() => {
     try {
       watchPlannerDest();
       const bar = document.getElementById("sa-action-bar");
       if (bar && !document.getElementById("sa-ops-row")) paint();
-      watchSpots();
-      paintTargets();
+      noteZoomScan();
       placeEditor();
       injectOpt();
     } catch {
       /* ignore */
     }
-  }, 800);
+  }, 400);
+  setInterval(() => {
+    try {
+      watchSpots();
+      paintTargets();
+    } catch {
+      /* ignore */
+    }
+  }, 2000);
 })();

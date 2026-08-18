@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.5.16
+
+- IN VIEW uses the **viewport game box** (canvas corners → game coords) plus pins/nearby. Rescan **1.5s after zoom** settles, and every 2s for movers.
+
+## 2.5.15
+
+- Fleet slot select puts the interaction-range HUD on the ship: official Nd() game coords into the pixi map's `selectFleetByKey` (+ `requestSelectFleet` sync); never `pixelToGame`/`fleetGameCoordsMap`. Double-click pans without the fleet key (no Follow lock).
+
 ## 2.5.14
 
 - IN VIEW uses **map pins** + official `nearbyFleets`, not peek+broken screen projection. Enemies next to you show even when peek is owned-only.

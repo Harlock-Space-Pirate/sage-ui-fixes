@@ -1,6 +1,6 @@
 {
   "name": "sage-ui-fixes",
-  "version": "2.5.14",
+  "version": "2.5.16",
   "private": true,
   "description": "Browser extension client UI fixes for sage.staratlas.com",
   "author": "LEEKS (Produce Bandit ltd)",
