@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.10
+
+- HUD ring uses the **pixi pin / fleetGameCoordsMap** (same as the sprite), not account `location`. Double-click follows until you drag the map.
+
 ## 2.5.9
 
 - Double-click a slot pans to the fleet and keeps it selected. It no longer starts official Follow, so the map stays draggable.

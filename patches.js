@@ -167,6 +167,12 @@ globalThis.__SA_PATCHES__ = [
       "function pixelPointToGamePoint(ee,Se,nt){const at=Math.floor(Se/2),mt=ee.x/nt-at,ft=at-ee.y/MAP_CONFIG.COORDINATE_Y_SQUASH/nt;return{x:mt,y:ft}}window.__SA_MAP_MATH__={pixelPointToGamePoint,gamePointToPixelPoint,MAP_CONFIG};",
   },
   {
+    id: "pixi-map",
+    find: "getFleetWorldPosition(Se){const nt=this.fleetPins.get(Se);if(nt&&!nt.destroyed)return{x:nt.x,y:nt.y}",
+    replace:
+      "getFleetWorldPosition(Se){window.__SA_PIXI_MAP__=this;const nt=this.fleetPins.get(Se);if(nt&&!nt.destroyed)return{x:nt.x,y:nt.y}",
+  },
+  {
     id: "map-control",
     find: "{requestGoHome:um,requestOpenMovementPlanner:Rc,requestPanTo:dd,requestSelectFleet:Vd,publishVisibleFleetOrder:Yc,toggleFleetListRequest:Io,clearToggleFleetListRequest:uc}=useMapControl()",
     replace:

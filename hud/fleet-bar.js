@@ -983,7 +983,42 @@ function derivedCoords(key) {
 }
 
 function liveFleetCoords(key, raw) {
-  return derivedCoords(key) || fleetCoords(raw);
+  return mapGameCoords(key) || derivedCoords(key) || fleetCoords(raw);
+}
+
+function mapGameCoords(key) {
+  if (!key) return null;
+  try {
+    const map = window.__SA_PIXI_MAP__;
+    if (!map) return null;
+    const stored = map.fleetGameCoordsMap && map.fleetGameCoordsMap.get(key);
+    if (stored && Number.isFinite(Number(stored.x)) && Number.isFinite(Number(stored.y))) {
+      return { x: Number(stored.x), y: Number(stored.y) };
+    }
+    if (typeof map.getFleetWorldPosition === "function" && typeof map.pixelToGame === "function") {
+      const pin = map.getFleetWorldPosition(key);
+      if (pin && Number.isFinite(pin.x) && Number.isFinite(pin.y)) {
+        const g = map.pixelToGame(pin.x, pin.y);
+        if (g && Number.isFinite(g.x) && Number.isFinite(g.y)) return { x: g.x, y: g.y };
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+function mapSelectFleet(key, game) {
+  try {
+    const map = window.__SA_PIXI_MAP__;
+    if (!map || typeof map.selectFleetByKey !== "function") return false;
+    const c = game || mapGameCoords(key);
+    if (!c) return false;
+    map.selectFleetByKey(key, c.x, c.y);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function fleetState(raw) {
@@ -1191,6 +1226,24 @@ function startFollow() {
   }
 }
 
+function followUntilDrag() {
+  startFollow();
+  const onDown = (e) => {
+    if (e.button !== 0) return;
+    const t = e.target;
+    if (!t) return;
+    if (t.closest && t.closest("#sa-action-bar, #sa-tgt-dock, #sa-tgt-scout, #sa-target-hud, #sa-ops-banner, #sa-combat-log-box")) {
+      return;
+    }
+    const canvas = document.querySelector("canvas");
+    if (canvas && (t === canvas || (canvas.contains && canvas.contains(t)))) {
+      stopFollow();
+      window.removeEventListener("pointerdown", onDown, true);
+    }
+  };
+  window.addEventListener("pointerdown", onDown, true);
+}
+
 function selectFleet(key, pan) {
   if (!key) return;
   const f = findOwned(key);
@@ -1206,8 +1259,8 @@ function selectFleet(key, pan) {
   } catch {
     /* ignore */
   }
-  let picked = false;
-  if (okCoords && mc && typeof mc.requestSelectFleet === "function") {
+  let picked = mapSelectFleet(key, coords);
+  if (!picked && okCoords && mc && typeof mc.requestSelectFleet === "function") {
     try {
       mc.requestSelectFleet(key, coords);
       picked = true;
@@ -1216,13 +1269,12 @@ function selectFleet(key, pan) {
     }
   }
   if (!picked && f) picked = clickFleetRowByLabel(f.label);
-  stopFollow();
   if (!pan) {
+    stopFollow();
     dismissFleetPanel();
     paint();
     return;
   }
-  /* Pan only — passing the fleet key here turns official Follow on and locks the camera. */
   if (okCoords && mc && typeof mc.requestPanTo === "function") {
     try {
       mc.requestPanTo(coords);
@@ -1230,6 +1282,7 @@ function selectFleet(key, pan) {
       /* ignore */
     }
   }
+  followUntilDrag();
   dismissFleetPanel();
   setTimeout(unblockMap, 120);
   paint();
