@@ -2,10 +2,26 @@
 (function () {
   const ID = "sa-css-fixes";
   const CSS = [
-    '[class*="_dock_opoyo_"],[class*="_container_npjv8_"],[class*="_dock_dozn0_"]{',
+    /* official Galia / contacts launchers — 355 opoyo + 371 1jl14 / dozn0 / npjv8 */
+    '[class*="_dock_opoyo_"],[class*="_dock_dozn0_"],[class*="_dock_1jl14_"],',
+    '[class*="_collapsedStack_1jl14_"],[class*="_channelBar_1jl14_"],',
+    '[class*="_pill_1jl14_"],[class*="_channelTab_1jl14_"],',
+    '[class*="_minimizedTab_dozn0_"],[class*="_panel_dozn0_"],[class*="_panel_1jl14_"],',
+    '[class*="_container_npjv8_"],[class*="_toggleButton_npjv8_"]{',
     "position:fixed!important;left:-14000px!important;top:0!important;",
     "opacity:0!important;pointer-events:none!important;width:0!important;height:0!important;",
-    "overflow:hidden!important}",
+    "overflow:hidden!important;visibility:hidden!important}",
+    /* keep official confirm / faucet toasts out of the action bar */
+    "html.sa-our-fleet-bar [class*=notificationStack]{bottom:var(--sa-hud-pad-bottom,8rem)!important;",
+    "top:auto!important;left:50%!important;transform:translateX(-50%)!important}",
+    "html.sa-our-fleet-bar.sa-bar-top [class*=notificationStack]{top:var(--sa-hud-pad-top,6rem)!important;",
+    "bottom:auto!important}",
+    "html.sa-our-fleet-bar [class*=_container_1euns_],",
+    "html.sa-our-fleet-bar [class*=modalLayer],",
+    "html.sa-our-fleet-bar [class*=modalOverlay],",
+    "html.sa-our-fleet-bar [class*=Attention][class*=container]{",
+    "padding-bottom:var(--sa-hud-pad-bottom,8rem)!important;",
+    "padding-top:var(--sa-hud-pad-top,1.5rem)!important;box-sizing:border-box!important}",
   ].join("");
   function inject() {
     let st = document.getElementById(ID);

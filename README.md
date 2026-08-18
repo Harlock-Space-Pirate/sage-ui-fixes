@@ -5,7 +5,7 @@ Client-side browser extension that applies small UI corrections on [sage.staratl
 **Author:** LEEKS · **Produce Bandit ltd**  
 **Not affiliated with Star Atlas, ATMTA, or the official SAGE client.**
 
-**Target client (v2.0.0):** live SAGE **0.0.355** / `assets/index-DY7IU6C2.js` (2026-08-14).
+**Target client (v2.4.0):** live SAGE **0.0.371** / `assets/index-DmmfP5d6.js` (2026-08-18).
 
 ## Credits
 
@@ -85,6 +85,8 @@ npm run probe
 3. Chrome → **Load unpacked** → select the unzipped folder.
 
 Only published GitHub Releases for this repository are supported installs.
+
+A new Release is published automatically when `manifest.json` version changes on `main`. Testers only need the zip.
 
 ## Permissions
 

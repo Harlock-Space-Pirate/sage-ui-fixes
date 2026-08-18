@@ -1,14 +1,77 @@
 /** SAGE UI Fixes v2 — fleet action bar. MAIN world. LEEKS / Produce Bandit ltd
  *
- * Live 0.0.355: hide stock 3-row `_statusActions`+`_fleetActionBar`, click those
- * buttons from our one-row `#sa-action-bar`. Our tiles are `sa-act` (opaque);
- * stock button classes are glass and pin icons at 0.95rem.
+ * Live 0.0.371: hide stock 3-row `_statusActions`+`_fleetActionBar`, click those
+ * buttons from our one-row `#sa-action-bar`. Tiles reuse live stock classes
+ * (icon / Orbitron label / keybind sublabel). Chords live in official
+ * `fc-app-keybindings` once we append Fleet actions to BINDABLE_ACTIONS.
  * Second row: 8 fleet slots (`saFleetSlots.v1`) — click empty → list, drag to assign.
  */
 const POS_KEY = "saActionBarPos.v1";
 const HIDE_KEY = "saHideActionBar";
+const LOOK_KEY = "saActionBarLook.v1";
+const BIND_KEY = "fc-app-keybindings";
 const BTN = "sa-act";
 const BTN_DANGER = "sa-act-danger";
+const LOOK_DEF = { icon: 30, text: true, gap: 8 };
+
+function clampNum(n, lo, hi, fb) {
+  const v = Number(n);
+  if (!Number.isFinite(v)) return fb;
+  return Math.min(hi, Math.max(lo, v));
+}
+
+function loadLook() {
+  try {
+    const p = JSON.parse(localStorage.getItem(LOOK_KEY) || "null");
+    if (!p || typeof p !== "object") return { ...LOOK_DEF };
+    return {
+      icon: clampNum(p.icon, 16, 56, LOOK_DEF.icon),
+      text: p.text !== false,
+      gap: clampNum(p.gap, 0, 24, LOOK_DEF.gap),
+    };
+  } catch {
+    return { ...LOOK_DEF };
+  }
+}
+
+let look = loadLook();
+
+function saveLook() {
+  try {
+    localStorage.setItem(LOOK_KEY, JSON.stringify(look));
+  } catch {
+    /* ignore */
+  }
+}
+
+function applyLook() {
+  if (!root) return;
+  const tile = Math.max(44, look.icon + (look.text ? 30 : 14));
+  root.style.setProperty("--sa-ico", look.icon + "px");
+  root.style.setProperty("--sa-gap", look.gap + "px");
+  root.style.setProperty("--sa-tile", tile + "px");
+  root.classList.toggle("sa-no-text", !look.text);
+  const icon = root.querySelector('[data-opt="icon"]');
+  const text = root.querySelector('[data-opt="text"]');
+  const gap = root.querySelector('[data-opt="gap"]');
+  const iconN = root.querySelector("[data-opt-icon-n]");
+  const gapN = root.querySelector("[data-opt-gap-n]");
+  if (icon) icon.value = String(look.icon);
+  if (text) text.checked = !!look.text;
+  if (gap) gap.value = String(look.gap);
+  if (iconN) iconN.textContent = look.icon + "px";
+  if (gapN) gapN.textContent = look.gap + "px";
+}
+
+const OFFICIAL_DEFAULTS = {
+  cycleFleetNext: "]",
+  cycleFleetPrev: "[",
+  focusSelectedFleet: "f",
+  openMovementPlanner: "m",
+  toggleFleetList: "l",
+  openCommandSettings: "o",
+};
+const RESERVED_BASE = new Set(["escape", "`", "~", "g"]);
 
 const ICO = {
   dock: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 26 H24"/><path d="M10 26 V14 H22 V26"/><path d="M16 4 V12"/><path d="M12 9 L16 13 L20 9"/></svg>',
@@ -26,19 +89,114 @@ const ICO = {
 };
 
 const ACTIONS = [
-  { id: "dock", label: "Dock", match: /^(dock|undock)$/i, hk: "1" },
-  { id: "warp", label: "Warp", match: /^warp$/i, hk: "2" },
-  { id: "subwarp", label: "Subwarp", match: /^subwarp$/i, hk: "3" },
-  { id: "gate", label: "Warp Gate", match: /warp\s*(gate|lane)/i, hk: "4" },
-  { id: "scan", label: "Scan", match: /^scan$/i, hk: "5" },
-  { id: "attack", label: "Attack", match: /^attack$/i, hk: "6" },
-  { id: "repair", label: "Repair", match: /^repair/i, hk: "7" },
-  { id: "mine", label: "Mine", match: /^mine$/i, hk: "8" },
-  { id: "stop", label: "Stop", match: /^stop$/i, hk: "9" },
-  { id: "stims", label: "Stims", match: /^(stims|stimulant|apply stimulant)$/i, hk: "0" },
-  { id: "loot", label: "Loot", match: /loot/i, hk: null },
-  { id: "destruct", label: "Destruct", match: /destruct/i, hk: null, danger: true },
+  { id: "dock", label: "Dock", short: "DOCK", match: /^(dock|undock)$/i, hk: "d" },
+  { id: "warp", label: "Warp", short: "WARP", match: /^warp$/i, hk: "w" },
+  { id: "subwarp", label: "Subwarp", short: "SUB", match: /^subwarp$/i, hk: "s" },
+  { id: "gate", label: "Warp Gate", short: "GATE", match: /warp\s*(gate|lane)/i, hk: "t" },
+  { id: "scan", label: "Scan", short: "SCAN", match: /^scan$/i, hk: "c" },
+  { id: "attack", label: "Attack", short: "ATK", match: /^attack$/i, hk: "a" },
+  { id: "repair", label: "Repair", short: "FIX", match: /^repair/i, hk: "r" },
+  { id: "mine", label: "Mine", short: "MINE", match: /^mine$/i, hk: "n" },
+  { id: "stop", label: "Stop", short: "STOP", match: /^stop\b/i, hk: "x" },
+  { id: "stims", label: "Stims", short: "STIM", match: /^(stims|stimulant|apply stimulant)$/i, hk: "v" },
+  { id: "loot", label: "Loot", short: "LOOT", match: /loot/i, hk: null },
+  { id: "destruct", label: "Self-destruct", short: "KILL", match: /destruct/i, hk: null, danger: true },
 ];
+
+const CLASS_FALLBACK = {
+  btn: "_statusActionButton_nsg6t_336 _fleetActionButton_1040r_21",
+  inner: "_statusActionButtonInner_nsg6t_361 _fleetActionButtonInner_1040r_33",
+  ico: "_statusActionIcon_nsg6t_418",
+  text: "_statusActionText_nsg6t_368 _fleetActionButtonText_1040r_39",
+  label: "_statusActionLabel_nsg6t_401",
+  sub: "_statusActionSubLabel_nsg6t_409 _fleetActionButtonSubLabel_1040r_46",
+};
+
+function pickClasses(el, re, fb) {
+  if (!el || !el.classList) return fb;
+  const hit = [...el.classList].filter((c) => re.test(c)).join(" ");
+  return hit || fb;
+}
+
+function liveClasses() {
+  const b = stockRootButtons()[0];
+  if (!b) return CLASS_FALLBACK;
+  const inner =
+    b.querySelector('[class*="ActionButtonInner"], [class*="actionButtonInner"]') || b.firstElementChild;
+  const ico = b.querySelector('[class*="ActionIcon"], [class*="actionIcon"]');
+  const text = b.querySelector('[class*="ActionText"], [class*="actionText"]');
+  const label = b.querySelector(
+    '[class*="ActionLabel"]:not([class*="Sub"]):not([class*="sub"]), [class*="actionLabel"]:not([class*="Sub"]):not([class*="sub"])',
+  );
+  const sub = b.querySelector('[class*="SubLabel"], [class*="subLabel"]');
+  return {
+    btn: pickClasses(b, /(?:^|_)(?:status|fleet)ActionButton(?:_|$)/, CLASS_FALLBACK.btn),
+    inner: pickClasses(inner, /Inner/, CLASS_FALLBACK.inner),
+    ico: pickClasses(ico, /Icon/, CLASS_FALLBACK.ico),
+    text: pickClasses(text, /Text/, CLASS_FALLBACK.text),
+    label: pickClasses(label, /Label/, CLASS_FALLBACK.label),
+    sub: pickClasses(sub, /SubLabel|subLabel/, CLASS_FALLBACK.sub),
+  };
+}
+
+function loadOfficialBindings() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(BIND_KEY) || "null");
+    return raw && typeof raw === "object" ? raw : {};
+  } catch {
+    return {};
+  }
+}
+
+function normalizeBaseKey(key) {
+  if (key === " " || key === "Spacebar") return "space";
+  return String(key || "").toLowerCase();
+}
+
+function chordFromEvent(e) {
+  const key = e.key;
+  if (!key || key === "Unidentified" || key === "Dead") return null;
+  const low = key.toLowerCase();
+  if (low === "control" || low === "ctrl" || low === "alt" || low === "altgraph" || low === "shift" || low === "meta") {
+    return null;
+  }
+  const parts = [];
+  if (e.ctrlKey) parts.push("ctrl");
+  if (e.altKey) parts.push("alt");
+  if (e.shiftKey) parts.push("shift");
+  if (e.metaKey) parts.push("meta");
+  parts.push(normalizeBaseKey(key));
+  return parts.join("+");
+}
+
+function formatChord(chord) {
+  if (!chord) return "";
+  const bits = String(chord).split("+");
+  const base = bits.pop() || "";
+  const labels = { ctrl: "Ctrl", alt: "Alt", shift: "Shift", meta: "Meta", space: "Space", escape: "Esc" };
+  const out = bits.map((m) => labels[m] || m);
+  if (base.length === 1) out.push(base.toUpperCase());
+  else out.push(labels[base] || base.charAt(0).toUpperCase() + base.slice(1));
+  return out.join("+");
+}
+
+function chordFor(action) {
+  if (!action || action.hk == null) return null;
+  const off = loadOfficialBindings();
+  const raw = off[action.id];
+  if (typeof raw === "string" && raw) return raw;
+  return action.hk;
+}
+
+function officialTaken() {
+  const off = loadOfficialBindings();
+  const taken = new Set(RESERVED_BASE);
+  for (const [id, def] of Object.entries(OFFICIAL_DEFAULTS)) {
+    const c = typeof off[id] === "string" && off[id] ? off[id] : def;
+    if (c) taken.add(c);
+  }
+  return taken;
+}
 
 function hideCss() {
   let st = document.getElementById("sa-fleet-bar-hide");
@@ -51,69 +209,128 @@ function hideCss() {
     /* exact 355 + hash-stem fallback — hide stock 3-row fleet action grid only while our bar is on */
     'html.sa-our-fleet-bar [class~="_statusActions_nsg6t_313"][class~="_fleetActionBar_1040r_863"],',
     'html.sa-our-fleet-bar [class*="statusActions"][class*="fleetActionBar"]{display:none!important}',
-    "#sa-action-bar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:999990;",
-    "display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:none;",
-    "font-family:var(--font-family-display,Orbitron,sans-serif)}",
+    "#sa-action-bar{--panel-accent:rgb(255 190 77 / 90%);position:fixed;left:50%;bottom:18px;",
+    "transform:translateX(-50%);z-index:999990;display:flex;flex-direction:column;align-items:center;",
+    "gap:6px;pointer-events:none;font-family:var(--font-family-display,Orbitron,sans-serif)}",
     "#sa-action-bar.sa-bar-pos{left:auto;bottom:auto;transform:none}",
     "#sa-action-bar .sa-bar-grip{pointer-events:auto;cursor:grab;user-select:none;touch-action:none;",
-    "padding:2px 14px;opacity:.35;color:#ffbe4d;font:600 9px Orbitron,sans-serif;letter-spacing:.28em}",
+    "padding:2px 14px;opacity:.35;color:color-mix(in srgb,var(--panel-accent) 80%,white);",
+    "font:600 9px var(--font-family-display,Orbitron,sans-serif);letter-spacing:.28em}",
     "#sa-action-bar .sa-bar-grip:hover,#sa-action-bar.sa-bar-dragging .sa-bar-grip{opacity:.9;cursor:grabbing}",
-    "#sa-action-bar .sa-acts{pointer-events:auto;display:flex;flex-wrap:nowrap;align-items:stretch;",
-    "gap:6px;padding:6px 8px;background:#0a0e1a;border-radius:4px}",
-    /* solid tiles — stock status/fleet classes are glass + 0.95rem icons */
-    "#sa-action-bar .sa-acts>button{all:unset;box-sizing:border-box;position:relative;display:flex;",
-    "align-items:center;justify-content:center;width:2.85rem!important;min-width:2.85rem!important;",
-    "height:2.85rem!important;min-height:2.85rem!important;padding:2px!important;flex:0 0 auto;",
-    "cursor:pointer;opacity:1!important;background:#1c160c!important;background-image:none!important;",
-    "border:1px solid #ffbe4d!important;color:#ffbe4d!important;box-shadow:none!important;",
-    "filter:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;overflow:hidden}",
-    "#sa-action-bar .sa-acts>button:hover:not(:disabled){background:#2a2010!important;color:#ffe08a!important}",
-    "#sa-action-bar .sa-acts>button:disabled{cursor:not-allowed;opacity:1!important;background:#0e0c09!important;",
-    "border-color:#2e2818!important;color:#3d3624!important}",
-    "#sa-action-bar .sa-acts>button:disabled .sa-hk{opacity:.28}",
-    "#sa-action-bar .sa-acts>button[data-act=destruct]:not(:disabled){background:#2a1012!important;border-color:#ff4960!important;color:#ff6b7a!important}",
-    "#sa-action-bar .sa-acts>button[data-act=destruct]:disabled{background:#10080a!important;border-color:#2a181c!important;color:#3a2226!important}",
-    "#sa-action-bar .sa-acts>button::before{content:none!important;display:none!important}",
-    "#sa-action-bar .sa-acts>button .sa-act-inner,#sa-action-bar .sa-acts>button .sa-act-ico{",
-    "display:flex!important;align-items:center!important;justify-content:center!important;",
-    "width:100%!important;height:100%!important;padding:0!important;margin:0!important;gap:0!important}",
+    "#sa-action-bar .sa-bar-tools{pointer-events:auto;display:flex;align-items:center;gap:4px}",
+    "#sa-action-bar .sa-bar-optbtn{appearance:none;border:0;background:transparent;color:#ffbe4d;",
+    "opacity:.45;cursor:pointer;font:700 12px Orbitron,sans-serif;padding:2px 6px}",
+    "#sa-action-bar .sa-bar-optbtn:hover,#sa-action-bar .sa-bar-optbtn.on{opacity:1}",
+    "#sa-action-bar .sa-zoom{pointer-events:none;opacity:.7;color:#ffbe4d;",
+    "font:700 9px Orbitron,sans-serif;letter-spacing:.08em;padding:0 6px}",
+    "#sa-action-bar .sa-bar-opts{pointer-events:auto;position:absolute;left:50%;z-index:6;",
+    "display:none;flex-direction:column;gap:8px;min-width:220px;padding:10px 12px;",
+    "background:#0a0e1a;border:1px solid #ffbe4d;color:#e8d9a8;",
+    "font:600 10px Orbitron,sans-serif;letter-spacing:.06em;transform:translateX(-50%)}",
+    "#sa-action-bar .sa-bar-opts.on{display:flex}",
+    "#sa-action-bar .sa-bar-opts.above{bottom:calc(100% + 8px);top:auto}",
+    "#sa-action-bar .sa-bar-opts.below{top:calc(100% + 8px);bottom:auto}",
+    "#sa-action-bar .sa-bar-opts label{display:flex;align-items:center;justify-content:space-between;gap:10px}",
+    "#sa-action-bar .sa-bar-opts input[type=range]{width:110px;accent-color:#ffbe4d}",
+    "#sa-action-bar .sa-bar-opts .n{min-width:2.4rem;text-align:right;color:#ffbe4d}",
+    "#sa-action-bar .sa-acts{pointer-events:auto;position:relative;display:flex;flex-wrap:wrap;",
+    "align-items:stretch;gap:var(--sa-gap,8px);padding:8px;isolation:isolate;",
+    "background:linear-gradient(180deg,color-mix(in srgb,var(--panel-accent) 4%,transparent),",
+    "color-mix(in srgb,var(--panel-accent) 1.5%,transparent));",
+    "box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--panel-accent) 18%,transparent),",
+    "inset 0 -1px color-mix(in srgb,var(--panel-accent) 12%,transparent),0 5px 16px #00000024}",
+    "#sa-action-bar .sa-acts:before,#sa-action-bar .sa-acts:after{position:absolute;width:.38rem;height:.38rem;",
+    "pointer-events:none;background:color-mix(in srgb,var(--panel-accent) 58%,white);content:\"\";opacity:.72}",
+    "#sa-action-bar .sa-acts:before{top:0;left:0;clip-path:polygon(0 0,100% 0,0 100%)}",
+    "#sa-action-bar .sa-acts:after{right:0;bottom:0;clip-path:polygon(100% 0,100% 100%,0 100%)}",
+    "#sa-action-bar .sa-acts>button{box-sizing:border-box;position:relative;flex:0 0 auto;",
+    "width:var(--sa-tile,4.35rem)!important;min-width:var(--sa-tile,4.35rem)!important;",
+    "max-width:var(--sa-tile,4.35rem)!important;min-height:var(--sa-tile,4.35rem)!important;",
+    "height:var(--sa-tile,4.35rem)!important;aspect-ratio:1/1;padding:.32rem .16rem .26rem!important;",
+    "opacity:1!important;background:#3a3014!important;",
+    "background-image:linear-gradient(165deg,#6b5420,#3a3014)!important;",
+    "color:#fff6d8!important;border:1px solid #ffbe4d!important;",
+    "backdrop-filter:none!important;-webkit-backdrop-filter:none!important;filter:none!important;",
+    "box-shadow:none!important;",
+    "cursor:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M12 2v6M12 16v6M2 12h6M16 12h6' stroke='%23C5D0DE' stroke-width='1.25' fill='none' stroke-linecap='square'/%3E%3Ccircle cx='12' cy='12' r='1.25' fill='%235CE1B5'/%3E%3C/svg%3E\") 12 12,crosshair;",
+    "overflow:hidden}",
+    "#sa-action-bar .sa-acts>button:hover:not(.sa-dim):not(.sa-busy){background:#4a3c18!important;",
+    "background-image:linear-gradient(165deg,#7d6326,#4a3c18)!important;color:#fff8e0!important}",
+    "#sa-action-bar .sa-acts>button [class*=ActionButtonInner],#sa-action-bar .sa-acts>button .sa-act-inner{",
+    "display:flex!important;flex-direction:column!important;align-items:center!important;",
+    "justify-content:center!important;gap:.22rem!important;width:100%!important;height:100%!important}",
+    "#sa-action-bar .sa-acts>button [class*=ActionIcon],#sa-action-bar .sa-acts>button .sa-act-ico,",
+    "#sa-action-bar .sa-acts>button>span>span:first-child{display:flex!important;align-items:center!important;",
+    "justify-content:center!important;width:var(--sa-ico,1.85rem)!important;height:var(--sa-ico,1.85rem)!important;flex:0 0 auto!important}",
+    "#sa-action-bar.sa-no-text .sa-act-lab,#sa-action-bar.sa-no-text [class*=ActionLabel],",
+    "#sa-action-bar.sa-no-text .sa-hk,#sa-action-bar.sa-no-text [class*=SubLabel]{display:none!important}",
     "#sa-action-bar .sa-acts>button svg{display:block!important;width:100%!important;height:100%!important;",
-    "max-width:none!important;max-height:none!important;stroke:currentColor!important;fill:none!important;",
-    "stroke-width:2;stroke-linejoin:round;stroke-linecap:round}",
-    "#sa-action-bar .sa-acts .sa-hk{position:absolute;right:3px;bottom:2px;font:700 8px Orbitron,sans-serif;",
-    "letter-spacing:.04em;opacity:.7;line-height:1;pointer-events:none}",
+    "stroke:currentColor!important;fill:none!important;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}",
+    "#sa-action-bar .sa-acts>button [class*=ActionLabel],#sa-action-bar .sa-acts>button .sa-act-lab,",
+    "#sa-action-bar .sa-acts>button [class*=SubLabel],#sa-action-bar .sa-acts>button .sa-hk{",
+    "pointer-events:none;user-select:none;-webkit-user-select:none}",
+    "#sa-action-bar .sa-acts>button [class*=ActionLabel],#sa-action-bar .sa-acts>button .sa-act-lab{",
+    "display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;",
+    "font-size:.42rem!important;font-weight:800;letter-spacing:.1em;line-height:1.05;text-transform:uppercase}",
+    "#sa-action-bar .sa-acts>button [class*=SubLabel],#sa-action-bar .sa-acts>button .sa-hk{",
+    "display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;",
+    "font-size:.46rem!important;font-weight:700;letter-spacing:.04em;line-height:1;opacity:.85}",
+    "#sa-action-bar .sa-acts>button .sa-hk:empty{display:none}",
+    "#sa-action-bar .sa-acts>button.sa-dim{opacity:1!important;background:#16120a!important;",
+    "background-image:none!important;border-color:#4a3f22!important;color:#8a7840!important}",
+    "#sa-action-bar .sa-acts>button.sa-on{background:#2a2010!important;",
+    "background-image:none!important;box-shadow:inset 0 2px 8px #000000b3,inset 0 0 0 1px #ffbe4d!important}",
+    "#sa-action-bar .sa-acts>button[data-act=destruct]:not(.sa-dim){margin-left:1.6rem;--panel-accent:#ff4960;",
+    "background:#3a1418!important;background-image:linear-gradient(165deg,#6a2028,#3a1418)!important;",
+    "border-color:#ff4960!important;color:#ffc4ca!important}",
+    "#sa-action-bar .sa-acts>button[data-act=destruct].sa-dim{margin-left:1.6rem;background:#14090a!important;",
+    "background-image:none!important;border-color:#4a2226!important;color:#8a5056!important}",
+    "#sa-action-bar .sa-acts>button.sa-busy{pointer-events:none;cursor:wait}",
+    "#sa-action-bar .sa-acts>button.sa-busy .sa-act-ico,#sa-action-bar .sa-acts>button.sa-busy [class*=ActionIcon]{opacity:.25}",
+    "#sa-action-bar .sa-acts>button .sa-hg{display:none;position:absolute;inset:0;align-items:center;justify-content:center;z-index:3;pointer-events:none}",
+    "#sa-action-bar .sa-acts>button.sa-busy .sa-hg{display:flex}",
+    "#sa-action-bar .sa-acts>button .sa-hg .clk{position:relative;width:22px;height:22px;border-radius:50%;",
+    "border:1.5px solid color-mix(in srgb,var(--panel-accent) 80%,white);box-shadow:0 0 8px color-mix(in srgb,var(--panel-accent) 35%,transparent);background:rgba(0,0,0,.4)}",
+    "#sa-action-bar .sa-acts>button .sa-hg .clk::before{content:'';position:absolute;left:50%;top:50%;width:1.5px;height:9px;",
+    "background:var(--panel-accent);transform-origin:50% 0;animation:saClock 2.4s linear infinite}",
+    "#sa-action-bar .sa-acts>button .sa-hg .clk::after{content:'';position:absolute;left:50%;top:50%;width:3px;height:3px;",
+    "margin:-1.5px;border-radius:50%;background:var(--panel-accent)}",
+    "@keyframes saClock{from{transform:translateX(-50%) rotate(0deg)}to{transform:translateX(-50%) rotate(360deg)}}",
     "#sa-action-bar .sa-acts>button[data-tip]:hover::after{content:attr(data-tip);position:absolute;",
     "left:50%;bottom:calc(100% + 7px);transform:translateX(-50%);white-space:nowrap;z-index:2;",
-    "padding:4px 8px;border-radius:2px;background:#0a0e1af2;border:1px solid rgba(255,190,77,.45);",
-    "color:#ffbe4d;font:700 9px Orbitron,sans-serif;letter-spacing:.08em;text-transform:uppercase;",
-    "pointer-events:none}",
-    "#sa-action-bar .sa-acts>button[data-act=destruct]{margin-left:2.2rem}",
+    "padding:4px 8px;background:#0a0e1af2;border:1px solid color-mix(in srgb,var(--panel-accent) 45%,transparent);",
+    "color:var(--panel-accent);font:700 9px var(--font-family-display,Orbitron,sans-serif);letter-spacing:.08em;",
+    "text-transform:uppercase;pointer-events:none}",
     "#sa-action-bar .sa-slots{pointer-events:auto;display:flex;flex-wrap:nowrap;align-items:stretch;",
-    "gap:6px;padding:4px 8px 6px;background:#0a0e1a;border-radius:4px}",
+    "gap:6px;padding:4px 8px 6px;background:#0a0e1a;",
+    "box-shadow:inset 0 0 0 1px #2a2618}",
     "#sa-action-bar .sa-slots>button{all:unset;box-sizing:border-box;position:relative;display:flex;",
-    "flex-direction:column;align-items:center;justify-content:center;width:2.85rem!important;",
-    "min-width:2.85rem!important;height:2.85rem!important;min-height:2.85rem!important;",
-    "padding:3px 2px 2px!important;flex:0 0 auto;cursor:pointer;opacity:1!important;",
-    "background:#14110c!important;border:1px dashed #6a5a28!important;color:#8a7840!important;",
-    "overflow:hidden;text-align:center}",
-    "#sa-action-bar .sa-slots>button.sa-slot-on{border-style:solid!important;border-color:#ffbe4d!important;",
-    "background:#1c160c!important;color:#ffbe4d!important}",
-    "#sa-action-bar .sa-slots>button.sa-slot-sel{background:#2a2010!important;box-shadow:inset 0 0 0 1px #ffbe4d}",
+    "flex-direction:column;align-items:center;justify-content:center;width:3.15rem!important;",
+    "min-width:3.15rem!important;height:2.35rem!important;min-height:2.35rem!important;",
+    "padding:4px 2px 2px!important;flex:0 0 auto;cursor:pointer;user-select:none;-webkit-user-select:none;",
+    "background:#14110c!important;border:1px solid #3a3420!important;",
+    "color:#c8b88a!important;overflow:hidden;text-align:center;",
+    "font-family:var(--font-family-display,Orbitron,sans-serif)}",
+    "#sa-action-bar .sa-slots>button:hover{background:#1c180f!important}",
+    "#sa-action-bar .sa-slots>button.sa-slot-on{border-color:#ffbe4d!important;",
+    "color:#ffbe4d!important;background:#1c160c!important}",
+    "#sa-action-bar .sa-slots>button.sa-slot-sel{box-shadow:inset 0 0 0 1px #ffbe4d;background:#2a2010!important}",
     "#sa-action-bar .sa-slots>button.sa-slot-drop{border-color:#ffe08a!important;background:#2a2010!important}",
-    "#sa-action-bar .sa-slots>button .sa-slot-ix{position:absolute;top:1px;left:3px;font:700 7px Orbitron,sans-serif;",
-    "letter-spacing:.04em;opacity:.45;line-height:1;pointer-events:none}",
-    "#sa-action-bar .sa-slots>button .sa-slot-name{display:block;width:100%;max-height:2.2em;overflow:hidden;",
-    "font:700 8px/1.1 Orbitron,sans-serif;letter-spacing:.02em;word-break:break-all}",
-    "#sa-action-bar .sa-slots>button .sa-slot-plus{font:600 16px/1 Orbitron,sans-serif;opacity:.7}",
+    "#sa-action-bar .sa-slots>button .sa-slot-ix{position:absolute;top:1px;left:3px;",
+    "font:700 7px var(--font-family-display,Orbitron,sans-serif);letter-spacing:.04em;opacity:.28;line-height:1;pointer-events:none}",
+    "#sa-action-bar .sa-slots>button .sa-slot-name,#sa-action-bar .sa-slots>button .sa-slot-plus{",
+    "display:block;width:100%;max-height:2.2em;overflow:hidden;pointer-events:none;",
+    "font:700 8px/1.1 var(--font-family-display,Orbitron,sans-serif);letter-spacing:.02em;word-break:break-all}",
+    "#sa-action-bar .sa-slots>button .sa-slot-plus{font:600 14px/1 var(--font-family-display,Orbitron,sans-serif);opacity:.45}",
     "#sa-action-bar .sa-slots>button .sa-slot-x{position:absolute;top:0;right:1px;width:12px;height:12px;",
-    "border:0;background:transparent;color:#ffbe4d;font:700 10px/12px Orbitron,sans-serif;cursor:pointer;",
+    "border:0;background:transparent;color:var(--panel-accent);font:700 10px/12px Orbitron,sans-serif;cursor:pointer;",
     "opacity:0;padding:0}",
     "#sa-action-bar .sa-slots>button.sa-slot-on:hover .sa-slot-x{opacity:.85}",
     "#sa-action-bar .sa-slots>button[data-tip]:hover::after{content:attr(data-tip);position:absolute;",
     "left:50%;bottom:calc(100% + 7px);transform:translateX(-50%);white-space:nowrap;z-index:2;",
-    "padding:4px 8px;border-radius:2px;background:#0a0e1af2;border:1px solid rgba(255,190,77,.45);",
-    "color:#ffbe4d;font:700 9px Orbitron,sans-serif;letter-spacing:.08em;text-transform:uppercase;",
-    "pointer-events:none}",
+    "padding:4px 8px;background:#0a0e1af2;border:1px solid color-mix(in srgb,var(--panel-accent) 45%,transparent);",
+    "color:var(--panel-accent);font:700 9px var(--font-family-display,Orbitron,sans-serif);letter-spacing:.08em;",
+    "text-transform:uppercase;pointer-events:none}",
     "#sa-fleet-pick{position:fixed;z-index:999999;min-width:240px;max-width:320px;max-height:min(320px,46vh);",
     "display:flex;flex-direction:column;background:#0a0e1a;border:1px solid #ffbe4d;color:#ffbe4d;",
     "font-family:var(--font-family-display,Orbitron,sans-serif);pointer-events:auto}",
@@ -158,13 +375,18 @@ function inGame() {
 }
 
 function stockRootButtons() {
-  const roots = document.querySelectorAll(
-    '[class~="_statusActions_nsg6t_313"][class~="_fleetActionBar_1040r_863"], [class*="statusActions"][class*="fleetActionBar"]',
-  );
+  const seen = new Set();
   const out = [];
-  roots.forEach((root) => {
-    root.querySelectorAll("button").forEach((b) => out.push(b));
-  });
+  document
+    .querySelectorAll(
+      '[class*="fleetActionBar"] button, [class*="statusActions"] button, [class*="fleetActionButton"], [class*="statusActionButton"]',
+    )
+    .forEach((b) => {
+      if (!b || seen.has(b)) return;
+      if (b.closest && b.closest("#sa-action-bar")) return;
+      seen.add(b);
+      out.push(b);
+    });
   return out;
 }
 
@@ -176,12 +398,122 @@ function buttonText(el) {
 
 function findStock(action) {
   const btns = stockRootButtons();
+  let loose = null;
   for (const b of btns) {
     const t = buttonText(b);
     const short = (b.textContent || "").replace(/\s+/g, " ").trim();
-    if (action.match.test(short) || action.match.test(t)) return b;
+    if (action.match.test(short) || action.match.test(t)) {
+      if (!b.disabled) return b;
+      if (!loose) loose = b;
+    }
+  }
+  return loose;
+}
+
+function selectedFleetRaw() {
+  try {
+    const peek = window.__SA_PEEK_FLEETS__;
+    const all = typeof peek === "function" ? peek() : [];
+    const key = window.__SA_SELECTED_FLEET__ && window.__SA_SELECTED_FLEET__.key;
+    if (key) {
+      for (let i = 0; i < all.length; i++) {
+        const f = all[i];
+        if (String(f && (f.address || f.key)) === String(key)) return f;
+      }
+    }
+  } catch {
+    /* ignore */
   }
   return null;
+}
+
+function fleetKind(raw) {
+  const d = (raw && raw.data) || raw || {};
+  const st = d.state;
+  return String((st && (st.__kind || st.kind)) || d.effectiveState || "");
+}
+
+function selectedKind() {
+  return fleetKind(selectedFleetRaw());
+}
+
+function movementEndUnix(raw) {
+  const d = (raw && raw.data) || raw || {};
+  const kind = String((d.state && (d.state.__kind || d.state.kind)) || "");
+  if (kind !== "MoveWarp" && kind !== "MoveSubwarp") return 0;
+  const f0 = d.state && d.state.fields && d.state.fields[0];
+  if (!f0) return 0;
+  const j = f0.journey || f0;
+  const start = parseTs(j.departureTime);
+  const dur = parseTs(j.duration);
+  let end = start && dur ? start + dur : 0;
+  if (!end && kind === "MoveWarp") end = parseTs(f0.warpFinish);
+  return end > 0 ? end : 0;
+}
+
+function isInTransit(raw) {
+  const kind = fleetKind(raw);
+  if (kind !== "MoveWarp" && kind !== "MoveSubwarp") return false;
+  const end = movementEndUnix(raw);
+  if (end > 0) return Date.now() / 1000 < end + 0.4;
+  const stop = findStock(ACTIONS.find((a) => a.id === "stop") || { match: /^stop\b/i });
+  if (stop) return !stop.disabled;
+  return true;
+}
+
+function warpCooldownLeft(raw) {
+  const d = (raw && raw.data) || raw || {};
+  let exp = d.warpCooldownExpiresAt;
+  if (exp && typeof exp === "object") exp = parseTs(exp);
+  exp = Number(exp);
+  if (!Number.isFinite(exp) || exp <= 0) return 0;
+  if (exp > 1e12) exp /= 1000;
+  return Math.max(0, exp - Date.now() / 1000);
+}
+
+let pendingTx = null;
+
+function markPending(actionId) {
+  const raw = selectedFleetRaw();
+  const key = raw && (raw.address || raw.key);
+  pendingTx = {
+    action: actionId,
+    t0: Date.now(),
+    key: key ? String(key) : "",
+    state: fleetKind(raw),
+    min: 1200,
+    max: actionId === "dock" ? 180000 : 120000,
+  };
+}
+
+function pendingDone() {
+  if (!pendingTx) return true;
+  const el = Date.now() - pendingTx.t0;
+  if (el >= pendingTx.max) {
+    pendingTx = null;
+    return true;
+  }
+  if (el < pendingTx.min) return false;
+  if (!pendingTx.key) {
+    if (el > 4000) pendingTx = null;
+    return !pendingTx;
+  }
+  try {
+    const peek = window.__SA_PEEK_FLEETS__;
+    const all = typeof peek === "function" ? peek() : [];
+    for (let i = 0; i < all.length; i++) {
+      const f = all[i];
+      if (String(f && (f.address || f.key)) !== pendingTx.key) continue;
+      if (fleetKind(f) !== pendingTx.state) {
+        pendingTx = null;
+        return true;
+      }
+      break;
+    }
+  } catch {
+    /* ignore */
+  }
+  return false;
 }
 
 let root = null;
@@ -340,11 +672,126 @@ function placeWarpChrome() {
   });
 }
 
+function findDestructModal() {
+  const nodes = document.querySelectorAll(
+    '[role="dialog"], [class*="Attention"], [class*="attention"], [class*="Modal"], [class*="modal"]',
+  );
+  for (let i = 0; i < nodes.length; i++) {
+    const n = nodes[i];
+    if (!n || n.closest && n.closest("#sa-action-bar")) continue;
+    const t = String(n.textContent || "");
+    if (/self\s*-?\s*destruct|irreversible|are you sure/i.test(t) && /cancel/i.test(t)) return n;
+  }
+  return null;
+}
+
+function clearPending() {
+  pendingTx = null;
+}
+
+function armDestructWatch() {
+  let bound = null;
+  const onBtn = (e) => {
+    const btn = e.target && e.target.closest && e.target.closest("button");
+    if (!btn) return;
+    const t = String(btn.textContent || btn.getAttribute("aria-label") || "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase();
+    if (t === "cancel" || t === "no" || t === "close") {
+      clearPending();
+      try {
+        paint();
+      } catch {
+        /* ignore */
+      }
+      return;
+    }
+    if (/confirm|destruct|yes|ok/.test(t) && !/cancel/.test(t)) {
+      markPending("destruct");
+      try {
+        paint();
+      } catch {
+        /* ignore */
+      }
+    }
+  };
+  const onKey = (e) => {
+    if (e.key === "Escape") {
+      clearPending();
+      try {
+        paint();
+      } catch {
+        /* ignore */
+      }
+    }
+  };
+  const stop = () => {
+    if (bound) {
+      try {
+        bound.removeEventListener("click", onBtn, true);
+      } catch {
+        /* ignore */
+      }
+    }
+    window.removeEventListener("keydown", onKey, true);
+    try {
+      mo.disconnect();
+    } catch {
+      /* ignore */
+    }
+  };
+  const hook = (el) => {
+    if (!el || el === bound) return;
+    if (bound) {
+      try {
+        bound.removeEventListener("click", onBtn, true);
+      } catch {
+        /* ignore */
+      }
+    }
+    bound = el;
+    el.addEventListener("click", onBtn, true);
+  };
+  const mo = new MutationObserver(() => {
+    const el = findDestructModal();
+    if (el) hook(el);
+    else if (bound && !findDestructModal()) {
+      /* modal gone without Confirm — treat as cancel if we never pending */
+      if (!pendingTx || pendingTx.action !== "destruct") {
+        /* already clear */
+      }
+    }
+  });
+  try {
+    mo.observe(document.body || document.documentElement, { childList: true, subtree: true });
+  } catch {
+    /* ignore */
+  }
+  window.addEventListener("keydown", onKey, true);
+  const now = findDestructModal();
+  if (now) hook(now);
+  setTimeout(stop, 20000);
+}
+
 function clickStock(action) {
+  try {
+    if (window.__SA_FLEET_OPS__ && typeof window.__SA_FLEET_OPS__.onAction === "function") {
+      if (window.__SA_FLEET_OPS__.onAction(action)) return true;
+    }
+  } catch {
+    /* ignore */
+  }
   const stock = findStock(action);
-  if (!stock || stock.disabled) return false;
+  if (!stock) return false;
+  if (stock.disabled && action.id !== "stop") return false;
   try {
     stock.click();
+    if (action.id === "destruct") {
+      armDestructWatch();
+      return true;
+    }
+    markPending(action.id);
     return true;
   } catch {
     return false;
@@ -359,21 +806,29 @@ function typingInField(el) {
   return !!(el.closest && el.closest("input,textarea,select,[contenteditable=true]"));
 }
 
+function fireAction(id) {
+  const action = ACTIONS.find((a) => a.id === id);
+  if (!action) return false;
+  return clickStock(action);
+}
+
 function bindKeys() {
   if (window.__SA_FLEET_BAR_KEYS__) return;
   window.__SA_FLEET_BAR_KEYS__ = true;
   window.addEventListener(
     "keydown",
     (e) => {
-      if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.repeat || e.defaultPrevented || e.isComposing || e.keyCode === 229) return;
+      if (window.__SA_KEYBIND_HOOK__) return;
       if (typingInField(e.target)) return;
       if (!visiblePref() || !inGame()) return;
-      let action = null;
-      if (e.key >= "1" && e.key <= "9") {
-        action = ACTIONS.find((a) => a.hk === e.key);
-      } else if (e.key === "0") {
-        action = ACTIONS.find((a) => a.hk === "0");
-      }
+      const chord = chordFromEvent(e);
+      if (!chord) return;
+      const base = chord.includes("+") ? chord.slice(chord.lastIndexOf("+") + 1) : chord;
+      if (RESERVED_BASE.has(base)) return;
+      const taken = officialTaken();
+      if (taken.has(chord)) return;
+      const action = ACTIONS.find((a) => a.hk != null && chordFor(a) === chord);
       if (!action) return;
       e.preventDefault();
       clickStock(action);
@@ -446,9 +901,46 @@ function pairXY(a, b) {
   return { x, y };
 }
 
-function fleetCoords(raw) {
-  if (!raw) return null;
-  const d = raw.data || raw;
+function parseTs(v) {
+  if (v == null) return 0;
+  if (typeof v === "number") return v;
+  if (typeof v === "bigint") return Number(v);
+  if (typeof v === "object") {
+    const bits = v.fractionBits != null ? v.fractionBits : v.fractionalBits;
+    if (v.raw != null && bits != null) return Number(v.raw) / Math.pow(2, Number(bits));
+    if (typeof v.toNumber === "function") return v.toNumber();
+    if (v.raw != null) return Number(v.raw);
+  }
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function movementCoords(d) {
+  const kind = String((d.state && (d.state.__kind || d.state.kind)) || "");
+  if (kind !== "MoveWarp" && kind !== "MoveSubwarp") return null;
+  const f0 = d.state && d.state.fields && d.state.fields[0];
+  if (!f0) return null;
+  const j = f0.journey || f0;
+  const fromArr = j.from && j.from.length >= 2 ? j.from : d.location;
+  const toArr = j.to || f0.to;
+  const from = fromArr && fromArr.length >= 2 ? pairXY(fromArr[0], fromArr[1]) : null;
+  const to = toArr && toArr.length >= 2 ? pairXY(toArr[0], toArr[1]) : null;
+  if (!to) return from;
+  if (!from) return to;
+  let start = parseTs(j.departureTime);
+  let dur = parseTs(j.duration);
+  let end = start && dur ? start + dur : 0;
+  if (!start && kind === "MoveWarp") {
+    start = parseTs(f0.warpStart);
+    end = parseTs(f0.warpFinish);
+  }
+  const now = Date.now() / 1000;
+  if (!start || !end || end <= start || now >= end) return to;
+  const u = Math.max(0, Math.min(1, (now - start) / (end - start)));
+  return { x: from.x + (to.x - from.x) * u, y: from.y + (to.y - from.y) * u };
+}
+
+function parkedCoords(d, raw) {
   const loc = d.location || raw.location;
   if (Array.isArray(loc) && loc.length >= 2) {
     const p = pairXY(loc[0], loc[1]);
@@ -464,6 +956,34 @@ function fleetCoords(raw) {
     if (p) return p;
   }
   return null;
+}
+
+function fleetCoords(raw) {
+  if (!raw) return null;
+  const d = raw.data || raw;
+  return movementCoords(d) || parkedCoords(d, raw);
+}
+
+function derivedCoords(key) {
+  if (!key) return null;
+  try {
+    const store = window.__SA_DERIVED_FLEETS__;
+    const get = store && store.getDerivedFleet;
+    if (typeof get !== "function") return null;
+    const d = get.call(store, key);
+    const c = d && d.currentCoordinates;
+    if (!c || c.length < 2) return null;
+    const x = Number(c[0]);
+    const y = Number(c[1]);
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+    return { x, y };
+  } catch {
+    return null;
+  }
+}
+
+function liveFleetCoords(key, raw) {
+  return derivedCoords(key) || fleetCoords(raw);
 }
 
 function fleetState(raw) {
@@ -518,6 +1038,103 @@ function findOwned(key) {
   return owned.find((f) => f.key === key) || null;
 }
 
+function destroyedFleetKeys() {
+  const dead = new Set();
+  try {
+    const peek = window.__SA_PEEK_FLEETS__;
+    const all = typeof peek === "function" ? peek() : [];
+    if (!Array.isArray(all)) return dead;
+    for (let i = 0; i < all.length; i++) {
+      const f = all[i];
+      if (!f) continue;
+      const key = String(f.address || f.key || "");
+      if (!key) continue;
+      if (fleetState(f) === "Destroyed") dead.add(key);
+    }
+  } catch {
+    /* ignore */
+  }
+  return dead;
+}
+
+function pruneDeadSlots() {
+  const dead = destroyedFleetKeys();
+  if (!dead.size) return;
+  let changed = false;
+  for (let i = 0; i < SLOT_N; i++) {
+    const key = slotState.keys[i];
+    if (key && dead.has(key)) {
+      slotState.keys[i] = null;
+      changed = true;
+    }
+  }
+  if (changed) saveSlots(slotState);
+}
+
+function placeHudPad() {
+  const html = document.documentElement;
+  if (!root || root.classList.contains("sa-bar-hidden") || !root.getBoundingClientRect) {
+    try {
+      html.style.removeProperty("--sa-hud-pad-bottom");
+      html.style.removeProperty("--sa-hud-pad-top");
+      html.classList.remove("sa-bar-top");
+    } catch {
+      /* ignore */
+    }
+    return;
+  }
+  const br = root.getBoundingClientRect();
+  const vh = window.innerHeight || 800;
+  const gap = 14;
+  const atBottom = br.top + br.height / 2 > vh * 0.45;
+  const padB = atBottom ? Math.max(24, Math.round(vh - br.top + gap)) : 24;
+  const padT = atBottom ? 24 : Math.max(24, Math.round(br.bottom + gap));
+  html.style.setProperty("--sa-hud-pad-bottom", padB + "px");
+  html.style.setProperty("--sa-hud-pad-top", padT + "px");
+  html.classList.toggle("sa-bar-top", !atBottom);
+}
+
+function mapZoom() {
+  try {
+    const vp = window.__SA_MAP_VIEWPORT__;
+    if (!vp) return NaN;
+    if (typeof vp.scaled === "number" && Number.isFinite(vp.scaled)) return vp.scaled;
+    if (vp.scale && typeof vp.scale.x === "number" && Number.isFinite(vp.scale.x)) return vp.scale.x;
+    if (typeof vp.scale === "number" && Number.isFinite(vp.scale)) return vp.scale;
+  } catch {
+    /* ignore */
+  }
+  return NaN;
+}
+
+function paintZoom() {
+  if (!root) return;
+  const el = root.querySelector("[data-zoom]");
+  if (!el) return;
+  const z = mapZoom();
+  try {
+    window.__SA_MAP_ZOOM__ = z;
+  } catch {
+    /* ignore */
+  }
+  const t = Number.isFinite(z) ? "Z " + z.toFixed(2) : "Z —";
+  if (el.textContent !== t) el.textContent = t;
+}
+
+function placeOptsPanel() {
+  if (!root) return;
+  const panel = root.querySelector("[data-opts-panel]");
+  if (!panel || !panel.classList.contains("on")) return;
+  const br = root.getBoundingClientRect();
+  const vh = window.innerHeight || 800;
+  const ph = panel.offsetHeight || 170;
+  const above = br.top;
+  const below = vh - br.bottom;
+  const putAbove = above >= ph + 8 || above >= below;
+  panel.classList.toggle("above", putAbove);
+  panel.classList.toggle("below", !putAbove);
+}
+
 function clickFleetRowByLabel(label) {
   const want = String(label || "").replace(/\s+/g, " ").trim();
   if (!want) return false;
@@ -534,27 +1151,101 @@ function clickFleetRowByLabel(label) {
   return false;
 }
 
-function selectFleet(key, pan) {
-  if (!key) return;
-  const f = findOwned(key);
-  const coords = (f && f.coords) || fleetCoords(f && f.raw);
-  const mc = window.__SA_MAP_CONTROL__;
-  if (coords && Number.isFinite(coords.x) && Number.isFinite(coords.y) && mc) {
-    try {
-      if (typeof mc.requestSelectFleet === "function") mc.requestSelectFleet(key, coords);
-    } catch {
-      /* ignore */
-    }
-    if (pan) {
+function mapFollow() {
+  return window.__SA_MAP_FOLLOW__ || null;
+}
+
+function stopFollow() {
+  try {
+    const f = mapFollow();
+    if (f && typeof f.stop === "function") f.stop();
+  } catch {
+    /* ignore */
+  }
+}
+
+function dismissFleetPanel() {
+  let n = 0;
+  const tick = () => {
+    const btn =
+      document.querySelector('[title="Close fleet panel"]') ||
+      document.querySelector('[aria-label="Close fleet panel"]') ||
+      document.querySelector('[data-panel="fleet-info"] button[title="Close"], [data-panel="fleet-info"] button[aria-label*="Close" i]');
+    if (btn) {
       try {
-        if (typeof mc.requestPanTo === "function") mc.requestPanTo(coords, key);
+        btn.click();
       } catch {
         /* ignore */
       }
+      return;
     }
+    n += 1;
+    if (n < 10) setTimeout(tick, 40);
+  };
+  setTimeout(tick, 0);
+}
+
+function startFollow() {
+  try {
+    const f = mapFollow();
+    if (!f) return;
+    const cur = typeof f.key === "function" ? f.key() : null;
+    const sel = window.__SA_SELECTED_FLEET__ && window.__SA_SELECTED_FLEET__.key;
+    if (cur && sel && String(cur) === String(sel)) return;
+    if (typeof f.toggle === "function") f.toggle();
+  } catch {
+    /* ignore */
+  }
+}
+
+function selectFleet(key, pan) {
+  if (!key) return;
+  const f = findOwned(key);
+  const raw = (f && f.raw) || selectedFleetRaw();
+  const coords = liveFleetCoords(key, raw) || (f && f.coords);
+  const mc = window.__SA_MAP_CONTROL__;
+  const okCoords = coords && Number.isFinite(coords.x) && Number.isFinite(coords.y);
+  try {
+    window.__SA_SELECTED_FLEET__ = {
+      key: String(key),
+      label: String((f && f.label) || key).slice(0, 48),
+    };
+  } catch {
+    /* ignore */
+  }
+  let picked = false;
+  if (okCoords && mc && typeof mc.requestSelectFleet === "function") {
+    try {
+      mc.requestSelectFleet(key, coords);
+      picked = true;
+    } catch {
+      /* ignore */
+    }
+  }
+  if (!picked && f) picked = clickFleetRowByLabel(f.label);
+  if (!pan) {
+    stopFollow();
+    dismissFleetPanel();
+    paint();
     return;
   }
-  if (f && clickFleetRowByLabel(f.label)) return;
+  if (okCoords && mc && typeof mc.requestPanTo === "function") {
+    try {
+      mc.requestPanTo(coords, key);
+    } catch {
+      /* ignore */
+    }
+  }
+  if (mc && typeof mc.requestFocusSelectedFleet === "function") {
+    try {
+      mc.requestFocusSelectedFleet();
+    } catch {
+      /* ignore */
+    }
+  }
+  setTimeout(startFollow, 80);
+  dismissFleetPanel();
+  paint();
 }
 
 let slotState = loadSlots();
@@ -707,6 +1398,7 @@ function openPicker(idx) {
 
 function paintSlots() {
   if (!root) return;
+  pruneDeadSlots();
   const row = root.querySelector("[data-slots]");
   if (!row) return;
   const owned = listOwned();
@@ -721,20 +1413,37 @@ function paintSlots() {
       b = document.createElement("button");
       b.type = "button";
       b.dataset.slot = String(i);
+      let clickTimer = 0;
       b.addEventListener("click", (e) => {
         e.stopPropagation();
+        e.preventDefault();
         if (e.target && e.target.closest && e.target.closest("[data-slot-x]")) {
+          if (clickTimer) {
+            clearTimeout(clickTimer);
+            clickTimer = 0;
+          }
           clearSlot(i);
           return;
         }
         const key = slotState.keys[i];
-        if (key) {
+        if (!key) {
+          openPicker(i);
+          return;
+        }
+        if (clickTimer) clearTimeout(clickTimer);
+        clickTimer = window.setTimeout(() => {
+          clickTimer = 0;
           closePicker();
           selectFleet(key, false);
-        } else openPicker(i);
+        }, 260);
       });
       b.addEventListener("dblclick", (e) => {
         e.stopPropagation();
+        e.preventDefault();
+        if (clickTimer) {
+          clearTimeout(clickTimer);
+          clickTimer = 0;
+        }
         const key = slotState.keys[i];
         if (key) selectFleet(key, true);
       });
@@ -752,7 +1461,9 @@ function paintSlots() {
     if (key && live?.label) slotState.labels[key] = live.label;
     const on = !!key;
     b.className = "sa-slot" + (on ? " sa-slot-on" : "") + (on && key === sel ? " sa-slot-sel" : "");
-    b.dataset.tip = on ? label || key.slice(0, 8) : "Empty — click for fleet list";
+    b.dataset.tip = on
+      ? `${label || key.slice(0, 8)} · click select · double-click follow`
+      : "Empty — click for fleet list";
     b.setAttribute("aria-label", b.dataset.tip);
     const html =
       `<span class="sa-slot-ix">${i + 1}</span>` +
@@ -782,50 +1493,90 @@ function paint() {
   }
   const acts = root.querySelector("[data-acts]");
   if (!acts) return;
+  const cls = liveClasses();
+  const rail = root.querySelector("[data-sa-rail]");
+  const fab = root.querySelector("[data-sa-fab]");
+  if (rail) {
+    const el = document.querySelector('[class*="fleetRail"]:not(#sa-action-bar):not(#sa-action-bar *)');
+    rail.className = pickClasses(el, /fleetRail/, "_fleetRail_1040r_1");
+    rail.style.display = "contents";
+  }
+  if (fab) {
+    const el = document.querySelector(
+      '[class*="fleetActionBar"]:not(#sa-action-bar):not(#sa-action-bar *):not([data-sa-fab])',
+    );
+    fab.className = pickClasses(el, /fleetActionBar/, "_fleetActionBar_1040r_863");
+    fab.style.display = "contents";
+  }
   ACTIONS.forEach((a) => {
     let b = acts.querySelector(`[data-act="${a.id}"]`);
     if (!b) {
       b = document.createElement("button");
       b.type = "button";
       b.dataset.act = a.id;
-      if (a.danger) b.setAttribute("data-action-tone", "danger");
+      if (a.danger) b.setAttribute("data-action-tone", "attack");
       b.addEventListener("click", () => {
-        if (b.disabled) return;
+        if (b.getAttribute("aria-disabled") === "true" || b.classList.contains("sa-busy")) return;
         clickStock(a);
       });
       acts.appendChild(b);
     }
-    b.className = a.danger ? `${BTN} ${BTN_DANGER}` : BTN;
-    if (!b.querySelector(".sa-act-ico")) {
+    const extra = a.danger ? ` ${BTN} ${BTN_DANGER}` : ` ${BTN}`;
+    b.className = `${cls.btn}${extra}`;
+    const chord = chordFor(a);
+    const shown = formatChord(chord);
+    if (!b.querySelector("[data-ico]")) {
       b.innerHTML =
-        `<span class="sa-act-inner">` +
-        `<span class="sa-act-ico" data-ico>${ICO[a.id] || ""}</span>` +
-        (a.hk ? `<span class="sa-hk">${a.hk}</span>` : "") +
-        `</span>`;
+        `<span class="${cls.inner} sa-act-inner">` +
+        `<span class="${cls.ico} sa-act-ico" data-ico>${ICO[a.id] || ""}</span>` +
+        `<span class="${cls.text}">` +
+        `<span class="${cls.label} sa-act-lab">${esc(a.short || a.label)}</span>` +
+        `<span class="${cls.sub} sa-hk" data-hk>${shown ? esc(shown) : ""}</span>` +
+        `</span></span>` +
+        `<span class="sa-hg" aria-hidden="true"><span class="clk"></span></span>`;
+    } else {
+      const hk = b.querySelector("[data-hk]");
+      if (hk && hk.textContent !== shown) hk.textContent = shown;
+      const lab = b.querySelector(".sa-act-lab");
+      if (lab && lab.textContent !== (a.short || a.label)) lab.textContent = a.short || a.label;
     }
     const stock = findStock(a);
     const ico = b.querySelector("[data-ico]");
-    const liveLabel = stock
-      ? (stock.querySelector('[class*="statusActionLabel"], [class*="ActionLabel"]') || stock)
-          .textContent.replace(/\s+/g, " ")
-          .trim()
-      : a.label;
     if (ico && !ico.querySelector("svg")) ico.innerHTML = ICO[a.id] || "";
-    const dead = !stock || stock.disabled;
-    b.disabled = dead;
-    const tip = dead
-      ? `${liveLabel || a.label} — select a fleet`
-      : a.hk
-        ? `${liveLabel || a.label}  (${a.hk})`
-        : liveLabel || a.label;
+    pendingDone();
+    const raw = selectedFleetRaw();
+    const moving = isInTransit(raw);
+    const cd = warpCooldownLeft(raw);
+    const hasFleet = !!raw || !!window.__SA_SELECTED_FLEET__;
+    let dead = !stock || stock.disabled;
+    if (a.id === "stop") dead = stock ? stock.disabled : !moving;
+    else if (moving && /^(warp|subwarp|mine|scan|gate|dock|stims|loot)$/.test(a.id)) dead = true;
+    else if (a.id === "warp" && cd > 0.5) dead = true;
+    else if (!hasFleet) dead = true;
+    const busy = !!(pendingTx && pendingTx.action === a.id && !pendingDone());
+    b.disabled = false;
+    b.setAttribute("aria-disabled", dead || busy ? "true" : "false");
+    b.classList.toggle("sa-dim", dead && !busy);
+    b.classList.toggle("sa-busy", busy);
+    b.classList.toggle("sa-on", a.id === "stop" && moving && !dead && !busy);
+    let tip = shown ? `${a.label}  (${shown})` : a.label;
+    if (a.id === "warp" && cd > 0.5) tip += " · CD " + Math.ceil(cd) + "s";
+    if (a.id === "stop" && moving) {
+      const left = movementEndUnix(raw) - Date.now() / 1000;
+      if (left > 0) tip += " · " + Math.ceil(left) + "s";
+    }
     b.dataset.tip = tip;
     b.setAttribute("aria-label", tip);
-    b.title = "";
+    b.title = tip;
     if (stock && stock.getAttribute("data-active") === "true") b.setAttribute("data-active", "true");
     else b.removeAttribute("data-active");
   });
   paintSlots();
   placeWarpChrome();
+  applyLook();
+  placeHudPad();
+  placeOptsPanel();
+  paintZoom();
 }
 
 function ensure() {
@@ -835,20 +1586,73 @@ function ensure() {
   root.id = "sa-action-bar";
   root.dataset.saOverlay = "action-bar";
   root.innerHTML =
+    '<div class="sa-bar-tools">' +
     '<div class="sa-bar-grip" data-drag title="SAGE UI Fixes · Fleet bar · drag to move · double-click reset">⋮⋮</div>' +
-    '<div class="sa-acts" data-acts></div>' +
+    '<button type="button" class="sa-bar-optbtn" data-opts title="Bar options">⚙</button>' +
+    '<span class="sa-zoom" data-zoom title="Map zoom (scale). Zoomed out ~0.08, in up to 100.">Z —</span></div>' +
+    '<div class="sa-bar-opts" data-opts-panel>' +
+    '<label>Icon size <span><input type="range" data-opt="icon" min="16" max="56" step="2"> <span class="n" data-opt-icon-n></span></span></label>' +
+    '<label>Show text <input type="checkbox" data-opt="text"></label>' +
+    '<label>Spacing <span><input type="range" data-opt="gap" min="0" max="24" step="1"> <span class="n" data-opt-gap-n></span></span></label>' +
+    "</div>" +
+    '<div data-sa-rail style="display:contents">' +
+    '<div data-sa-fab style="display:contents">' +
+    '<div class="sa-acts" data-acts></div></div></div>' +
     '<div class="sa-slots" data-slots></div>';
   (document.body || document.documentElement).appendChild(root);
   bindDrag(root.querySelector("[data-drag]"));
   bindKeys();
   bindPickerDismiss();
+  bindOpts();
   const slots = root.querySelector("[data-slots]");
   if (slots) {
     slots.addEventListener("pointerdown", (e) => e.stopPropagation());
   }
   applySavedOrCenter();
+  applyLook();
   paint();
   return root;
+}
+
+function bindOpts() {
+  if (!root || root.__saOpts) return;
+  root.__saOpts = true;
+  const btn = root.querySelector("[data-opts]");
+  const panel = root.querySelector("[data-opts-panel]");
+  if (btn && panel) {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const on = !panel.classList.contains("on");
+      panel.classList.toggle("on", on);
+      btn.classList.toggle("on", on);
+      if (on) {
+        panel.classList.remove("above", "below");
+        requestAnimationFrame(() => placeOptsPanel());
+      }
+    });
+  }
+  root.addEventListener("input", (e) => {
+    const t = e.target;
+    if (!t || !t.getAttribute) return;
+    const k = t.getAttribute("data-opt");
+    if (!k) return;
+    if (k === "icon") look.icon = clampNum(t.value, 16, 56, LOOK_DEF.icon);
+    else if (k === "gap") look.gap = clampNum(t.value, 0, 24, LOOK_DEF.gap);
+    else if (k === "text") look.text = !!t.checked;
+    saveLook();
+    applyLook();
+  });
+  document.addEventListener(
+    "pointerdown",
+    (e) => {
+      if (!panel || !panel.classList.contains("on")) return;
+      const t = e.target;
+      if (t && t.closest && t.closest("[data-opts-panel], [data-opts]")) return;
+      panel.classList.remove("on");
+      if (btn) btn.classList.remove("on");
+    },
+    true,
+  );
 }
 
 function bindPickerDismiss() {
@@ -889,6 +1693,7 @@ function setVisible(on) {
 
 window.__SA_ACTION_BAR__ = {
   paint,
+  fire: fireAction,
   isVisible: visiblePref,
   setVisible,
   show: () => setVisible(true),
@@ -896,6 +1701,17 @@ window.__SA_ACTION_BAR__ = {
   slots: () => slotState.keys.slice(),
   assignSlot,
   clearSlot,
+  bindings: () => ACTIONS.map((a) => ({ id: a.id, chord: chordFor(a) })),
+  look: () => ({ ...look }),
+  setLook: (p) => {
+    if (!p || typeof p !== "object") return look;
+    if (p.icon != null) look.icon = clampNum(p.icon, 16, 56, look.icon);
+    if (p.gap != null) look.gap = clampNum(p.gap, 0, 24, look.gap);
+    if (p.text != null) look.text = !!p.text;
+    saveLook();
+    applyLook();
+    return { ...look };
+  },
 };
 window.__SA_BAR_RESET__ = resetPos;
 

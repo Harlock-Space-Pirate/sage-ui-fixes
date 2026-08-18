@@ -1,0 +1,70 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - manifest.json
+      - package.json
+      - .github/workflows/release.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Read versions
+        id: ver
+        run: |
+          set -euo pipefail
+          NEW=$(jq -r .version manifest.json)
+          OLD=""
+          if git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+            OLD=$(git show HEAD^:manifest.json 2>/dev/null | jq -r .version || true)
+          fi
+          echo "new=$NEW" >> "$GITHUB_OUTPUT"
+          echo "old=$OLD" >> "$GITHUB_OUTPUT"
+          if [ "$NEW" = "$OLD" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Version $OLD -> $NEW (changed=$( [ "$NEW" != "$OLD" ] && echo true || echo false ))"
+
+      - name: Package zip
+        if: steps.ver.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
+        run: node scripts/package.mjs
+
+      - name: Publish GitHub Release
+        if: steps.ver.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="v${{ steps.ver.outputs.new }}"
+          ZIP="dist/sage-ui-fixes-${{ steps.ver.outputs.new }}.zip"
+          test -f "$ZIP"
+          NOTES="$(cat <<'EOF'
+          Download the zip below. Testers do not need the source tree.
+
+          1. Unzip `sage-ui-fixes-VERSION.zip`
+          2. Chrome → Extensions → enable Developer mode
+          3. Load unpacked → select the unzipped folder
+          4. Hard-refresh sage.staratlas.com
+
+          Only this repository's GitHub Releases are supported installs.
+          EOF
+          )"
+          NOTES="${NOTES//VERSION/${{ steps.ver.outputs.new }}}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$ZIP" --clobber
+          else
+            gh release create "$TAG" "$ZIP" --title "SAGE UI Fixes ${{ steps.ver.outputs.new }}" --notes "$NOTES"
+          fi

@@ -177,7 +177,7 @@ neutralize();
     const r = await msg({ type: "sa-fixes-inject-module", code, entryUrl: entry });
     if (!r?.ok) throw new Error(r?.error || "inject failed");
     if (r?.skipped) slog("warn", "♻️", "module already booted — skipped re-inject");
-    else slog("ok", "✅", "patched MAIN module live — SAGE 0.0.355 + LEEKS v2");
+    else slog("ok", "✅", "patched MAIN module live — SAGE 0.0.371 + LEEKS v2");
   } catch (e) {
     slog("err", "💥", "patch boot failed", e);
   }

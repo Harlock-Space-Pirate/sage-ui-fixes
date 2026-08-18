@@ -1,5 +1,111 @@
 # Changelog
 
+## 2.5.5
+
+- Targets no longer sit on the action bar. Compact **TGT** stack is bottom-right (draggable, saved). Focus on top, other pins below. **IN VIEW** opens a hideable scout list to the left. Both stay above all HUD.
+
+## 2.5.4
+
+- Action bar shows live map zoom as **Z n.nn** (official scale: ~0.08 far out, 100 close in).
+
+## 2.5.3
+
+- Double-click a fleet slot uses official **current** coordinates (derived store), not the departure `location`. HUD ring sits on the ship. Also calls `requestFocusSelectedFleet`.
+
+## 2.5.2
+
+- After subwarp/warp **arrives**, Stop turns off and Warp/Subwarp work again. We no longer treat a leftover `MoveSubwarp` account as still moving once the journey clock has ended. Warp hover shows remaining **CD** (`warpCooldownExpiresAt`) if any. Subwarp has no separate cooldown in the 0.0.371 client.
+
+## 2.5.1
+
+- Slot and group assignments persist across reload. A fleet is only dropped when its state is **Destroyed**, not when peek is still empty.
+
+## 2.5.0
+
+- Enemies in view show as **PIN** buttons. Pinned targets are 5-wide cards (name + HP/SP bars). Click = target, **GO** = fly to them, **ATK** = attack, **HUNT** / prompt if they leave view (uses last warp dest).
+
+## 2.4.10
+
+- Fleet editor sits in the free space **above** the action bar (scrolls if tall). It was drawing off the top of the screen.
+
+## 2.4.9
+
+- Fleet editor has a **× close** (Esc too). Drag fleets between OWNED and G1–G4; drop on a chip to reorder.
+
+## 2.4.8
+
+- Slot select / double-click no longer leaves the official **Fleet Command** panel open (that overlay blocks the map). We click **Close fleet panel** after focus.
+
+## 2.4.7
+
+- Double-click a fleet slot (including the name text) pans/zooms. Label no longer steals the click.
+
+## 2.4.6
+
+- Official confirm (self-destruct) and faucet/error toasts sit **above** the action bar, not on top of the tiles.
+- ⚙ options float out of flow: above the bar at the bottom, below if there is no room at the top.
+- Slots, groups, and the TGT list drop fleets that are gone or Destroyed.
+
+## 2.4.5
+
+- **Fleet groups** (G1–G4) under the slots. Click = active group; right-click adds the selected fleet; **EDIT** opens the pool. Saved as `saFleetGroups.v1`.
+- Active group with 2+ fleets: Warp/Subwarp uses official multi-fleet planner (`selectedFleetKeys`) — one destination, all go there. Fat planner panel hidden; banner + Confirm / Esc.
+- **TGT list:** Shift+click (rebindable in ⚙) nearest enemy on the map. Click = pan + target; double-click = Attack. Saved as `saEnemyList.v1`.
+
+## 2.4.4
+
+- Action bar **⚙ options**: icon size, show/hide text, button spacing. Saved as `saActionBarLook.v1`.
+- **KILL** (self-destruct) no longer starts the clock on the confirm dialog. Cancel / Esc leaves the tile idle; Confirm still shows the clock until the fleet state changes.
+
+## 2.4.3
+
+- Action tiles and fleet slots are **solid** (no stock glass). Dimmed tiles stay opaque, just darker.
+
+## 2.4.2
+
+- Hide official **GALIA COMMS**, Arcade, and Vanguard dock pills (0.0.371 `_dock_1jl14_` / channel tabs). Chat stays in our Comms tab.
+
+## 2.4.1
+
+- **PvP resolve** (v1 path, 371 vars): attack send shows RESOLVING immediately; we poll the live fleet store for HP/SP. HIT / MISS / FLEE floats on the map + combat-log rows. Target HUD (HP + SP) for the last attack target. No fake hits — chain still decides. Official “HP CRIT” on the chip means the target is low, not a critical strike (client has no crit-outcome flag).
+- Fleet-attack hook uses `go` / `hg` (the old `To` name was undefined on 0.0.371).
+- Recipe card click reopens the current station on **CRAFTING → Bays** so you stay in the craft loop instead of hunting the map.
+
+## 2.4.0
+
+- Target live **SAGE 0.0.371** (`index-DmmfP5d6.js`, 2026-08-18). All 41 patches land.
+- Action bar tiles use **stock** fleet-action classes (icon + Orbitron label + keybind sublabel) and stock HUD frame ticks. Compact one-row still hides their 3-row grid.
+- **Fleet actions** (`d w s t c a r n x v`) appear in official Options → Command Settings keybinds (`fc-app-keybindings`). Remap there; tiles show the live chord. Destruct stays unbound.
+- Fleet slots are quieter map chips (no fake 1–8 hotkeys).
+
+## 2.3.15
+
+- Action tiles use the starmap **crosshair** cursor (cross + center dot). No more stop-sign pointer on dimmed tiles.
+
+## 2.3.14
+
+- Comms Channels/Teams came back (`active` was missing in `paintChat` and crashed the log).
+- Fleet slot select also clicks the stock My Fleets row so action tiles actually arm. Double-click still follows.
+
+## 2.3.13
+
+- Fleet slot **click** only selects (action tiles light up; camera stays free). **Double-click** pans to the live position and turns official Follow on.
+
+## 2.3.12
+
+- Clicking a fleet in warp/subwarp pans to **where it is now** (or the destination if the trip is already over). On-chain `location` stays at the departure point until Exit Movement.
+
+## 2.3.11
+
+- Comms **Channels / Teams** stay on the tab you pick (Teams no longer traps you). Tabs are gold/dark buttons.
+- **⋮** next to minimize: **a** / **A** change log text size (saved).
+
+## 2.3.10
+
+- **Stop** lights up while the selected fleet is subwarping (or warping) and actually clicks stock Stop (label was `Stop` + ETA, so we never matched).
+- Hover always shows the action name, including on dimmed tiles (no native `disabled`).
+- Clicking Dock / Warp / Subwarp / Stop / etc. shows the old **clock** until the fleet state changes.
+
 ## 2.3.9
 
 - Starbase **capture** (last hit / level drop) sends `FactionEconomicsConfig`

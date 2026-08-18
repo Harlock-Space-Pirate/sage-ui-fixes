@@ -27,6 +27,7 @@ const include = [
   "popup.js",
   "rules.json",
   "icons",
+  "INSTALL.txt",
 ];
 
 execFileSync(

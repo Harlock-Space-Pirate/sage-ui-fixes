@@ -1,0 +1,10 @@
+SAGE UI Fixes — install
+
+1. Unzip this folder (keep the files together).
+2. Chrome → chrome://extensions → turn on Developer mode.
+3. Load unpacked → select this unzipped folder (the one with manifest.json).
+4. Open https://sage.staratlas.com and hard-refresh (Cmd/Ctrl+Shift+R).
+
+Update: download the newer zip from GitHub Releases, unzip over the old folder (or a new one), then click Reload on the extension card.
+
+LEEKS / Produce Bandit ltd. Not affiliated with Star Atlas.

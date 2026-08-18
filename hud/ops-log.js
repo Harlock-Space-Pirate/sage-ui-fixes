@@ -6,6 +6,7 @@
   const POS_KEY = "saCombatLogPos.v1";
   const CHIP_KEY = "saClChipPos.v1";
   const HIDE_KEY = "saHideCombatLog";
+  const FONT_KEY = "saLogFont.v1";
   const Z = "2147482000";
 
   const CSS = [
@@ -38,19 +39,31 @@
     "#sa-combat-log-box .sa-cl-tabs button[data-tab].on{color:#ffbe4d;background:rgba(255,190,77,.1);box-shadow:inset 0 -2px #ffbe4d}",
     "#sa-combat-log-box .sa-cl-tabs button[data-tab].ping{color:#ff6b6b}",
     "#sa-combat-log-box .sa-cl-grip{display:flex;align-items:center;padding:0 7px;color:rgba(255,190,77,.65)}",
-    "#sa-combat-log-box .sa-cl-ctl{display:flex;margin-left:auto;border-left:1px solid rgba(255,190,77,.18)}",
+    "#sa-combat-log-box .sa-cl-ctl{position:relative;display:flex;margin-left:auto;border-left:1px solid rgba(255,190,77,.18)}",
     "#sa-combat-log-box .sa-cl-ico{appearance:none;min-width:28px;padding:4px 8px;border:0;background:transparent;",
     "color:#e8d9a8;cursor:pointer;font:700 11px Orbitron,sans-serif}",
     "#sa-combat-log-box .sa-cl-ico:hover{color:#ffbe4d}",
+    "#sa-combat-log-box .sa-cl-fontpop{display:none;position:absolute;top:100%;right:0;z-index:8;",
+    "flex-direction:column;min-width:44px;padding:4px;background:#0a0e1a;border:1px solid rgba(255,190,77,.45);",
+    "border-top:0;box-shadow:0 8px 20px rgba(0,0,0,.55)}",
+    "#sa-combat-log-box .sa-cl-fontpop.on{display:flex}",
+    "#sa-combat-log-box .sa-cl-fontpop button{appearance:none;border:0;background:transparent;color:#e8d9a8;",
+    "cursor:pointer;padding:4px 8px;line-height:1;font-family:Georgia,Times,serif}",
+    "#sa-combat-log-box .sa-cl-fontpop button:hover{color:#ffbe4d;background:rgba(255,190,77,.1)}",
+    "#sa-combat-log-box .sa-cl-fontpop [data-font=down]{font-size:11px;font-weight:500}",
+    "#sa-combat-log-box .sa-cl-fontpop [data-font=up]{font-size:18px;font-weight:700}",
     "#sa-combat-log-box .sa-cl-body{flex:1;min-height:0;padding:8px 10px;overflow:auto;display:none;flex-direction:column;gap:5px;",
     "scrollbar-width:thin;scrollbar-color:rgba(255,190,77,.45) transparent}",
     "#sa-combat-log-box .sa-cl-body.on{display:flex}",
     "#sa-combat-log-box .sa-cl-body[data-pane=comms],#sa-combat-log-box .sa-cl-body[data-pane=contacts]{padding:6px 8px 6px;overflow:hidden;gap:4px}",
     "#sa-combat-log-box .sa-cl-chans{display:flex;flex-wrap:wrap;gap:4px;flex-shrink:0}",
-    "#sa-combat-log-box .sa-cl-sub{display:flex;gap:0;flex-shrink:0;border-bottom:1px solid rgba(255,190,77,.16)}",
-    "#sa-combat-log-box .sa-cl-sub button{flex:1;appearance:none;border:0;background:transparent;cursor:pointer;",
-    "color:rgba(200,184,138,.45);font:700 8px Orbitron,sans-serif;letter-spacing:.12em;text-transform:uppercase;padding:5px 4px}",
-    "#sa-combat-log-box .sa-cl-sub button.on{color:#ffbe4d;box-shadow:inset 0 -2px #ffbe4d}",
+    "#sa-combat-log-box .sa-cl-sub{display:flex;gap:6px;flex-shrink:0;padding:2px 0 6px}",
+    "#sa-combat-log-box .sa-cl-sub button{flex:1;appearance:none;cursor:pointer;padding:7px 8px;",
+    "border:1px solid rgba(255,190,77,.28);background:#141008;color:#c8b88a;",
+    "font:700 11px Orbitron,sans-serif;letter-spacing:.1em;text-transform:uppercase;border-radius:3px}",
+    "#sa-combat-log-box .sa-cl-sub button.on{color:#0a0e1a;background:#ffbe4d;border-color:#ffbe4d}",
+    "#sa-combat-log-box .sa-cl-row,#sa-combat-log-box .sa-cl-msg,#sa-combat-log-box .sa-cl-empty{",
+    "font-size:var(--sa-cl-fs,11px)}",
     "#sa-combat-log-box .sa-cl-chip{appearance:none;cursor:pointer;padding:3px 7px;border-radius:99px;",
     "border:1px solid rgba(255,255,255,.16);background:rgba(0,0,0,.35);color:#e8d9a8;",
     "font:700 8px Orbitron,sans-serif;letter-spacing:.06em;text-transform:uppercase}",
@@ -168,6 +181,27 @@
 
   function clock() {
     return new Date().toLocaleTimeString("en-US", { hour12: false });
+  }
+
+  function fontPx() {
+    try {
+      const v = parseFloat(localStorage.getItem(FONT_KEY));
+      if (Number.isFinite(v)) return Math.max(9, Math.min(16, v));
+    } catch (_) {}
+    return 11;
+  }
+
+  function applyFont() {
+    if (!box) return;
+    box.style.setProperty("--sa-cl-fs", fontPx() + "px");
+  }
+
+  function bumpFont(delta) {
+    const next = Math.max(9, Math.min(16, fontPx() + delta));
+    try {
+      localStorage.setItem(FONT_KEY, String(next));
+    } catch (_) {}
+    applyFont();
   }
 
   const EMOJI = [
@@ -408,11 +442,7 @@
         '<input type="text" maxlength="500" placeholder="Message…" data-in />' +
         '<button type="button" data-send>SEND</button></div>';
       pane.querySelectorAll("[data-grp]").forEach((b) => {
-        b.onclick = () => {
-          chatGroup = b.dataset.grp;
-          lastChatSig = "";
-          paintChat(true);
-        };
+        b.onclick = () => setChatGroup(b.dataset.grp);
       });
       const emo = q("[data-emo]", pane);
       EMOJI.forEach((cat) => {
@@ -503,12 +533,30 @@
     paintChat(true);
   }
 
+  function setChatGroup(grp) {
+    chatGroup = grp === "teams" ? "teams" : "channels";
+    dmAddr = null;
+    try {
+      const api = ink();
+      if (api && api.setActiveChannel) {
+        const cur = String(activeChanId() || "");
+        if (chatGroup === "channels" && cur.indexOf("community:") === 0) {
+          api.setActiveChannel("Galia");
+        } else if (chatGroup === "teams" && cur.indexOf("community:") !== 0) {
+          const teams = teamChannels();
+          if (teams[0]) api.setActiveChannel(teams[0].id);
+        }
+      }
+    } catch (_) {}
+    lastChatSig = "";
+    paintChat(true);
+  }
+
   function paintChat(force) {
     const pane = q('[data-pane="comms"]', box);
     if (!pane) return;
-    ensureChatShell(pane, "comms-v3");
+    ensureChatShell(pane, "comms-v4");
     const active = dmAddr ? "dm:" + dmAddr : activeChanId();
-    if (!dmAddr && String(active).indexOf("community:") === 0) chatGroup = "teams";
     pane.querySelectorAll("[data-grp]").forEach((b) => {
       b.classList.toggle("on", b.dataset.grp === chatGroup);
     });
@@ -723,7 +771,42 @@
     combat.slice().reverse().forEach((e) => {
       const r = document.createElement("div");
       r.className = "sa-cl-row";
-      r.innerHTML = '<span class="t">[' + esc(e.at || "") + "]</span> " + esc(e.line);
+      const type = String(e.type || "EVENT");
+      const tgt = e.target || "";
+      const dmg = Number(e.damage || 0);
+      const kind = e.damageKind || "HP";
+      let col = "rgba(232,217,168,.85)";
+      let tag = type;
+      if (type === "PENDING") {
+        col = "#ffbe4d";
+        tag = "RESOLVING";
+      } else if (type === "HIT") {
+        col = "#f87171";
+        tag = "HIT";
+      } else if (type === "MISS") {
+        col = "#9ca3af";
+        tag = "MISS";
+      } else if (type === "FLEE") {
+        col = "#fbbf24";
+        tag = "FLEE";
+      } else if (type === "CAPTURE") {
+        col = "#34d399";
+        tag = "CAPTURE";
+      }
+      const extra =
+        type === "HIT" && dmg > 0
+          ? ' <span style="color:#f87171;font-weight:800">−' + dmg.toLocaleString() + " " + esc(kind) + "</span>"
+          : "";
+      r.innerHTML =
+        '<span class="t">[' +
+        esc(e.at || "") +
+        ']</span> <span class="tag" style="color:' +
+        col +
+        ';font:800 10px Orbitron,sans-serif;letter-spacing:.08em">' +
+        esc(tag) +
+        "</span> " +
+        (tgt ? "<b>" + esc(tgt) + "</b>" : "") +
+        extra;
       pane.appendChild(r);
     });
   }
@@ -764,9 +847,24 @@
   }
 
   function logCombat(e) {
-    const kind = (e && (e.type || e.kind)) || "EVENT";
-    const tgt = (e && (e.target || e.systemName || e.fleetLabel)) || "";
-    combat.push({ at: clock(), line: kind + (tgt ? " · " + tgt : "") });
+    const ev = {
+      at: clock(),
+      type: (e && (e.type || e.kind)) || "EVENT",
+      target: (e && (e.target || e.systemName || e.fleetLabel)) || "",
+      damage: Number(e && e.damage) || 0,
+      damageKind: (e && e.damageKind) || "HP",
+      id: e && e.id,
+    };
+    if (ev.id && ev.type !== "PENDING") {
+      const i = combat.findIndex((x) => x.id && String(x.id) === String(ev.id));
+      if (i >= 0) {
+        combat[i] = Object.assign({}, combat[i], ev);
+        if (tab === "combat" && !min) paintCombat();
+        ping("combat");
+        return;
+      }
+    }
+    combat.push(ev);
     if (combat.length > 80) combat.shift();
     if (tab === "combat" && !min) paintCombat();
     ping("combat");
@@ -834,6 +932,10 @@
     chip.classList.toggle("on", min);
     if (!min) chip.classList.remove("live");
     if (min) closeMenu();
+    if (min && box) {
+      const pop = q("[data-fontpop]", box);
+      if (pop) pop.classList.remove("on");
+    }
     placeChip();
   }
 
@@ -921,7 +1023,12 @@
         '<button type="button" data-tab="flight">Flight</button>' +
         '<button type="button" data-tab="comms">Comms</button>' +
         '<button type="button" data-tab="contacts">Contacts</button>' +
-        '<span class="sa-cl-ctl"><button type="button" class="sa-cl-ico" data-min title="Minimize">−</button></span>' +
+        '<span class="sa-cl-ctl">' +
+        '<button type="button" class="sa-cl-ico" data-more title="Text size">⋮</button>' +
+        '<button type="button" class="sa-cl-ico" data-min title="Minimize">−</button>' +
+        '<div class="sa-cl-fontpop" data-fontpop>' +
+        '<button type="button" data-font="down" title="Smaller text">a</button>' +
+        '<button type="button" data-font="up" title="Bigger text">A</button></div></span>' +
         "</div>" +
         '<div class="sa-cl-body on" data-pane="combat"></div>' +
         '<div class="sa-cl-body" data-pane="flight"></div>' +
@@ -931,6 +1038,20 @@
       document.body.appendChild(box);
       const tabs = q(".sa-cl-tabs", box);
       tabs.addEventListener("click", (e) => {
+        const more = e.target.closest("[data-more]");
+        const font = e.target.closest("[data-font]");
+        const pop = q("[data-fontpop]", box);
+        if (font) {
+          e.stopPropagation();
+          bumpFont(font.getAttribute("data-font") === "up" ? 1 : -1);
+          return;
+        }
+        if (more) {
+          e.stopPropagation();
+          if (pop) pop.classList.toggle("on");
+          return;
+        }
+        if (pop) pop.classList.remove("on");
         const b = e.target.closest("[data-tab]");
         if (b) showTab(b.dataset.tab);
         if (e.target.closest("[data-min]")) setMin(true);
@@ -950,6 +1071,7 @@
         placeChip();
       });
       applySavedBox();
+      applyFont();
       const rz = q(".sa-cl-resize", box);
       let rd = false;
       let rw = 0;
@@ -988,8 +1110,16 @@
       chip.classList.toggle("on", min);
     }
     placeChip();
-    if (!hide && !min && tab === "comms") paintChat();
-    if (!hide && !min && tab === "contacts") paintContacts();
+    if (!hide && !min && tab === "comms") {
+      try {
+        paintChat();
+      } catch (_) {}
+    }
+    if (!hide && !min && tab === "contacts") {
+      try {
+        paintContacts();
+      } catch (_) {}
+    }
   }
 
   window.__SA_LOG_COMBAT_EVENT = function (e) {
@@ -1020,13 +1150,6 @@
       this._e = [];
     },
   };
-  const prevAtk = window.__SA_ON_ATTACK__;
-  window.__SA_ON_ATTACK__ = function (ev) {
-    try {
-      logCombat({ type: "SENT", target: ev && (ev.systemName || ev.fleetLabel), kind: ev && ev.kind });
-    } catch (_) {}
-    if (typeof prevAtk === "function") return prevAtk(ev);
-  };
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mount);
   else mount();
@@ -1037,9 +1160,17 @@
   document.addEventListener(
     "pointerdown",
     (e) => {
-      if (!menuEl) return;
-      if (e.target && e.target.closest && e.target.closest("#sa-cl-menu")) return;
-      closeMenu();
+      if (menuEl && !(e.target && e.target.closest && e.target.closest("#sa-cl-menu"))) closeMenu();
+      if (box) {
+        const pop = q("[data-fontpop]", box);
+        if (
+          pop &&
+          pop.classList.contains("on") &&
+          !(e.target && e.target.closest && e.target.closest("[data-more], [data-fontpop]"))
+        ) {
+          pop.classList.remove("on");
+        }
+      }
     },
     true,
   );

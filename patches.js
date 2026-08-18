@@ -1,4 +1,4 @@
-/** SAGE UI Fixes v2 patches. Pinned to live 0.0.355 / assets/index-DY7IU6C2.js (2026-08-14).
+/** SAGE UI Fixes v2 patches. Pinned to live 0.0.371 / assets/index-DmmfP5d6.js (2026-08-18).
  * Each `find` must occur exactly once in the minified entry or the patch is skipped.
  * LEEKS / Produce Bandit ltd
  */
@@ -11,21 +11,21 @@ globalThis.__SA_PATCHES__ = [
   },
   {
     id: "nearby-dead-filter",
-    find: "return ee.nearbyFleets.filter(Bc=>{const Xd=yc(hl,Rc,Bc.coordinates[0],Bc.coordinates[1])<=Tc,sc=toFactionEnum(Bc.faction),fc=sc!==pi&&!(pi===w.Unaligned&&sc===w.Unaligned),fd=String(Bc.fleetKey)!==String(ee.fleetData?.fleetKey);return Xd&&fc&&fd})",
+    find: "return ee.nearbyFleets.filter(Fc=>{const fu=oc(ol,$c,Fc.coordinates[0],Fc.coordinates[1])<=Ac,sc=toFactionEnum(Fc.faction),fc=sc!==yi&&!(yi===w.Unaligned&&sc===w.Unaligned),ud=String(Fc.fleetKey)!==String(ee.fleetData?.fleetKey);return fu&&fc&&ud})",
     replace:
-      'return ee.nearbyFleets.filter(Bc=>{const Xd=yc(hl,Rc,Bc.coordinates[0],Bc.coordinates[1])<=Tc,sc=toFactionEnum(Bc.faction),fc=sc!==pi&&!(pi===w.Unaligned&&sc===w.Unaligned),fd=String(Bc.fleetKey)!==String(ee.fleetData?.fleetKey),dead=Bc.fleetAccount?.data?.state?.__kind==="Destroyed"||Number(Bc.fleetAccount?.data?.hp??0)<=0;return Xd&&fc&&fd&&!dead})',
+      'return ee.nearbyFleets.filter(Fc=>{const fu=oc(ol,$c,Fc.coordinates[0],Fc.coordinates[1])<=Ac,sc=toFactionEnum(Fc.faction),fc=sc!==yi&&!(yi===w.Unaligned&&sc===w.Unaligned),ud=String(Fc.fleetKey)!==String(ee.fleetData?.fleetKey),dead=Fc.fleetAccount?.data?.state?.__kind==="Destroyed"||Number(Fc.fleetAccount?.data?.hp??0)<=0;return fu&&fc&&ud&&!dead})',
   },
   {
     id: "starbase-hp-bar",
-    find: "if(Qc){const gu=Qc.hp+Qc.pendingHp;Wd=gu>0?Qc.hp/gu:0}",
+    find: "if(Jc){const gu=Jc.hp+Jc.pendingHp;Od=gu>0?Jc.hp/gu:0}",
     replace:
-      "if(Qc){const gu=Math.max(1,520+Number(Qc.level||0)*180);Wd=Math.min(1,Math.max(0,Number(Qc.hp||0)/gu))}",
+      "if(Jc){const gu=Math.max(1,520+Number(Jc.level||0)*180);Od=Math.min(1,Math.max(0,Number(Jc.hp||0)/gu))}",
   },
   {
     id: "fingerprint-hp",
-    find: "Object.values(Jc).map(_c=>`${_c.name}@${_c.coordinates[0]},${_c.coordinates[1]}:${_c.owner??\"none\"}:L${_c.starbaseLevel??0}:${_c.core?\"core\":\"not\"}:${_c.planetCount}:${_c.asteroidCount}:${(_c.stars??[]).length}`)",
+    find: "Object.values(Qc).map(_c=>`${_c.name}@${_c.coordinates[0]},${_c.coordinates[1]}:${_c.owner??\"none\"}:L${_c.starbaseLevel??0}:${_c.core?\"core\":\"not\"}:${_c.planetCount}:${_c.asteroidCount}:${(_c.stars??[]).length}`)",
     replace:
-      "Object.values(Jc).map(_c=>`${_c.name}@${_c.coordinates[0]},${_c.coordinates[1]}:${_c.owner??\"none\"}:L${_c.starbaseLevel??0}:H${((_c.starbaseHpFraction??0)*100)|0}:${_c.core?\"core\":\"not\"}:${_c.planetCount}:${_c.asteroidCount}:${(_c.stars??[]).length}`)",
+      "Object.values(Qc).map(_c=>`${_c.name}@${_c.coordinates[0]},${_c.coordinates[1]}:${_c.owner??\"none\"}:L${_c.starbaseLevel??0}:H${((_c.starbaseHpFraction??0)*100)|0}:${_c.core?\"core\":\"not\"}:${_c.planetCount}:${_c.asteroidCount}:${(_c.stars??[]).length}`)",
   },
   {
     id: "resolve-display-owner",
@@ -35,9 +35,9 @@ globalThis.__SA_PATCHES__ = [
   },
   {
     id: "owner-panel-memo",
-    find: "It=createMemo(()=>ee.system?.owner??w.Unaligned)",
+    find: "Et=createMemo(()=>ee.system?.owner??w.Unaligned)",
     replace:
-      "It=createMemo(()=>{const gn=ee.system;if(!gn)return w.Unaligned;const Jr=gn._systemId;const Sn=Jr!=null?(Se.state.map?.systems?.[Jr]??Se.state.map?.systems?.[String(Jr)]):null;return Sn?.owner??gn.owner??w.Unaligned})",
+      "Et=createMemo(()=>{const gn=ee.system;if(!gn)return w.Unaligned;const Jr=gn._systemId;const Sn=Jr!=null?(Se.state.map?.systems?.[Jr]??Se.state.map?.systems?.[String(Jr)]):null;return Sn?.owner??gn.owner??w.Unaligned})",
   },
   {
     id: "warp-trail-gate",
@@ -58,9 +58,9 @@ globalThis.__SA_PATCHES__ = [
   },
   {
     id: "glow-create-alpha",
-    find: '$n.alpha=SYSTEM_STAR_CONFIG.GLOW.ALPHA,$n.blendMode="add",$n.zIndex=10,Nn.addChild($n),Nn._starGlow=$n',
+    find: 'An.alpha=SYSTEM_STAR_CONFIG.GLOW.ALPHA,An.blendMode="add",An.zIndex=10,wn.addChild(An),wn._starGlow=An',
     replace:
-      '$n.alpha=Math.min(.05,SYSTEM_STAR_CONFIG.GLOW.ALPHA),$n.blendMode="add",$n.zIndex=10,Nn.addChild($n),Nn._starGlow=$n',
+      'An.alpha=Math.min(.05,SYSTEM_STAR_CONFIG.GLOW.ALPHA),An.blendMode="add",An.zIndex=10,wn.addChild(An),wn._starGlow=An',
   },
   {
     id: "detail-glow-base",
@@ -69,9 +69,9 @@ globalThis.__SA_PATCHES__ = [
   },
   {
     id: "detail-outer-glow",
-    find: 'Es=Math.max(SYSTEM_DETAIL_CONFIG.STAR.GLOW_RADIUS*4,Et*4.65)*Zr.glowRadiusMultiplier*vr/yr,$s.scale.set(Es,Es*vt),$s.tint=new Color(Kt).toNumber(),Ms=Math.min(.56,SYSTEM_DETAIL_CONFIG.STAR.GLOW_BASE_ALPHA*1.02*Zr.glowAlphaMultiplier),$s.alpha=Ms*.72,$s.blendMode="screen"',
+    find: 'Fs=Math.max(SYSTEM_DETAIL_CONFIG.STAR.GLOW_RADIUS*4,It*4.65)*Gr.glowRadiusMultiplier*Ar/Pr,Ns.scale.set(Fs,Fs*vt),Ns.tint=new Color(Dt).toNumber(),Vs=Math.min(.56,SYSTEM_DETAIL_CONFIG.STAR.GLOW_BASE_ALPHA*1.02*Gr.glowAlphaMultiplier),Ns.alpha=Vs*.72,Ns.blendMode="screen"',
     replace:
-      'Es=Math.max(SYSTEM_DETAIL_CONFIG.STAR.GLOW_RADIUS*1.45,Et*1.7)*Zr.glowRadiusMultiplier*vr/yr,$s.scale.set(Es,Es*vt),$s.tint=new Color(Kt).toNumber(),Ms=Math.min(.1,SYSTEM_DETAIL_CONFIG.STAR.GLOW_BASE_ALPHA*.22*Zr.glowAlphaMultiplier),$s.alpha=Ms*.22,$s.blendMode="screen"',
+      'Fs=Math.max(SYSTEM_DETAIL_CONFIG.STAR.GLOW_RADIUS*1.45,It*1.7)*Gr.glowRadiusMultiplier*Ar/Pr,Ns.scale.set(Fs,Fs*vt),Ns.tint=new Color(Dt).toNumber(),Vs=Math.min(.1,SYSTEM_DETAIL_CONFIG.STAR.GLOW_BASE_ALPHA*.22*Gr.glowAlphaMultiplier),Ns.alpha=Vs*.22,Ns.blendMode="screen"',
   },
   {
     id: "culler-gate",
@@ -87,21 +87,21 @@ globalThis.__SA_PATCHES__ = [
   },
   {
     id: "startup-debug-idle",
-    find: 'createEffect(()=>{const At="EKEj47SzaCjPM3m4T4vRXrrsVtkEmiNgPMMFye3AkXj4",It=nt.get("games").map(Ft=>Ft.address).sort()',
+    find: 'createEffect(()=>{const At="EKEj47SzaCjPM3m4T4vRXrrsVtkEmiNgPMMFye3AkXj4",Et=nt.get("games").map(Lt=>Lt.address).sort()',
     replace:
-      'createEffect(()=>{if(!(typeof isStartupDebugEnabled=="function"&&isStartupDebugEnabled()))return;const At="EKEj47SzaCjPM3m4T4vRXrrsVtkEmiNgPMMFye3AkXj4",It=nt.get("games").map(Ft=>Ft.address).sort()',
+      'createEffect(()=>{if(!(typeof isStartupDebugEnabled=="function"&&isStartupDebugEnabled()))return;const At="EKEj47SzaCjPM3m4T4vRXrrsVtkEmiNgPMMFye3AkXj4",Et=nt.get("games").map(Lt=>Lt.address).sort()',
   },
   {
     id: "systems-memo",
-    find: "const pn=Hn.reduce((Dr,po)=>(Dr.set(po.address,{...po.data,key:po.address}),Dr),new Map)",
+    find: "const Hn=On.reduce((Ur,os)=>(Ur.set(os.address,{...os.data,key:os.address}),Ur),new Map)",
     replace:
-      'const pn=typeof __saSysMemo=="function"?__saSysMemo():Hn.reduce((Dr,po)=>(Dr.set(po.address,{...po.data,key:po.address}),Dr),new Map)',
+      'const Hn=typeof __saSysMemo=="function"?__saSysMemo():On.reduce((Ur,os)=>(Ur.set(os.address,{...os.data,key:os.address}),Ur),new Map)',
   },
   {
     id: "regions-memo",
-    find: "regions:wn.flatMap(Dr=>Dr.data.regions.unsizedList)",
+    find: "regions:gn.flatMap(Ur=>Ur.data.regions.unsizedList)",
     replace:
-      'regions:typeof __saRegionMemo=="function"?__saRegionMemo():wn.flatMap(Dr=>Dr.data.regions.unsizedList)',
+      'regions:typeof __saRegionMemo=="function"?__saRegionMemo():gn.flatMap(Ur=>Ur.data.regions.unsizedList)',
   },
   {
     id: "post-attack-poll",
@@ -110,9 +110,9 @@ globalThis.__SA_PATCHES__ = [
   },
   {
     id: "pin-retint",
-    find: "if(!shouldRecreateStarSystemVisuals(Ht,po,pa))continue;Ht.parent?.removeChild(Ht),Ht.destroy({children:!0}),Rt(ra=>{const si=new Map(ra);return si.delete(Lt),si})}",
+    find: "if(!shouldRecreateStarSystemVisuals(Ft,os,Wr))continue;Ft.parent?.removeChild(Ft),Ft.destroy({children:!0}),Rt(Xr=>{const pi=new Map(Xr);return pi.delete(Pt),pi})}",
     replace:
-      "if(!shouldRecreateStarSystemVisuals(Ht,po,pa))continue;Ht._systemOwner=po;Ht._baseSize=pa;const _saT=cachedColorNumber(getFactionColorFromOwner(Ft.owner));if(Ht._starGlow){Ht._starGlow.tint=_saT;Ht._starGlow.alpha=.04}if(Ht._starCore)Ht._starCore.tint=_saT;if(Ht._softHalo)Ht._softHalo.tint=_saT;continue}",
+      "if(!shouldRecreateStarSystemVisuals(Ft,os,Wr))continue;Ft._systemOwner=os;Ft._baseSize=Wr;const _saT=cachedColorNumber(getFactionColorFromOwner(Lt.owner));if(Ft._starGlow){Ft._starGlow.tint=_saT;Ft._starGlow.alpha=.04}if(Ft._starCore)Ft._starCore.tint=_saT;if(Ft._softHalo)Ft._softHalo.tint=_saT;continue}",
   },
   {
     id: "update-detail-faction",
@@ -128,27 +128,27 @@ globalThis.__SA_PATCHES__ = [
   },
   {
     id: "attack-sb-hook",
-    find: 'y0.afterStarbaseAttack(String(To.systemKey))',
+    find: 'W1.afterStarbaseAttack(String(go.systemKey))',
     replace:
-      'y0.afterStarbaseAttack(String(To.systemKey)),(()=>{try{window.__SA_ON_ATTACK__?.({kind:"STARBASE",systemKey:To.systemKey,systemName:To.systemName})}catch(_sa){}})()',
+      'W1.afterStarbaseAttack(String(go.systemKey)),(()=>{try{window.__SA_ON_ATTACK__?.({kind:"STARBASE",systemKey:go.systemKey,systemName:go.systemName,x:Fg?.target?.x,y:Fg?.target?.y,sx:Fg?.source?.x,sy:Fg?.source?.y})}catch(_sa){}})()',
   },
   {
     id: "attack-fl-hook",
-    find: 'console.log("✅ Attack fleet transaction sent")',
+    find: '$n(`Attack order submitted against ${go.fleetLabel}.`,"success",{presentation:"feed",title:"Fleet attack launched",targets:[lp(go)]}),console.log("✅ Attack fleet transaction sent")',
     replace:
-      'console.log("✅ Attack fleet transaction sent"),(()=>{try{window.__SA_ON_ATTACK__?.({kind:"FLEET",fleetKey:To?.fleetKey,fleetLabel:To?.fleetLabel})}catch(_sa){}})()',
+      '$n(`Attack order submitted against ${go.fleetLabel}.`,"success",{presentation:"feed",title:"Fleet attack launched",targets:[lp(go)]}),console.log("✅ Attack fleet transaction sent"),(()=>{try{window.__SA_ON_ATTACK__?.({kind:"FLEET",fleetKey:String(go.fleetKey||go.fleetAccount?.address||""),fleetLabel:go.fleetLabel,x:hg?.target?.x,y:hg?.target?.y,sx:hg?.source?.x,sy:hg?.source?.y,preHp:Number(go.fleetAccount?.data?.hp),preSp:Number(go.fleetAccount?.data?.sp)})}catch(_sa){}})()',
   },
   {
     id: "attack-sb-error",
-    find: 'console.error("Failed to attack starbase:",Ch),Pt(xp(Ch),"error",{title:"Starbase attack failed",targets:[_y(To)]})',
+    find: 'console.error("Failed to attack starbase:",Rh),$n(bp(Rh),"error",{title:"Starbase attack failed",targets:[sp(go)]})',
     replace:
-      'console.error("Failed to attack starbase:",Ch);const _errStr=String(Ch?.message||Ch?.stack||JSON.stringify(Ch)||"");if(/1367933016|0x51890058|Starbase contested/i.test(_errStr)){Pt(`🛡️ ${To.systemName} starbase is CONTESTED and under protection/cooldown! (0x51890058)`,"error",{title:`Starbase Contested — ${To.systemName}`,targets:[_y(To)]})}else if(/Not within range/i.test(_errStr)){Pt("📡 Fleet is not in range of that starbase. Idle on the target system first.","error",{title:"Out of range",targets:[_y(To)]})}else if(/npc_attacker_ownership_missing/i.test(_errStr)){Pt("This hull has no Jorvik/Baron faction tag. Tag it on console.leeks.ink (Fleet tab) then retry.","error",{title:"No faction tag",targets:[_y(To)]})}else if(/0x51890057|faction_economics_config required/i.test(_errStr)){Pt("Reload SAGE UI Fixes 2.3.9+ — capture needs FactionEconomicsConfig.","error",{title:"NPC capture accounts",targets:[_y(To)]})}else if(/1367933091|0x51890023|resource=ap/i.test(_errStr)){Pt("⚡ Insufficient AP! Reload fleet AP or top up ammo.","error",{title:"AP Depleted",targets:[_y(To)]})}else{Pt(xp(Ch),"error",{title:"Starbase attack failed",targets:[_y(To)]})}',
+      'console.error("Failed to attack starbase:",Rh);const _errStr=String(Rh?.message||Rh?.stack||JSON.stringify(Rh)||"");if(/1367933016|0x51890058|Starbase contested/i.test(_errStr)){$n(`🛡️ ${go.systemName} starbase is CONTESTED and under protection/cooldown! (0x51890058)`,"error",{title:`Starbase Contested — ${go.systemName}`,targets:[sp(go)]})}else if(/Not within range/i.test(_errStr)){$n("📡 Fleet is not in range of that starbase. Idle on the target system first.","error",{title:"Out of range",targets:[sp(go)]})}else if(/npc_attacker_ownership_missing/i.test(_errStr)){$n("This hull has no Jorvik/Baron faction tag. Tag it on console.leeks.ink (Fleet tab) then retry.","error",{title:"No faction tag",targets:[sp(go)]})}else if(/0x51890057|faction_economics_config required/i.test(_errStr)){$n("Reload SAGE UI Fixes 2.3.9+ — capture needs FactionEconomicsConfig.","error",{title:"NPC capture accounts",targets:[sp(go)]})}else if(/1367933091|0x51890023|resource=ap/i.test(_errStr)){$n("⚡ Insufficient AP! Reload fleet AP or top up ammo.","error",{title:"AP Depleted",targets:[sp(go)]})}else{$n(bp(Rh),"error",{title:"Starbase attack failed",targets:[sp(go)]})}',
   },
   {
     id: "attack-fl-error",
-    find: 'console.error("Failed to attack fleet:",If),Pt(xp(If),"error",{title:"Fleet attack failed",targets:[ip(To)]})',
+    find: 'console.error("Failed to attack fleet:",Wf),$n(bp(Wf),"error",{title:"Fleet attack failed",targets:[lp(go)]})',
     replace:
-      'console.error("Failed to attack fleet:",If);const _errStr=String(If?.message||If?.stack||JSON.stringify(If)||"");if(/1367933091|0x51890023|resource=ap/i.test(_errStr)){Pt("⚡ Insufficient AP! Reload fleet AP or top up ammo.","error",{title:"AP Depleted",targets:[ip(To)]})}else if(/xp\\.rs:132|overflow/i.test(_errStr)){Pt("⚠️ SAGE Program Panic (XP Overflow). Retrying attack may succeed.","error",{title:"Program Panic",targets:[ip(To)]})}else{Pt(xp(If),"error",{title:"Fleet attack failed",targets:[ip(To)]})}',
+      'console.error("Failed to attack fleet:",Wf);const _errStr=String(Wf?.message||Wf?.stack||JSON.stringify(Wf)||"");if(/1367933091|0x51890023|resource=ap/i.test(_errStr)){$n("⚡ Insufficient AP! Reload fleet AP or top up ammo.","error",{title:"AP Depleted",targets:[lp(go)]})}else if(/xp\\.rs:132|overflow/i.test(_errStr)){$n("⚠️ SAGE Program Panic (XP Overflow). Retrying attack may succeed.","error",{title:"Program Panic",targets:[lp(go)]})}else{$n(bp(Wf),"error",{title:"Fleet attack failed",targets:[lp(go)]})}',
   },
   {
     id: "builder-pulse",
@@ -157,7 +157,7 @@ globalThis.__SA_PATCHES__ = [
   },
   {
     id: "builder-autoscroll",
-    find: 'er.recordProgrammaticScrollTarget(eu),$c.scrollTo({top:eu,behavior:"smooth"})',
+    find: 'Yn.recordProgrammaticScrollTarget(uu),Cc.scrollTo({top:uu,behavior:"smooth"})',
     replace: "0",
   },
   {
@@ -168,27 +168,33 @@ globalThis.__SA_PATCHES__ = [
   },
   {
     id: "map-control",
-    find: "{requestOpenMovementPlanner:gm,requestPanTo:Ac,requestSelectFleet:yd}=useMapControl()",
+    find: "{requestGoHome:um,requestOpenMovementPlanner:Rc,requestPanTo:dd,requestSelectFleet:Vd,publishVisibleFleetOrder:Yc,toggleFleetListRequest:Io,clearToggleFleetListRequest:uc}=useMapControl()",
     replace:
-      "{requestOpenMovementPlanner:gm,requestPanTo:Ac,requestSelectFleet:yd}=useMapControl(),_saMC=(window.__SA_MAP_CONTROL__={requestPanTo:Ac,requestSelectFleet:yd,requestOpenMovementPlanner:gm})",
+      "{requestGoHome:um,requestOpenMovementPlanner:Rc,requestPanTo:dd,requestSelectFleet:Vd,publishVisibleFleetOrder:Yc,toggleFleetListRequest:Io,clearToggleFleetListRequest:uc,requestFocusSelectedFleet:_saFf}=useMapControl(),_saMC=(window.__SA_MAP_CONTROL__={requestPanTo:dd,requestSelectFleet:Vd,requestOpenMovementPlanner:Rc,requestFocusSelectedFleet:_saFf})",
+  },
+  {
+    id: "derived-fleets",
+    find: "{pixiMapHoverEventsDisabled:Ft}=usePixiMapHover(),Dt=useRpcDataStore(),Ht=useDerivedFleetStore()",
+    replace:
+      "{pixiMapHoverEventsDisabled:Ft}=usePixiMapHover(),Dt=useRpcDataStore(),Ht=useDerivedFleetStore(),_saDF=(window.__SA_DERIVED_FLEETS__=Ht)",
   },
   {
     id: "planner-dispatch",
-    find: "const Qc=To=>{Vs()||Jc(Tl=>movementPlannerReducer(Tl,To))},Wd={active:!1,type:\"warp\"",
+    find: "const Au=go=>{hd()||bc(hl=>movementPlannerReducer(hl,go))},gd={active:!1,type:\"warp\"",
     replace:
-      "const Qc=To=>{Vs()||Jc(Tl=>movementPlannerReducer(Tl,To));try{window.__SA_PLANNER__=Object.assign(window.__SA_PLANNER__||{},{dispatch:Qc,set:Jc})}catch(_sa){}},Wd={active:!1,type:\"warp\"",
+      "const Au=go=>{hd()||bc(hl=>movementPlannerReducer(hl,go));try{window.__SA_PLANNER__=Object.assign(window.__SA_PLANNER__||{},{dispatch:Au,set:bc,getState:ed,openWing:function(keys,m){return bc({active:!0,destination:null,mapTargeting:!0,mode:m||\"warp\",origin:\"fleet\",searchQuery:\"\",selectedFleetKeys:(keys||[]).map(String)})},primeBatch:function(keys,m,dest){return bc({active:!0,destination:dest||null,mapTargeting:!dest,mode:m||\"warp\",origin:\"fleet\",searchQuery:\"\",selectedFleetKeys:(keys||[]).map(String)})}})}catch(_sa){}},gd={active:!1,type:\"warp\"",
   },
   {
     id: "expose-inkchat",
-    find: "const Pt={activeChannel:at,setActiveChannel:mt,messages:ft,",
+    find: "const Vt={activeChannel:at,setActiveChannel:mt,messages:ft,",
     replace:
-      "const Pt=window.__SA_INK__={activeChannel:at,setActiveChannel:mt,messages:ft,",
+      "const Vt=window.__SA_INK__={activeChannel:at,setActiveChannel:mt,messages:ft,",
   },
   {
     id: "expose-inkdm",
-    find: "const $n={conversations:nt,contacts:An,openDM:Yt,",
+    find: "const An={conversations:nt,contacts:yn,openDM:Ut,",
     replace:
-      "const $n=window.__SA_INK_DM__={conversations:nt,contacts:An,openDM:Yt,",
+      "const An=window.__SA_INK_DM__={conversations:nt,contacts:yn,openDM:Ut,",
   },
   {
     id: "expose-identity",
@@ -198,9 +204,9 @@ globalThis.__SA_PATCHES__ = [
   },
   {
     id: "expose-ink-settings",
-    find: "return createComponent(ChatSettingsContext.Provider,{value:{manualContacts:ht,addContact:vt,removeContact:St,isContact:Ct,blockedUsers:$t,blockUser:wt,unblockUser:Rt,isBlocked:At,hiddenChannels:It,toggleChannel:Et,isChannelVisible:Lt",
+    find: "return createComponent(ChatSettingsContext.Provider,{value:{manualContacts:ht,addContact:vt,removeContact:St,isContact:Ct,blockedUsers:$t,blockUser:wt,unblockUser:Rt,isBlocked:At,hiddenChannels:Et,toggleChannel:It,isChannelVisible:Pt",
     replace:
-      "return createComponent(ChatSettingsContext.Provider,{value:window.__SA_INK_SET__={manualContacts:ht,addContact:vt,removeContact:St,isContact:Ct,blockedUsers:$t,blockUser:wt,unblockUser:Rt,isBlocked:At,hiddenChannels:It,toggleChannel:Et,isChannelVisible:Lt",
+      "return createComponent(ChatSettingsContext.Provider,{value:window.__SA_INK_SET__={manualContacts:ht,addContact:vt,removeContact:St,isContact:Ct,blockedUsers:$t,blockUser:wt,unblockUser:Rt,isBlocked:At,hiddenChannels:Et,toggleChannel:It,isChannelVisible:Pt",
   },
   {
     id: "peek-fleets",
@@ -210,14 +216,60 @@ globalThis.__SA_PATCHES__ = [
   },
   {
     id: "player-profile",
-    find: 'Tl&&console.log("[PixiMap] Player profile set:",Tl)',
+    find: 'hl&&console.log("[PixiMap] Player profile set:",hl)',
     replace:
-      'Tl&&(window.__SA_PLAYER_PROFILE__=Tl,console.log("[PixiMap] Player profile set:",Tl))',
+      'hl&&(window.__SA_PLAYER_PROFILE__=hl,console.log("[PixiMap] Player profile set:",hl))',
   },
   {
     id: "selected-fleet",
-    find: "Mc=createMemo(()=>{const To=fs(),Tl=Ns();if(!To||!Tl)return null;const Cc=wt.getFleet(To);return Cc?.exists?{...Tl,fleetAccount:Cc}:null})",
+    find: "mm=createMemo(()=>{const go=vs(),hl=kc();if(!go||!hl)return null;const gc=wt.getFleet(go);return gc?.exists?{...hl,fleetAccount:gc}:null})",
     replace:
-      "Mc=createMemo(()=>{const To=fs(),Tl=Ns();if(!To||!Tl){try{window.__SA_SELECTED_FLEET__=null}catch{}return null}const Cc=wt.getFleet(To);const _out=Cc?.exists?{...Tl,fleetAccount:Cc}:null;try{window.__SA_SELECTED_FLEET__=_out?{key:String(To),label:String(Tl.fleetLabel||_out.fleetLabel||To).slice(0,48)}:null}catch{}return _out})",
+      "mm=createMemo(()=>{const go=vs(),hl=kc();if(!go||!hl){try{window.__SA_SELECTED_FLEET__=null}catch{}return null}const gc=wt.getFleet(go);const _out=gc?.exists?{...hl,fleetAccount:gc}:null;try{window.__SA_SELECTED_FLEET__=_out?{key:String(go),label:String(hl.fleetLabel||_out.fleetLabel||go).slice(0,48)}:null}catch{}return _out})",
+  },
+  {
+    id: "planner-submit",
+    find: "Hi=async()=>{if(xd||hd())return;const go=ed(),hl=Object.freeze([...go.selectedFleetKeys])",
+    replace:
+      "Hi=async()=>{if(window.__SA_PLANNER__)window.__SA_PLANNER__.submit=Hi;if(xd||hd())return;const go=ed(),hl=Object.freeze([...go.selectedFleetKeys])",
+  },
+  {
+    id: "map-follow",
+    find: "yf=()=>{const go=vs();if(go){if(us()===go){Ch();return}cg()&&(Bc=null,Hc=null,ns=null,Ys=null,bs(go),wh(Date.now()/1e3-Dt.ledgerTimeDrift()))}}",
+    replace:
+      "yf=()=>{const go=vs();if(go){if(us()===go){Ch();return}cg()&&(Bc=null,Hc=null,ns=null,Ys=null,bs(go),wh(Date.now()/1e3-Dt.ledgerTimeDrift()))}},_saMF=(window.__SA_MAP_FOLLOW__={stop:Ch,toggle:yf,key:()=>us()})",
+  },
+  {
+    id: "map-viewport",
+    find: "this.pixiApp=Se,this.viewport=nt,this.sinLUT=",
+    replace: "this.pixiApp=Se,this.viewport=nt,window.__SA_MAP_VIEWPORT__=nt,window.__SA_PIXI_APP__=Se,this.sinLUT=",
+  },
+  {
+    id: "fleet-viewport",
+    find: "this.renderer=Se,this.viewport=nt,this.textureGenerator=",
+    replace: "this.renderer=Se,this.viewport=nt,window.__SA_MAP_VIEWPORT__=window.__SA_MAP_VIEWPORT__||nt,window.__SA_PIXI_APP__=window.__SA_PIXI_APP__||Se,this.textureGenerator=",
+  },
+  {
+    id: "expose-starbase-menu",
+    find: "openStarbaseMenu:Yt,starbaseMenuOpenRequest:wt",
+    replace:
+      "openStarbaseMenu:(window.__SA_STARBASE_MENU__={open:Yt,systemId:()=>vt}).open,starbaseMenuOpenRequest:wt",
+  },
+  {
+    id: "keybind-actions-category",
+    find: 'const KEYBINDING_CATEGORIES=[{id:"fleet",label:"Fleet selection"},{id:"panels",label:"Panels and camera"}]',
+    replace:
+      'const KEYBINDING_CATEGORIES=[{id:"fleet",label:"Fleet selection"},{id:"panels",label:"Panels and camera"},{id:"actions",label:"Fleet actions"}]',
+  },
+  {
+    id: "keybind-fleet-actions",
+    find: '{id:"openCommandSettings",label:"Open command settings",description:"Open the Options / Command Settings panel.",category:"panels",defaultChord:"o"}];BINDABLE_ACTIONS.map(ee=>ee.id)',
+    replace:
+      '{id:"openCommandSettings",label:"Open command settings",description:"Open the Options / Command Settings panel.",category:"panels",defaultChord:"o"},{id:"dock",label:"Dock / undock",description:"Dock or undock the selected fleet.",category:"actions",defaultChord:"d"},{id:"warp",label:"Warp",description:"Start a warp for the selected fleet.",category:"actions",defaultChord:"w"},{id:"subwarp",label:"Subwarp",description:"Start a subwarp for the selected fleet.",category:"actions",defaultChord:"s"},{id:"gate",label:"Warp gate",description:"Use a warp gate with the selected fleet.",category:"actions",defaultChord:"t"},{id:"scan",label:"Scan",description:"Scan with the selected fleet.",category:"actions",defaultChord:"c"},{id:"attack",label:"Attack",description:"Attack with the selected fleet.",category:"actions",defaultChord:"a"},{id:"repair",label:"Repair",description:"Repair the selected fleet.",category:"actions",defaultChord:"r"},{id:"mine",label:"Mine",description:"Start mining with the selected fleet.",category:"actions",defaultChord:"n"},{id:"stop",label:"Stop",description:"Stop the selected fleet.",category:"actions",defaultChord:"x"},{id:"stims",label:"Stims",description:"Apply stims to the selected fleet.",category:"actions",defaultChord:"v"}];BINDABLE_ACTIONS.map(ee=>ee.id)',
+  },
+  {
+    id: "keybind-dispatch-fire",
+    find: 'Zi&&($s.preventDefault(),lr(Zi))};window.addEventListener("keydown",Ss)',
+    replace:
+      'Zi&&($s.preventDefault(),lr(Zi),(()=>{try{window.__SA_ACTION_BAR__?.fire(Zi)}catch(_sa){}})())};window.__SA_KEYBIND_HOOK__=!0;window.addEventListener("keydown",Ss)',
   },
 ];
