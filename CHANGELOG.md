@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.26
+
+- Stop auto-clicking official Attack (that cleared fleet select). Do not hide own cards in My Fleets.
+
 ## 2.5.25
 
 - Official Victim cards show whenever the selected fleet has hostiles in range — no Attack click required. LIST still opens the full target browser.
