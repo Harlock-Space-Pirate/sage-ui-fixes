@@ -1027,6 +1027,7 @@ function officialSelectCoords(key, raw) {
   return null;
 }
 
+/** Diagnostics only — pixelToGame/fleetGameCoordsMap are NOT the inverse of gameToPixel. Never use for select. */
 function mapGameCoords(key) {
   if (!key) return null;
   try {
@@ -1049,17 +1050,36 @@ function mapGameCoords(key) {
   return null;
 }
 
+/** Official select path: FleetManager.selectFleetByKey(key, x, y) with Nd() game coords.
+ * Sets this.selectedFleetKey and shows the interaction range via gameToPixel(x, y).
+ * Never falls back to fleetGameCoordsMap/pixelToGame — that round-trip is not identity. */
 function mapSelectFleet(key, game) {
   try {
     const map = window.__SA_PIXI_MAP__;
     if (!map || typeof map.selectFleetByKey !== "function") return false;
-    const c = game || mapGameCoords(key);
-    if (!c) return false;
-    map.selectFleetByKey(key, c.x, c.y);
+    if (!game || !Number.isFinite(game.x) || !Number.isFinite(game.y)) return false;
+    map.selectFleetByKey(key, game.x, game.y);
     return true;
   } catch {
     return false;
   }
+}
+
+/** __SA_PIXI_MAP__ binds on the first getFleetWorldPosition call (pixi-map patch).
+ * If the hook has not fired yet, wait for the instance, bind via getFleetWorldPosition(key),
+ * then select with Nd() game coords — the pixel return value is intentionally ignored. */
+function bindMapAndSelect(key, coords, tries) {
+  const map = window.__SA_PIXI_MAP__;
+  if (map) {
+    try {
+      if (typeof map.getFleetWorldPosition === "function") map.getFleetWorldPosition(key);
+    } catch {
+      /* ignore */
+    }
+    if (mapSelectFleet(key, coords)) paint();
+    return;
+  }
+  if ((tries || 0) < 16) setTimeout(() => bindMapAndSelect(key, coords, (tries || 0) + 1), 250);
 }
 
 function fleetState(raw) {
@@ -1289,7 +1309,9 @@ function selectFleet(key, pan) {
   if (!key) return;
   const f = findOwned(key);
   const raw = (f && f.raw) || selectedFleetRaw();
-  const coords = liveFleetCoords(key, raw) || (f && f.coords);
+  // Official Nd() coords only: derived currentCoordinates, else location.toNumber().
+  // Never pixelToGame / fleetGameCoordsMap as select input (that moves the ring off the ship).
+  const coords = officialSelectCoords(key, raw);
   const mc = window.__SA_MAP_CONTROL__;
   const okCoords = coords && Number.isFinite(coords.x) && Number.isFinite(coords.y);
   try {
@@ -1303,15 +1325,17 @@ function selectFleet(key, pan) {
   saProbe("select", {
     key: String(key).slice(0, 12),
     pan: !!pan,
-    nd: officialSelectCoords(key, raw),
+    nd: coords,
     derived: derivedCoords(key),
     map: mapGameCoords(key),
     used: coords,
     pixi: !!window.__SA_PIXI_MAP__,
     derivedStore: !!window.__SA_DERIVED_FLEETS__,
   });
-  let picked = mapSelectFleet(key, coords);
-  if (!picked && okCoords && mc && typeof mc.requestSelectFleet === "function") {
+  // Ring on the pixi map instance so FleetManager.selectedFleetKey is set.
+  let picked = okCoords && mapSelectFleet(key, coords);
+  // Keep the store in sync; the official effect also runs selectFleetByKey once the map exists.
+  if (okCoords && mc && typeof mc.requestSelectFleet === "function") {
     try {
       mc.requestSelectFleet(key, coords);
       picked = true;
@@ -1319,22 +1343,20 @@ function selectFleet(key, pan) {
       /* ignore */
     }
   }
-  if (!picked && f) picked = clickFleetRowByLabel(f.label);
-  if (!pan) {
-    stopFollow();
-    dismissFleetPanel();
-    paint();
-    return;
-  }
-  if (okCoords && mc && typeof mc.requestPanTo === "function") {
+  // Hook not fired yet: bind __SA_PIXI_MAP__ via getFleetWorldPosition, then select.
+  if (okCoords && !window.__SA_PIXI_MAP__) bindMapAndSelect(key, coords, 0);
+  if (!picked && !okCoords && f) picked = clickFleetRowByLabel(f.label);
+  if (pan && okCoords && mc && typeof mc.requestPanTo === "function") {
     try {
+      // Without the fleet key: pan once, do not start the Follow lock.
       mc.requestPanTo(coords);
     } catch {
       /* ignore */
     }
   }
+  stopFollow();
   dismissFleetPanel();
-  setTimeout(unblockMap, 120);
+  if (pan) setTimeout(unblockMap, 120);
   paint();
 }
 
@@ -1552,7 +1574,7 @@ function paintSlots() {
     const on = !!key;
     b.className = "sa-slot" + (on ? " sa-slot-on" : "") + (on && key === sel ? " sa-slot-sel" : "");
     b.dataset.tip = on
-      ? `${label || key.slice(0, 8)} · click select · double-click follow`
+      ? `${label || key.slice(0, 8)} · click select · double-click pan`
       : "Empty — click for fleet list";
     b.setAttribute("aria-label", b.dataset.tip);
     const html =
