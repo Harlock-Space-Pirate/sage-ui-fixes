@@ -1164,25 +1164,18 @@ function stopFollow() {
   }
 }
 
+function unblockMap() {
+  try {
+    const mc = window.__SA_MAP_CONTROL__;
+    if (mc && typeof mc.unblockMap === "function") mc.unblockMap();
+  } catch {
+    /* ignore */
+  }
+}
+
 function dismissFleetPanel() {
-  let n = 0;
-  const tick = () => {
-    const btn =
-      document.querySelector('[title="Close fleet panel"]') ||
-      document.querySelector('[aria-label="Close fleet panel"]') ||
-      document.querySelector('[data-panel="fleet-info"] button[title="Close"], [data-panel="fleet-info"] button[aria-label*="Close" i]');
-    if (btn) {
-      try {
-        btn.click();
-      } catch {
-        /* ignore */
-      }
-      return;
-    }
-    n += 1;
-    if (n < 10) setTimeout(tick, 40);
-  };
-  setTimeout(tick, 0);
+  /* Do not click official Close — that also clears the selected fleet. */
+  unblockMap();
 }
 
 function startFollow() {
@@ -1577,6 +1570,7 @@ function paint() {
   placeHudPad();
   placeOptsPanel();
   paintZoom();
+  unblockMap();
 }
 
 function ensure() {

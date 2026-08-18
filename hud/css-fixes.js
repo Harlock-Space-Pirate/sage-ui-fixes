@@ -22,6 +22,8 @@
     "html.sa-our-fleet-bar [class*=Attention][class*=container]{",
     "padding-bottom:var(--sa-hud-pad-bottom,8rem)!important;",
     "padding-top:var(--sa-hud-pad-top,1.5rem)!important;box-sizing:border-box!important}",
+    /* hide official Fleet Command overlay without clicking Close (Close unselects) */
+    'html.sa-our-fleet-bar [data-panel="fleet-info"]{visibility:hidden!important;pointer-events:none!important}',
   ].join("");
   function inject() {
     let st = document.getElementById(ID);

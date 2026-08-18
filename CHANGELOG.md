@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.8
+
+- Slot click no longer auto-clicks **Close fleet panel** (that cleared the selection a moment later). Map is unblocked without cancelling the target.
+
 ## 2.5.7
 
 - Top **TARGET** chip is draggable and resizable. Position and size persist (`saTargetHudPos.v1`).

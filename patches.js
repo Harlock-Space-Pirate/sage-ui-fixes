@@ -170,7 +170,7 @@ globalThis.__SA_PATCHES__ = [
     id: "map-control",
     find: "{requestGoHome:um,requestOpenMovementPlanner:Rc,requestPanTo:dd,requestSelectFleet:Vd,publishVisibleFleetOrder:Yc,toggleFleetListRequest:Io,clearToggleFleetListRequest:uc}=useMapControl()",
     replace:
-      "{requestGoHome:um,requestOpenMovementPlanner:Rc,requestPanTo:dd,requestSelectFleet:Vd,publishVisibleFleetOrder:Yc,toggleFleetListRequest:Io,clearToggleFleetListRequest:uc,requestFocusSelectedFleet:_saFf}=useMapControl(),_saMC=(window.__SA_MAP_CONTROL__={requestPanTo:dd,requestSelectFleet:Vd,requestOpenMovementPlanner:Rc,requestFocusSelectedFleet:_saFf})",
+      "{requestGoHome:um,requestOpenMovementPlanner:Rc,requestPanTo:dd,requestSelectFleet:Vd,publishVisibleFleetOrder:Yc,toggleFleetListRequest:Io,clearToggleFleetListRequest:uc,requestFocusSelectedFleet:_saFf,publishMapInteractionBlocked:_saBlk}=useMapControl(),_saMC=(window.__SA_MAP_CONTROL__={requestPanTo:dd,requestSelectFleet:Vd,requestOpenMovementPlanner:Rc,requestFocusSelectedFleet:_saFf,unblockMap:()=>_saBlk(!1)})",
   },
   {
     id: "derived-fleets",
