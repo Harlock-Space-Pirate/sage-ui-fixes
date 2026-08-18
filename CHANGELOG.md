@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.9
+
+- Double-click a slot pans to the fleet and keeps it selected. It no longer starts official Follow, so the map stays draggable.
+
 ## 2.5.8
 
 - Slot click no longer auto-clicks **Close fleet panel** (that cleared the selection a moment later). Map is unblocked without cancelling the target.

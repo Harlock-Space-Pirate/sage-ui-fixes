@@ -1216,28 +1216,22 @@ function selectFleet(key, pan) {
     }
   }
   if (!picked && f) picked = clickFleetRowByLabel(f.label);
+  stopFollow();
   if (!pan) {
-    stopFollow();
     dismissFleetPanel();
     paint();
     return;
   }
+  /* Pan only — passing the fleet key here turns official Follow on and locks the camera. */
   if (okCoords && mc && typeof mc.requestPanTo === "function") {
     try {
-      mc.requestPanTo(coords, key);
+      mc.requestPanTo(coords);
     } catch {
       /* ignore */
     }
   }
-  if (mc && typeof mc.requestFocusSelectedFleet === "function") {
-    try {
-      mc.requestFocusSelectedFleet();
-    } catch {
-      /* ignore */
-    }
-  }
-  setTimeout(startFollow, 80);
   dismissFleetPanel();
+  setTimeout(unblockMap, 120);
   paint();
 }
 
