@@ -77,7 +77,7 @@
     return {
       dock: p.dock && Number.isFinite(p.dock.x) ? p.dock : null,
       scout: p.scout && Number.isFinite(p.scout.x) ? p.scout : null,
-      scoutOn: p.scoutOn === true,
+      scoutOn: true,
       scale: Number.isFinite(s) ? Math.min(1.6, Math.max(0.7, s)) : 1,
     };
   }
@@ -1036,6 +1036,25 @@
       "#sa-tgt-dock{width:calc(168px * var(--sa-tgt-s,1))}",
       "#sa-tgt-scout{width:calc(188px * var(--sa-tgt-s,1))}",
       "#sa-tgt-scout.hid{display:none!important}",
+      "#sa-tgt-dock .cards{display:flex;flex-direction:column;gap:6px}",
+      "#sa-tgt-scout .spots{display:flex;flex-direction:column;gap:6px}",
+      "#sa-tgt-dock .vcard,#sa-tgt-scout .vcard{position:relative;display:grid;grid-template-columns:52px 1fr 22px;gap:4px 8px;",
+      "align-items:center;min-height:72px;padding:8px 10px;background:#070c12e8;border:1px solid rgb(255 73 96 / 35%);",
+      "color:#fff4f6;cursor:pointer}",
+      "#sa-tgt-dock .vcard.focus{box-shadow:inset 0 0 0 1px #ff4960}",
+      "#sa-tgt-dock .vcard.gone{opacity:.55}",
+      "#sa-tgt-dock .vcard .art,#sa-tgt-scout .vcard .art{width:48px;height:40px;object-fit:contain}",
+      "#sa-tgt-dock .vcard .nm,#sa-tgt-scout .vcard .nm{font:800 10px Orbitron,sans-serif;letter-spacing:.1em;text-transform:uppercase}",
+      "#sa-tgt-dock .vcard .meta,#sa-tgt-scout .vcard .meta{font:700 7px Orbitron,sans-serif;letter-spacing:.08em;color:#deeef29e;text-transform:uppercase}",
+      "#sa-tgt-dock .vcard .bars,#sa-tgt-scout .vcard .bars{grid-column:2;display:flex;flex-direction:column;gap:2px}",
+      "#sa-tgt-dock .vcard .bar,#sa-tgt-scout .vcard .bar{display:flex;gap:1px;height:4px}",
+      "#sa-tgt-dock .vcard .bar i,#sa-tgt-scout .vcard .bar i{flex:1;background:#2a2010}",
+      "#sa-tgt-dock .vcard .bar.hp i.on,#sa-tgt-scout .vcard .bar.hp i.on{background:#e43f26}",
+      "#sa-tgt-dock .vcard .bar.sp i.on,#sa-tgt-scout .vcard .bar.sp i.on{background:#32feff}",
+      "#sa-tgt-dock .vcard .bar.am i.on,#sa-tgt-scout .vcard .bar.am i.on{background:#c8a24a}",
+      "#sa-tgt-dock .pinbtn,#sa-tgt-scout .pinbtn{appearance:none;border:0;background:transparent;color:#ff4960;",
+      "font-size:14px;line-height:1;cursor:pointer;padding:0;grid-column:3;grid-row:1 / span 3}",
+      "#sa-tgt-dock .pinbtn.on,#sa-tgt-scout .pinbtn.on{color:#ffbe4d}",
       "#sa-tgt-dock .hd,#sa-tgt-scout .hd{display:flex;align-items:center;gap:.4em;padding:.35em .5em;",
       "cursor:grab;user-select:none;color:#ffbe4d;font-weight:800;letter-spacing:.1em;flex:0 0 auto}",
       "#sa-tgt-dock .hd button,#sa-tgt-scout .hd button{appearance:none;border:1px solid rgb(227 235 241 / 30%);",
@@ -1149,18 +1168,6 @@
       });
       row.appendChild(b);
     }
-    const tb = document.createElement("button");
-    tb.type = "button";
-    tb.className = "tgt";
-    tb.textContent = "TGT " + enemies.keys.length;
-    tb.title = (opt.addMod || "shift").toUpperCase() + "+click map: add/remove enemy";
-    tb.addEventListener("click", (e) => {
-      e.stopPropagation();
-      hudPos.scoutOn = !hudPos.scoutOn;
-      saveHudPos();
-      paintTargets();
-    });
-    row.appendChild(tb);
     const ed = document.createElement("button");
     ed.type = "button";
     ed.textContent = "EDIT";
@@ -1283,20 +1290,13 @@
       listEl = document.createElement("div");
       listEl.id = "sa-tgt-dock";
       listEl.innerHTML =
-        '<div class="hd" data-drag><span data-title>⋮⋮ TGT 0</span>' +
+        '<div class="hd" data-drag><span data-title>⋮⋮ PINNED 0</span>' +
         '<button type="button" data-minus title="Smaller">−</button>' +
-        '<button type="button" data-plus title="Larger">+</button>' +
-        '<button type="button" data-scout>IN VIEW</button></div>' +
-        '<div data-cards></div>';
+        '<button type="button" data-plus title="Larger">+</button></div>' +
+        '<div class="cards" data-cards></div>';
       document.body.appendChild(listEl);
-      applyHudPos(listEl, hudPos.dock, { right: 12, bottom: 12 });
+      applyHudPos(listEl, hudPos.dock, { right: 12, top: 88 });
       bindFloatDrag(listEl, "dock");
-      listEl.querySelector("[data-scout]").addEventListener("click", (e) => {
-        e.stopPropagation();
-        hudPos.scoutOn = !hudPos.scoutOn;
-        saveHudPos();
-        paintTargets();
-      });
       listEl.querySelector("[data-minus]").addEventListener("click", (e) => {
         e.stopPropagation();
         bumpScale(-0.1);
@@ -1310,72 +1310,64 @@
       scoutEl = document.createElement("div");
       scoutEl.id = "sa-tgt-scout";
       scoutEl.innerHTML =
-        '<div class="hd" data-drag>⋮⋮ IN VIEW <button type="button" data-hide>HIDE</button></div>' +
+        '<div class="hd" data-drag>⋮⋮ HOSTILES</div>' +
         '<div class="spots" data-spots></div>';
       document.body.appendChild(scoutEl);
-      applyHudPos(scoutEl, hudPos.scout, { right: 188, bottom: 12 });
+      applyHudPos(scoutEl, hudPos.scout, { right: 12, bottom: 12 });
       bindFloatDrag(scoutEl, "scout");
-      scoutEl.querySelector("[data-hide]").addEventListener("click", (e) => {
-        e.stopPropagation();
-        hudPos.scoutOn = false;
-        saveHudPos();
-        paintTargets();
-      });
     }
   }
 
-  function makeCard(k, vis) {
-    const raw = findRaw(k);
+  function segs(pct, n) {
+    const on = Math.round((Math.max(0, Math.min(100, pct)) / 100) * n);
+    let h = "";
+    for (let i = 0; i < n; i++) h += i < on ? "<i class=\"on\"></i>" : "<i></i>";
+    return h;
+  }
+
+  function makeVictimCard(k, rec, vis, pinned) {
+    const raw = (rec && rec.raw) || findRaw(k);
     if (raw) rememberEnemy(k, raw);
     const vit = fleetVitals(raw);
     const onScreen = vis.some((v) => v.key === k);
     const card = document.createElement("div");
-    card.className = "card" + (currentTarget === k ? " focus" : "") + (raw && onScreen ? "" : " gone");
-    const hpPct = Number.isFinite(vit.hp) && vit.mhp > 0 ? Math.max(0, Math.min(100, (vit.hp / vit.mhp) * 100)) : 0;
-    const spPct = Number.isFinite(vit.sp) && vit.msp > 0 ? Math.max(0, Math.min(100, (vit.sp / vit.msp) * 100)) : 0;
-    const name = enemies.labels[k] || k.slice(0, 10);
+    card.className = "vcard" + (currentTarget === k ? " focus" : "") + (raw && onScreen ? "" : " gone");
+    const hpPct = Number.isFinite(vit.hp) && vit.mhp > 0 ? (vit.hp / vit.mhp) * 100 : 0;
+    const spPct = Number.isFinite(vit.sp) && vit.msp > 0 ? (vit.sp / vit.msp) * 100 : 0;
+    const name = (rec && rec.label) || enemies.labels[k] || k.slice(0, 12);
+    const st = rec && rec.state ? rec.state : "";
     card.innerHTML =
-      '<button type="button" class="pinx" title="Unpin">×</button>' +
-      '<div class="nm">' +
+      '<img class="art" alt="" src="">' +
+      '<div><div class="nm">' +
       name +
-      "</div>" +
-      '<span class="bar hp" title="HP"><i style="width:' +
-      hpPct.toFixed(0) +
-      '%"></i></span>' +
-      '<span class="bar sp" title="Shield"><i style="width:' +
-      spPct.toFixed(0) +
-      '%"></i></span>' +
-      '<div class="acts">' +
-      '<button type="button" data-go>GO</button>' +
-      '<button type="button" data-atk>ATK</button>' +
-      (onScreen ? "" : '<button type="button" data-hunt>HUNT</button>') +
-      "</div>";
+      '</div><div class="meta">' +
+      (st || (onScreen ? "IN RANGE" : "LAST SEEN")) +
+      '</div><div class="bars"><span class="bar hp">' +
+      segs(hpPct, 12) +
+      '</span><span class="bar sp">' +
+      segs(spPct, 12) +
+      "</span></div></div>" +
+      '<button type="button" class="pinbtn' +
+      (pinned ? " on" : "") +
+      '" title="' +
+      (pinned ? "Unpin" : "Pin") +
+      '">📍</button>';
+    const img = card.querySelector(".art");
+    if (img) {
+      const src = raw && (raw.image || (raw.data && raw.data.image));
+      if (src) img.src = src;
+      else img.style.opacity = ".35";
+    }
     card.addEventListener("click", (e) => {
       if (e.target && e.target.closest && e.target.closest("button")) return;
       setCurrentTarget(k);
       panTo(k);
     });
-    card.querySelector(".pinx").onclick = (e) => {
+    card.querySelector(".pinbtn").onclick = (e) => {
       e.stopPropagation();
-      removeEnemy(k);
+      if (pinned) removeEnemy(k);
+      else addEnemy(rec || { key: k, label: name, raw: raw });
     };
-    card.querySelector("[data-go]").onclick = (e) => {
-      e.stopPropagation();
-      setCurrentTarget(k);
-      chaseTarget(k, false);
-    };
-    card.querySelector("[data-atk]").onclick = (e) => {
-      e.stopPropagation();
-      setCurrentTarget(k);
-      attackListed(k);
-    };
-    const hunt = card.querySelector("[data-hunt]");
-    if (hunt)
-      hunt.onclick = (e) => {
-        e.stopPropagation();
-        setCurrentTarget(k);
-        chaseTarget(k, true);
-      };
     return card;
   }
 
@@ -1383,13 +1375,10 @@
     ensureTargetHud();
     const vis = visibleEnemies();
     const pinned = new Set(enemies.keys);
-    const spots = vis.filter((v) => !pinned.has(v.key));
     const cards = listEl.querySelector("[data-cards]");
     const n = enemies.keys.length;
     const title = listEl.querySelector("[data-title]");
-    if (title) title.textContent = "⋮⋮ TGT " + n;
-    const sc = listEl.querySelector("[data-scout]");
-    if (sc) sc.textContent = hudPos.scoutOn ? "HIDE" : "IN VIEW";
+    if (title) title.textContent = "⋮⋮ PINNED " + n;
     if (cards) {
       cards.innerHTML = "";
       const order = [];
@@ -1397,38 +1386,22 @@
       enemies.keys.forEach((k) => {
         if (k !== currentTarget) order.push(k);
       });
-      order.forEach((k) => cards.appendChild(makeCard(k, vis)));
+      order.forEach((k) => cards.appendChild(makeVictimCard(k, null, vis, true)));
     }
     applyTgtScale();
-    scoutEl.classList.toggle("hid", !hudPos.scoutOn);
+    scoutEl.classList.remove("hid");
     const box = scoutEl.querySelector("[data-spots]");
     if (box) {
       box.innerHTML = "";
-      const shown = vis.slice(0, 40);
+      const shown = vis.slice(0, 24);
       if (!shown.length) {
         const e = document.createElement("div");
-        e.className = "spot";
+        e.className = "vcard";
+        e.style.opacity = ".5";
         e.textContent = "No hostiles in view";
-        e.style.cursor = "default";
         box.appendChild(e);
       } else {
-        shown.forEach((f) => {
-          const on = pinned.has(f.key);
-          const b = document.createElement("button");
-          b.type = "button";
-          b.className = "spot" + (on ? " on" : "");
-          b.innerHTML = '<span class="box" aria-hidden="true"></span><span>' + f.label + "</span>";
-          b.title = on ? "Unpin" : "Pin + set focus";
-          b.addEventListener("click", (e) => {
-            e.stopPropagation();
-            if (on) removeEnemy(f.key);
-            else {
-              addEnemy(f);
-              setCurrentTarget(f.key);
-            }
-          });
-          box.appendChild(b);
-        });
+        shown.forEach((f) => box.appendChild(makeVictimCard(f.key, f, vis, pinned.has(f.key))));
       }
     }
     if (!hudDragging) {

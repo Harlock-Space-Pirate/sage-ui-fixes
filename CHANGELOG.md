@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.22
+
+- No IN VIEW toggle: hostiles show immediately as compact Victim-style cards. **Pin** keeps them in a vertical PINNED stack after they leave view.
+
 ## 2.5.21
 
 - List Targets shows **only official ship/starbase cards** (The Victim style). Sheet chrome hidden. PIN on each card. Starbase cards same 132px card size.
