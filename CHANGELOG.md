@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.17
+
+- Qwen HUD select: Nd() coords into pixi `selectFleetByKey`; bind map if hook is late. Ships with viewport IN VIEW scan.
+
 ## 2.5.16
 
 - IN VIEW uses the **viewport game box** (canvas corners → game coords) plus pins/nearby. Rescan **1.5s after zoom** settles, and every 2s for movers.
