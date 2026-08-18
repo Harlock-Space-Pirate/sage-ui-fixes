@@ -787,6 +787,24 @@ function armDestructWatch() {
   setTimeout(stop, 20000);
 }
 
+function openOfficialTargetList() {
+  let n = 0;
+  const tick = () => {
+    const btn = document.querySelector('[data-testid="combat-target-list-button"]');
+    if (btn) {
+      try {
+        btn.click();
+      } catch {
+        /* ignore */
+      }
+      return;
+    }
+    n += 1;
+    if (n < 16) setTimeout(tick, 80);
+  };
+  setTimeout(tick, 40);
+}
+
 function clickStock(action) {
   try {
     if (window.__SA_FLEET_OPS__ && typeof window.__SA_FLEET_OPS__.onAction === "function") {
@@ -802,6 +820,10 @@ function clickStock(action) {
     stock.click();
     if (action.id === "destruct") {
       armDestructWatch();
+      return true;
+    }
+    if (action.id === "attack") {
+      openOfficialTargetList();
       return true;
     }
     markPending(action.id);

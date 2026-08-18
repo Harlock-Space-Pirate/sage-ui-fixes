@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.19
+
+- Attack tile opens official **List Targets** (`combat-target-list-button`) — Enemy Fleets + Enemy Starbases in range. Confirm panel is not auto-pending.
+
 ## 2.5.18
 
 - IN VIEW stays tight: pins must sit in the **viewport world rect**; peek/nearby only if `gameToPixel` lands on screen. Dropped the lossy pixelToGame AABB that dumped the whole map.

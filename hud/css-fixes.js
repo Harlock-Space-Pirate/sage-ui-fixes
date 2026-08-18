@@ -24,6 +24,12 @@
     "padding-top:var(--sa-hud-pad-top,1.5rem)!important;box-sizing:border-box!important}",
     /* hide official Fleet Command overlay without clicking Close (Close unselects) */
     'html.sa-our-fleet-bar [data-panel="fleet-info"]{visibility:hidden!important;pointer-events:none!important}',
+    /* official Attack → List Targets browser (fleets + starbases in range) */
+    'html.sa-our-fleet-bar [data-testid="combat-target-browser"]{',
+    "visibility:visible!important;pointer-events:auto!important;z-index:2147483644!important;",
+    "max-height:min(52vh,440px)!important;overflow:auto!important;",
+    "scrollbar-width:thin;scrollbar-color:rgb(86 152 255 / 28%) transparent}",
+    'html.sa-our-fleet-bar [data-testid="combat-target-list-button"]{pointer-events:auto!important}',
   ].join("");
   function inject() {
     let st = document.getElementById(ID);
