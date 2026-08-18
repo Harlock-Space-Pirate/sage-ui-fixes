@@ -6,7 +6,7 @@ LEEKS / Produce Bandit ltd. Next session: start here, then `CHANGELOG.md`.
 
 | | |
 |--|--|
-| **Version** | **2.5.26** on `main` |
+| **Version** | **2.5.27** on `main` |
 | **Repo** | https://github.com/Harlock-Space-Pirate/sage-ui-fixes (**public**) |
 | **Testers** | https://github.com/Harlock-Space-Pirate/sage-ui-fixes/releases/latest — zip only, not Source code |
 | **Issues** | https://github.com/Harlock-Space-Pirate/sage-ui-fixes/issues/new/choose |
@@ -47,7 +47,7 @@ Qwen path (2.5.15/17): `officialSelectCoords` → `__SA_PIXI_MAP__.selectFleetBy
 - Official Victim cards (`_fleetCard_jkjbl_*` / `combatTargetCard`) only appear when Attack puts the tab on `"combat"`.
 - Homemade **HOSTILES** list was deleted (2.5.24) — wrong icons, showed LEEKS One.
 - PIN on official cards; **PINNED** stack clones those cards (`saEnemyList.v1`).
-- User still wants: cards **always** when a hostile is in range of the selected fleet, **without** Attack. That needs entering combat mode without the deselect side-effect — **not solved**.
+- Always-on cards **shipped 2.5.27**: patch `expose-combat-tab` exposes `__SA_COMBAT_TAB__={get,set,derived,targets}` (raw tab signal `An`, targets memo `Ec`); fleet-ops `maybeForceCombatTab()` sets `"combat"` directly when the selected fleet has targets — no Attack click, no deselect. Respects manual tab switches until the target set changes; max 3 forces per selection. `Ec()` is faction-filtered by the official client (same-faction/Unaligned hostiles never count).
 
 ### Craft
 - Recipe card click → `openStarbaseMenu({ activeTab:"CRAFTING", activeSubTab:"Bays" })` if a station is already selected.
@@ -71,19 +71,22 @@ Hooks: `__SA_PIXI_MAP__`, `__SA_DERIVED_FLEETS__`, `__SA_MAP_CONTROL__` (`unbloc
 
 ## Open / do not regress
 
-1. **Always-on Victim cards without Attack** — official UI is gated on `yh()==="combat"`. Auto-click Attack deselects (Brave, 2.5.25). Need `An("combat")` or a silent enter that does not toggle select.
-2. **HUD ring** — still reported wrong after several coord attempts. Probe: `__SA_PROBE__.on()`, click a slot, dump `nd` / `derived` / `used` / `pixi`.
+1. **Always-on Victim cards** — shipped 2.5.27 via `__SA_COMBAT_TAB__` + `maybeForceCombatTab()`. Still to verify live with real NPC hostiles in attack range (Canary test 2026-08-19 had only same-faction nearby fleets, `Ec()` correctly empty). Watch for: deselect side-effects (cap 3 forces/selection), fighting the user's manual tab switch.
+2. **HUD ring** — still reported wrong after several coord attempts. Probe: `__SA_PROBE__.on()`, click a slot, dump `nd` / `derived` / `used` / `pixi`. Grok analysis pending in `docs/ring-fix-proposal.md`.
 3. **Pending clock** — hangs after subwarp arrive (stale `MoveSubwarp`) and after Attack RPC fail (we no longer pending on Attack; other actions still can hang).
 4. **Live client bump** — patches pinned to 0.0.371. Re-run `node scripts/apply-patches.mjs --check` after a SAGE deploy.
 
-## How to test (Brave)
+## How to test (Brave / Canary)
 
 1. Unpacked load from this folder (or latest Release zip).
-2. Popup → HUD probe ON (optional).
-3. Click slot: fleet stays selected, tiles enable, no HOSTILES box.
-4. ATK or LIST: official Victim cards + PIN.
-5. Double-click slot: camera pans, map still draggable, ring on ship.
-6. Console: `__SA_PROBE__.dump()`, `__SA_VIEW_BOX__`.
+2. **Console first**: ⚔️ sa-ui-fixes lines, `patches landed ×49/49`, no page SyntaxError.
+3. Popup → HUD probe ON (optional).
+4. Click slot: fleet stays selected, tiles enable, no HOSTILES box.
+5. Hostiles in attack range → official Victim cards appear without ATK; manual tab switch respected.
+6. ATK or LIST: official Victim cards + PIN.
+7. Double-click slot: camera pans, map still draggable, ring on ship.
+8. Console: `__SA_PROBE__.dump()`, `__SA_VIEW_BOX__`, `__SA_COMBAT_TAB__`.
+9. CDP (Chrome Canary :9223): `node scripts/cdp-eval.mjs 9223 '[reload [ms]] <js>'`.
 
 ## Identity
 

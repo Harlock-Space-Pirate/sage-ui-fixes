@@ -49,8 +49,9 @@ if (!checkOnly) {
   console.log(`[apply] wrote ${tmp}  ${out.length.toLocaleString()} chars`);
 }
 
-const probe = checkOnly ? path.join(ROOT, ".tmp-patched-check.js") : tmp;
-if (checkOnly) await writeFile(probe, out);
+// The live inject is a type=module blob — parse as ESM, not CJS.
+const probe = path.join(ROOT, ".tmp-patched-check.mjs");
+await writeFile(probe, out);
 const chk = spawnSync(process.execPath, ["--check", probe], { encoding: "utf8" });
 if (checkOnly) {
   try {

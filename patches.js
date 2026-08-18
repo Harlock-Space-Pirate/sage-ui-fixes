@@ -191,6 +191,12 @@ globalThis.__SA_PATCHES__ = [
       "{pixiMapHoverEventsDisabled:Ft}=usePixiMapHover(),Dt=useRpcDataStore(),Ht=useDerivedFleetStore(),_saDF=(window.__SA_DERIVED_FLEETS__=Ht)",
   },
   {
+    id: "expose-combat-tab",
+    find: "[Wr,Xr]=createSignal(760),[pi,Or]=createSignal(360);let Wi,Xi,po;",
+    replace:
+      "[Wr,Xr]=createSignal(760),[pi,Or]=createSignal(360);window.__SA_COMBAT_TAB__={get:()=>Hn(),set:An,derived:()=>yh(),targets:()=>Ec()};let Wi,Xi,po;",
+  },
+  {
     id: "planner-dispatch",
     find: "const Au=go=>{hd()||bc(hl=>movementPlannerReducer(hl,go))},gd={active:!1,type:\"warp\"",
     replace:

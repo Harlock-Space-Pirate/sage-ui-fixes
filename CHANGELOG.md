@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.5.27
+
+- Victim cards without Attack: the panel combat tab is set directly via new `__SA_COMBAT_TAB__` hook whenever the selected fleet has hostiles in range. No Attack click, no deselect. A manual tab switch is respected until the target set changes (max 3 forces per selection).
+- `npm run probe` now parses the patched bundle as ESM — the live inject is a module blob and CJS `node --check` missed a syntax error once.
+- New `scripts/cdp-eval.mjs [port] '[reload [ms]] <js>'` to run console checks in a CDP-enabled browser (Chrome Canary :9223).
+
 ## 2.5.26
 
 - Stop auto-clicking official Attack (that cleared fleet select). Do not hide own cards in My Fleets.

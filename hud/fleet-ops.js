@@ -696,6 +696,57 @@
     return { key: String(k), label: String(window.__SA_SELECTED_FLEET__.label || k) };
   }
 
+  // Official Victim cards mount only when the panel tab is "combat" and Ec() has targets.
+  // Set the tab signal directly (never click Attack) when hostiles are in range.
+  let combatTabSig = "";
+  let combatTabKey = "";
+  let combatTabForces = 0;
+
+  function maybeForceCombatTab() {
+    const ct = window.__SA_COMBAT_TAB__;
+    if (!ct || typeof ct.set !== "function") return;
+    const sel = selectedOwned();
+    if (!sel) {
+      combatTabSig = "";
+      combatTabKey = "";
+      combatTabForces = 0;
+      return;
+    }
+    if (sel.key !== combatTabKey) {
+      combatTabKey = sel.key;
+      combatTabForces = 0;
+      combatTabSig = "";
+    }
+    if (combatTabForces >= 3) return;
+    const p = planner();
+    if (p && p.getState && p.getState().active) return;
+    if (!document.querySelector('[title="Close fleet panel"]')) return;
+    let targets = [];
+    try {
+      targets = ct.targets() || [];
+    } catch {
+      return;
+    }
+    if (!targets.length) {
+      combatTabSig = "";
+      return;
+    }
+    const sig = targets.map((t) => String(t.id)).sort().join("|");
+    const raw = ct.get();
+    if (raw === "combat") {
+      combatTabSig = sig;
+      return;
+    }
+    if (raw !== "actions" || sig === combatTabSig) return;
+    try {
+      ct.set("combat");
+      combatTabSig = sig;
+      combatTabForces++;
+    } catch {
+      /* ignore */
+    }
+  }
+
   function planner() {
     return window.__SA_PLANNER__ || null;
   }
@@ -1752,6 +1803,7 @@
       const bar = document.getElementById("sa-action-bar");
       if (bar && !document.getElementById("sa-ops-row")) paint();
       noteZoomScan();
+      maybeForceCombatTab();
       decorateCombatCards();
       placeEditor();
       injectOpt();
