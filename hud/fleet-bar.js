@@ -983,7 +983,35 @@ function derivedCoords(key) {
 }
 
 function liveFleetCoords(key, raw) {
-  return mapGameCoords(key) || derivedCoords(key) || fleetCoords(raw);
+  return officialSelectCoords(key, raw) || derivedCoords(key) || fleetCoords(raw);
+}
+
+/** Same as stock Nd(): currentCoordinates or location.toNumber(). Never pixelToGame. */
+function officialSelectCoords(key, raw) {
+  const small = (n) => Number.isFinite(n) && Math.abs(n) < 200;
+  try {
+    const store = window.__SA_DERIVED_FLEETS__;
+    const get = store && store.getDerivedFleet;
+    if (key && typeof get === "function") {
+      const der = get.call(store, key);
+      const c = der && der.currentCoordinates;
+      if (c && c.length >= 2) {
+        const x = Number(c[0]);
+        const y = Number(c[1]);
+        if (small(x) && small(y)) return { x, y };
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+  const d = raw && (raw.data || raw);
+  const loc = d && d.location;
+  if (Array.isArray(loc) && loc.length >= 2) {
+    const xn = loc[0] && typeof loc[0].toNumber === "function" ? loc[0].toNumber() : Number(loc[0]);
+    const yn = loc[1] && typeof loc[1].toNumber === "function" ? loc[1].toNumber() : Number(loc[1]);
+    if (small(xn) && small(yn)) return { x: xn, y: yn };
+  }
+  return null;
 }
 
 function mapGameCoords(key) {
@@ -1282,7 +1310,6 @@ function selectFleet(key, pan) {
       /* ignore */
     }
   }
-  followUntilDrag();
   dismissFleetPanel();
   setTimeout(unblockMap, 120);
   paint();
