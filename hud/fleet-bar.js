@@ -86,6 +86,7 @@ const ICO = {
   stims: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M18 6 L26 14"/><path d="M22 10 L10 22 L6 26 L10 26 L22 14"/><path d="M14 18 L18 22"/></svg>',
   loot: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 14 H26 V26 H6 Z"/><path d="M11 14 V10 H21 V14"/></svg>',
   destruct: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 6 L28 26 H4 Z"/><path d="M16 14 V20"/><path d="M16 23 V24"/></svg>',
+  reloadap: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 6 L18 12 L24 12 L19 16 L21 22 L16 18 L11 22 L13 16 L8 12 L14 12 Z"/></svg>',
 };
 
 const ACTIONS = [
@@ -95,6 +96,7 @@ const ACTIONS = [
   { id: "gate", label: "Warp Gate", short: "GATE", match: /warp\s*(gate|lane)/i, hk: "t" },
   { id: "scan", label: "Scan", short: "SCAN", match: /^scan$/i, hk: "c" },
   { id: "attack", label: "Attack", short: "ATK", match: /^attack$/i, hk: "a" },
+  { id: "reloadap", label: "Reload AP", short: "AP", match: /reload\s*ap/i, hk: "p" },
   { id: "repair", label: "Repair", short: "FIX", match: /^repair/i, hk: "r" },
   { id: "mine", label: "Mine", short: "MINE", match: /^mine$/i, hk: "n" },
   { id: "stop", label: "Stop", short: "STOP", match: /^stop\b/i, hk: "x" },
@@ -1617,7 +1619,7 @@ function paint() {
     const hasFleet = !!raw || !!window.__SA_SELECTED_FLEET__;
     let dead = !stock || stock.disabled;
     if (a.id === "stop") dead = stock ? stock.disabled : !moving;
-    else if (moving && /^(warp|subwarp|mine|scan|gate|dock|stims|loot)$/.test(a.id)) dead = true;
+    else if (moving && /^(warp|subwarp|mine|scan|gate|dock|stims|loot|reloadap)$/.test(a.id)) dead = true;
     else if (a.id === "warp" && cd > 0.5) dead = true;
     else if (!hasFleet) dead = true;
     const busy = !!(pendingTx && pendingTx.action === a.id && !pendingDone());

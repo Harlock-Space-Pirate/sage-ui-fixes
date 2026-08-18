@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.13
+
+- Action bar has **Reload AP** again (stock `Reload AP` button, hotkey `P`).
+
 ## 2.5.12
 
 - HUD select uses official **Nd()** coords (`currentCoordinates` or `location.toNumber()`). `pixelToGame` is not the inverse of `gameToPixel` (abs + Y-squash) and was parking the ring off the ship. Double-click pans once, no Follow.
