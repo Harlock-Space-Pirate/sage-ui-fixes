@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.24
+
+- Removed homemade HOSTILES list. Only official Victim cards stay; PIN on those; PINNED clones them.
+
 ## 2.5.23
 
 - Reuse official `_fleetCard` / combat cards (art + bars). Own fleets (LEEKS One, slots) never appear as hostiles. Pin clones those cards into the stacked PINNED list.

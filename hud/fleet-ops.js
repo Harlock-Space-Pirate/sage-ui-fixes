@@ -206,7 +206,7 @@
 
   function officialCardNodes() {
     return Array.prototype.slice.call(
-      document.querySelectorAll('[class*="combatTargetCard"], [class*="_fleetCard_"]'),
+      document.querySelectorAll('[class*="combatTargetCard"], [class*="_fleetCard_"], [class*="fleetCard"]'),
     );
   }
 
@@ -527,7 +527,7 @@
   }
 
   function decorateCombatCards() {
-    const cards = document.querySelectorAll('[class*="combatTargetCard"]');
+    const cards = document.querySelectorAll('[class*="combatTargetCard"], [class*="_fleetCard_"], [class*="fleetCard"]');
     cards.forEach((card) => {
       let btn = card.querySelector("[data-sa-pin]");
       if (!btn) {
@@ -1247,9 +1247,7 @@
 
   function applyTgtScale() {
     const s = hudPos.scale || 1;
-    [listEl, scoutEl].forEach((el) => {
-      if (el) el.style.setProperty("--sa-tgt-s", String(s));
-    });
+    if (listEl) listEl.style.setProperty("--sa-tgt-s", String(s));
   }
 
   function bumpScale(d) {
@@ -1257,7 +1255,6 @@
     saveHudPos();
     applyTgtScale();
     placeGrow(listEl);
-    placeGrow(scoutEl);
   }
 
   function placeGrow(el) {
@@ -1368,16 +1365,16 @@
         bumpScale(0.1);
       });
     }
-    if (!scoutEl || !scoutEl.isConnected) {
-      scoutEl = document.createElement("div");
-      scoutEl.id = "sa-tgt-scout";
-      scoutEl.innerHTML =
-        '<div class="hd" data-drag>⋮⋮ HOSTILES</div>' +
-        '<div class="spots" data-spots></div>';
-      document.body.appendChild(scoutEl);
-      applyHudPos(scoutEl, hudPos.scout, { right: 12, bottom: 12 });
-      bindFloatDrag(scoutEl, "scout");
+    if (scoutEl) {
+      try {
+        scoutEl.remove();
+      } catch {
+        /* ignore */
+      }
+      scoutEl = null;
     }
+    const leftover = document.getElementById("sa-tgt-scout");
+    if (leftover) leftover.remove();
   }
 
   function segs(pct, n) {
@@ -1476,28 +1473,12 @@
     applyTgtScale();
     decorateCombatCards();
     officialCardNodes().forEach((el) => {
-      if (isOwnCardEl(el) && !el.closest("#sa-tgt-dock")) el.style.display = "none";
+      if (el.closest("#sa-tgt-dock")) return;
+      if (isOwnCardEl(el)) el.style.display = "none";
     });
-    const useOfficial = official.length > 0;
-    scoutEl.classList.toggle("hid", useOfficial);
-    const box = scoutEl.querySelector("[data-spots]");
-    if (box && !useOfficial) {
-      box.innerHTML = "";
-      const shown = vis.filter((f) => !isOwned(f.key));
-      if (!shown.length) {
-        const e = document.createElement("div");
-        e.className = "vcard";
-        e.style.opacity = ".5";
-        e.textContent = "No hostiles in view";
-        box.appendChild(e);
-      } else {
-        shown.forEach((f) => box.appendChild(makeVictimCard(f.key, f, vis, pinned.has(f.key))));
-      }
-    }
     if (!hudDragging) {
       requestAnimationFrame(() => {
         placeGrow(listEl);
-        placeGrow(scoutEl);
       });
     }
   }
