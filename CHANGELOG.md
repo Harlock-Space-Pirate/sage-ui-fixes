@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.6
+
+- Target lists use stock command scrollbars and checkbox tiles. **+/−** scales the HUD. IN VIEW grows **up** from the bottom (down from the top) and scrolls when still too long.
+
 ## 2.5.5
 
 - Targets no longer sit on the action bar. Compact **TGT** stack is bottom-right (draggable, saved). Focus on top, other pins below. **IN VIEW** opens a hideable scout list to the left. Both stay above all HUD.
