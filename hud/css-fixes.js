@@ -24,12 +24,15 @@
     "padding-top:var(--sa-hud-pad-top,1.5rem)!important;box-sizing:border-box!important}",
     /* hide official Fleet Command overlay without clicking Close (Close unselects) */
     'html.sa-our-fleet-bar [data-panel="fleet-info"]{visibility:hidden!important;pointer-events:none!important}',
-    /* official Attack → List Targets browser (fleets + starbases in range) */
-    'html.sa-our-fleet-bar [data-testid="combat-target-browser"]{',
-    "visibility:visible!important;pointer-events:auto!important;z-index:2147483644!important;",
-    "max-height:min(52vh,440px)!important;overflow:auto!important;",
+    /* official List Targets — hoisted out of the hidden stock bar */
+    "#sa-combat-host{position:fixed;left:50%;bottom:var(--sa-hud-pad-bottom,8rem);transform:translateX(-50%);",
+    "z-index:2147483644;pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:8px;",
+    "max-width:min(520px,94vw);max-height:min(56vh,480px)}",
+    '#sa-combat-host [data-testid="combat-target-browser"],',
+    '#sa-combat-host [data-testid="combat-target-confirm-panel"]{',
+    "position:relative!important;visibility:visible!important;pointer-events:auto!important;",
+    "opacity:1!important;max-height:min(52vh,440px)!important;overflow:auto!important;",
     "scrollbar-width:thin;scrollbar-color:rgb(86 152 255 / 28%) transparent}",
-    'html.sa-our-fleet-bar [data-testid="combat-target-list-button"]{pointer-events:auto!important}',
   ].join("");
   function inject() {
     let st = document.getElementById(ID);

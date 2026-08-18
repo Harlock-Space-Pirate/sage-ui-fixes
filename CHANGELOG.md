@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.20
+
+- **LIST** tile + Attack hoist official **List Targets** / combat-target-browser (fleets + starbases) out of the hidden stock bar so it stays on screen.
+
 ## 2.5.19
 
 - Attack tile opens official **List Targets** (`combat-target-list-button`) — Enemy Fleets + Enemy Starbases in range. Confirm panel is not auto-pending.

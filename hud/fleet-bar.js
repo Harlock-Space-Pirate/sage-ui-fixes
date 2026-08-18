@@ -80,6 +80,7 @@ const ICO = {
   gate: '<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="10"/><path d="M6 16 H26"/><path d="M16 6 C11 12 11 20 16 26 C21 20 21 12 16 6"/></svg>',
   scan: '<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="4"/><circle cx="16" cy="16" r="9"/><path d="M16 2 V6 M16 26 V30 M2 16 H6 M26 16 H30"/></svg>',
   attack: '<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="8"/><path d="M16 4 V10 M16 22 V28 M4 16 H10 M22 16 H28"/><circle cx="16" cy="16" r="2"/></svg>',
+  targets: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 8 H26"/><path d="M6 16 H26"/><path d="M6 24 H26"/><circle cx="22" cy="16" r="2"/></svg>',
   repair: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M20 6 L26 12 L14 24 L8 24 L8 18 Z"/><path d="M12 20 L20 12"/></svg>',
   mine: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8 26 L20 14"/><path d="M14 8 C20 6 26 10 26 16"/><path d="M14 8 L20 14"/></svg>',
   stop: '<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="8" y="8" width="16" height="16" rx="1"/></svg>',
@@ -96,6 +97,7 @@ const ACTIONS = [
   { id: "gate", label: "Warp Gate", short: "GATE", match: /warp\s*(gate|lane)/i, hk: "t" },
   { id: "scan", label: "Scan", short: "SCAN", match: /^scan$/i, hk: "c" },
   { id: "attack", label: "Attack", short: "ATK", match: /^attack$/i, hk: "a" },
+  { id: "targets", label: "List Targets", short: "LIST", match: /list\s*targets/i, hk: null },
   { id: "reloadap", label: "Reload AP", short: "AP", match: /reload\s*ap/i, hk: "p" },
   { id: "repair", label: "Repair", short: "FIX", match: /^repair/i, hk: "r" },
   { id: "mine", label: "Mine", short: "MINE", match: /^mine$/i, hk: "n" },
@@ -787,20 +789,48 @@ function armDestructWatch() {
   setTimeout(stop, 20000);
 }
 
+function hoistCombatChrome() {
+  let host = document.getElementById("sa-combat-host");
+  if (!host) {
+    host = document.createElement("div");
+    host.id = "sa-combat-host";
+    (document.body || document.documentElement).appendChild(host);
+  }
+  const panel = document.querySelector('[data-testid="combat-target-confirm-panel"]');
+  const browser = document.querySelector('[data-testid="combat-target-browser"]');
+  if (panel && panel.parentElement !== host) host.appendChild(panel);
+  if (browser && browser.parentElement !== host) host.appendChild(browser);
+  return { host, panel, browser };
+}
+
 function openOfficialTargetList() {
   let n = 0;
   const tick = () => {
-    const btn = document.querySelector('[data-testid="combat-target-list-button"]');
+    hoistCombatChrome();
+    let btn = document.querySelector('[data-testid="combat-target-list-button"]');
+    if (!btn) {
+      const atk = ACTIONS.find((a) => a.id === "attack");
+      const stock = atk && findStock(atk);
+      if (stock && !stock.disabled) {
+        try {
+          stock.click();
+        } catch {
+          /* ignore */
+        }
+      }
+      btn = document.querySelector('[data-testid="combat-target-list-button"]');
+    }
     if (btn) {
       try {
         btn.click();
       } catch {
         /* ignore */
       }
+      hoistCombatChrome();
       return;
     }
     n += 1;
-    if (n < 16) setTimeout(tick, 80);
+    if (n < 20) setTimeout(tick, 80);
   };
   setTimeout(tick, 40);
 }
@@ -812,6 +842,10 @@ function clickStock(action) {
     }
   } catch {
     /* ignore */
+  }
+  if (action.id === "targets") {
+    openOfficialTargetList();
+    return true;
   }
   const stock = findStock(action);
   if (!stock) return false;
