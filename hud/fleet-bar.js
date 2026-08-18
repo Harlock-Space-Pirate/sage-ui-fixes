@@ -973,8 +973,8 @@ function derivedCoords(key) {
     const d = get.call(store, key);
     const c = d && d.currentCoordinates;
     if (!c || c.length < 2) return null;
-    const x = Number(c[0]);
-    const y = Number(c[1]);
+    const x = parseCoord(c[0]);
+    const y = parseCoord(c[1]);
     if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
     return { x, y };
   } catch {

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.11
+
+- Derived fleet coords go through the same scale parse as the rest of the bar (GLM: raw `Number` skipped `/2**56` and parked the HUD elsewhere).
+
 ## 2.5.10
 
 - HUD ring uses the **pixi pin / fleetGameCoordsMap** (same as the sprite), not account `location`. Double-click follows until you drag the map.
