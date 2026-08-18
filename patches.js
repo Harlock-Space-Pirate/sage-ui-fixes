@@ -197,6 +197,15 @@ globalThis.__SA_PATCHES__ = [
       "[Wr,Xr]=createSignal(760),[pi,Or]=createSignal(360);window.__SA_COMBAT_TAB__={get:()=>Hn(),set:An,derived:()=>yh(),targets:()=>Ec()};let Wi,Xi,po;",
   },
   {
+    // gameToPixel multiplies Y by COORDINATE_Y_SQUASH; the class inverse never divided it
+    // back, parking the interaction ring of moving fleets at 0.3*at+0.7*y. The standalone
+    // pixelPointToGamePoint divides correctly — make the method the true inverse too.
+    id: "pixel-to-game-squash",
+    find: "pixelToGame(Se,nt){const at=Math.floor(MAP_CONFIG.WORLD_GRID_SIZE/2),mt=Se/MAP_CONFIG.TILE_SIZE-at,ft=at-nt/MAP_CONFIG.TILE_SIZE;return{x:mt,y:ft}}",
+    replace:
+      "pixelToGame(Se,nt){const at=Math.floor(MAP_CONFIG.WORLD_GRID_SIZE/2),mt=Se/MAP_CONFIG.TILE_SIZE-at,ft=at-nt/MAP_CONFIG.TILE_SIZE/MAP_CONFIG.COORDINATE_Y_SQUASH;return{x:mt,y:ft}}",
+  },
+  {
     id: "planner-dispatch",
     find: "const Au=go=>{hd()||bc(hl=>movementPlannerReducer(hl,go))},gd={active:!1,type:\"warp\"",
     replace:

@@ -455,6 +455,14 @@ function movementEndUnix(raw) {
   return end > 0 ? end : 0;
 }
 
+function journeyDepartureUnix(raw) {
+  const d = (raw && raw.data) || raw || {};
+  const f0 = d.state && d.state.fields && d.state.fields[0];
+  if (!f0) return 0;
+  const j = f0.journey || f0;
+  return parseTs(j.departureTime);
+}
+
 function isInTransit(raw) {
   const kind = fleetKind(raw);
   if (kind !== "MoveWarp" && kind !== "MoveSubwarp") return false;
@@ -488,13 +496,17 @@ function saProbe(ev, data) {
 function markPending(actionId) {
   const raw = selectedFleetRaw();
   const key = raw && (raw.address || raw.key);
+  const state = fleetKind(raw);
+  const moving = state === "MoveWarp" || state === "MoveSubwarp";
   pendingTx = {
     action: actionId,
     t0: Date.now(),
     key: key ? String(key) : "",
-    state: fleetKind(raw),
+    state: state,
+    departure: moving ? journeyDepartureUnix(raw) : 0,
     min: 1200,
     max: actionId === "dock" ? 180000 : 120000,
+    fail: !moving && actionId !== "dock" ? 30000 : 0,
   };
   saProbe("pending", { action: actionId, state: pendingTx.state });
 }
@@ -520,6 +532,21 @@ function pendingDone() {
       if (String(f && (f.address || f.key)) !== pendingTx.key) continue;
       if (fleetKind(f) !== pendingTx.state) {
         saProbe("pending-clear", { action: pendingTx.action, from: pendingTx.state, to: fleetKind(f), age: el });
+        pendingTx = null;
+        return true;
+      }
+      if (
+        pendingTx.departure > 0 &&
+        journeyDepartureUnix(f) === pendingTx.departure &&
+        movementEndUnix(f) > 0 &&
+        Date.now() / 1000 >= movementEndUnix(f) + 0.4
+      ) {
+        saProbe("pending-clear", { action: pendingTx.action, from: pendingTx.state, to: fleetKind(f), age: el, stale: "journey-ended" });
+        pendingTx = null;
+        return true;
+      }
+      if (pendingTx.fail > 0 && el >= pendingTx.fail) {
+        saProbe("pending-failsafe", { action: pendingTx.action, state: pendingTx.state, age: el });
         pendingTx = null;
         return true;
       }
@@ -1051,7 +1078,31 @@ function derivedCoords(key) {
 }
 
 function liveFleetCoords(key, raw) {
-  return officialSelectCoords(key, raw) || derivedCoords(key) || fleetCoords(raw);
+  return liveSpriteCoords(key) || officialSelectCoords(key, raw) || derivedCoords(key) || fleetCoords(raw);
+}
+
+/** Live sprite position: the pixi pin (interpolated every frame by the official MovingPin)
+ * back to game coords via the official pixelPointToGamePoint. derived currentCoordinates
+ * is stale for movers, so the pin is the only source that sits on the ship. */
+function liveSpriteCoords(key) {
+  try {
+    const map = window.__SA_PIXI_MAP__;
+    const vp = window.__SA_MAP_VIEWPORT__;
+    const mm = window.__SA_MAP_MATH__;
+    if (!map || !vp || !mm) return null;
+    if (typeof map.getFleetWorldPosition !== "function" || typeof vp.toScreen !== "function") return null;
+    const pin = map.getFleetWorldPosition(key);
+    if (!pin || !Number.isFinite(pin.x) || !Number.isFinite(pin.y)) return null;
+    const scr = vp.toScreen(pin.x, pin.y);
+    const scale = vp.scale && vp.scale.x;
+    if (!scr || !Number.isFinite(scale) || scale <= 0) return null;
+    const g = mm.pixelPointToGamePoint(scr, vp.screenHeight, scale);
+    if (!g || !Number.isFinite(g.x) || !Number.isFinite(g.y)) return null;
+    if (Math.abs(g.x) > 200 || Math.abs(g.y) > 200) return null;
+    return { x: g.x, y: g.y };
+  } catch {
+    return null;
+  }
 }
 
 /** Same as stock Nd(): currentCoordinates or location.toNumber(). Never pixelToGame. */
@@ -1364,9 +1415,10 @@ function selectFleet(key, pan) {
   if (!key) return;
   const f = findOwned(key);
   const raw = (f && f.raw) || selectedFleetRaw();
-  // Official Nd() coords only: derived currentCoordinates, else location.toNumber().
-  // Never pixelToGame / fleetGameCoordsMap as select input (that moves the ring off the ship).
-  const coords = officialSelectCoords(key, raw);
+  // Pin-first: derived currentCoordinates is stale for movers (upstream bug — the official
+  // Nd() parks the ring off-ship too). Fall back to Nd() when the pin is not available.
+  const sprite = liveSpriteCoords(key);
+  const coords = sprite || officialSelectCoords(key, raw);
   const mc = window.__SA_MAP_CONTROL__;
   const okCoords = coords && Number.isFinite(coords.x) && Number.isFinite(coords.y);
   try {
@@ -1380,7 +1432,8 @@ function selectFleet(key, pan) {
   saProbe("select", {
     key: String(key).slice(0, 12),
     pan: !!pan,
-    nd: coords,
+    sprite: sprite,
+    nd: officialSelectCoords(key, raw),
     derived: derivedCoords(key),
     map: mapGameCoords(key),
     used: coords,

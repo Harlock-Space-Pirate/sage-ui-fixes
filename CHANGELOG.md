@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.5.28
+
+- Ring/camera on ship for moving fleets: patch `pixel-to-game-squash` makes the official `pixelToGame` the true inverse of `gameToPixel` (it never divided Y back by `COORDINATE_Y_SQUASH`, parking the interaction ring of subwarp/warp fleets at `0.3*at+0.7*y` — upstream bug, official UI misparks too). Select/pan now also prefers the live pixi pin (`liveSpriteCoords`).
+- Pending clock: clear on stale-journey end (same departure signature, journey clock passed) and 30s fail-safe for failed non-movement RPCs (dock keeps 180s; Attack never pending). Verified live via saProbe log.
+- New `scripts/probe-coords.js` console probe (also runnable via cdp-eval).
+
 ## 2.5.27
 
 - Victim cards without Attack: the panel combat tab is set directly via new `__SA_COMBAT_TAB__` hook whenever the selected fleet has hostiles in range. No Attack click, no deselect. A manual tab switch is respected until the target set changes (max 3 forces per selection).

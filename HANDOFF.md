@@ -71,10 +71,18 @@ Hooks: `__SA_PIXI_MAP__`, `__SA_DERIVED_FLEETS__`, `__SA_MAP_CONTROL__` (`unbloc
 
 ## Open / do not regress
 
-1. **Always-on Victim cards** — shipped 2.5.27 via `__SA_COMBAT_TAB__` + `maybeForceCombatTab()`. Still to verify live with real NPC hostiles in attack range (Canary test 2026-08-19 had only same-faction nearby fleets, `Ec()` correctly empty). Watch for: deselect side-effects (cap 3 forces/selection), fighting the user's manual tab switch.
-2. **HUD ring** — still reported wrong after several coord attempts. Probe: `__SA_PROBE__.on()`, click a slot, dump `nd` / `derived` / `used` / `pixi`. Grok analysis pending in `docs/ring-fix-proposal.md`.
-3. **Pending clock** — hangs after subwarp arrive (stale `MoveSubwarp`) and after Attack RPC fail (we no longer pending on Attack; other actions still can hang).
+1. **Always-on Victim cards** — shipped 2.5.27 via `__SA_COMBAT_TAB__` + `maybeForceCombatTab()`. Verified live. Superseded by the compact combat overview spec (see Open feature below).
+2. **HUD ring** — FIXED 2.5.28 (`pixel-to-game-squash` patch + pin-first select). Verified live in subwarp.
+3. **Pending clock** — FIXED 2.5.28 (stale-journey clear + 30s fail-safe; verified live in saProbe log).
 4. **Live client bump** — patches pinned to 0.0.371. Re-run `node scripts/apply-patches.mjs --check` after a SAGE deploy.
+
+## Open feature — compact combat overview (spec 2026-08-19, LEEKS screenshot)
+
+- Double-click slot: camera focus + HUD + show nearby enemies (same as official `data-testid="combat-target-list-button"`), but as a **compact floating strip** (top area, see his pink box), NOT the full "Combat target browser".
+- Strip shows only the official compact fleet target cards (`_combatBrowserTargetCard_1040r_5065`) plus starbases rendered as equally compact cards (official starbase card is big — build/copy compact variant).
+- Click a target card → **pin**: pixel-perfect static copy (no polling).
+- Click a pinned card → **attack** with the selected fleet.
+- Pinned card also offers **follow** (pursue the enemy fleet).
 
 ## How to test (Brave / Canary)
 
