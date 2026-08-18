@@ -105,4 +105,20 @@ await writeFile(
   path.join(STOCK, "VERSION"),
   `${build.version}\ncommit=${build.commit ?? ""}\nbuiltAt=${build.builtAt ?? ""}\nfetchedAt=${fetchedAt}\nentry=${entryPath}\n`,
 );
+await writeFile(
+  path.join(STOCK, "README.md"),
+  `# Live SAGE stock (gitignored)
+
+Downloaded from **${BASE}** by \`npm run fetch-stock\`.
+
+Minified JS/CSS only — this is what \`patches.js\` rewrites. Multi-MB; not committed.
+
+\`\`\`bash
+npm run fetch-stock   # refresh from live
+npm run probe         # apply patches + node --check
+\`\`\`
+
+Current target: **${build.version}** / \`${entryPath}\` (${fetchedAt.slice(0, 10)}).
+`,
+);
 console.log(`[fetch-stock] wrote ${assets.length} files → stock/`);
