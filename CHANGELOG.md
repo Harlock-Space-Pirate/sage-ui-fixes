@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.23
+
+- Reuse official `_fleetCard` / combat cards (art + bars). Own fleets (LEEKS One, slots) never appear as hostiles. Pin clones those cards into the stacked PINNED list.
+
 ## 2.5.22
 
 - No IN VIEW toggle: hostiles show immediately as compact Victim-style cards. **Pin** keeps them in a vertical PINNED stack after they leave view.

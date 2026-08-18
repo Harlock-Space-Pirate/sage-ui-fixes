@@ -168,8 +168,68 @@
     return out;
   }
 
+  function ownKeys() {
+    const s = new Set();
+    ownedList().forEach((f) => s.add(f.key));
+    try {
+      const slots = window.__SA_ACTION_BAR__ && window.__SA_ACTION_BAR__.slots;
+      const ks = typeof slots === "function" ? slots() : null;
+      if (Array.isArray(ks)) ks.forEach((k) => k && s.add(String(k)));
+      const sel = window.__SA_SELECTED_FLEET__;
+      if (sel && sel.key) s.add(String(sel.key));
+    } catch {
+      /* ignore */
+    }
+    return s;
+  }
+
+  function ownLabels() {
+    const s = new Set();
+    ownedList().forEach((f) => s.add(String(f.label || "").toLowerCase()));
+    try {
+      const sel = window.__SA_SELECTED_FLEET__;
+      if (sel && sel.label) s.add(String(sel.label).toLowerCase());
+    } catch {
+      /* ignore */
+    }
+    return s;
+  }
+
   function isOwned(key) {
-    return ownedList().some((f) => f.key === String(key));
+    if (!key) return false;
+    if (ownKeys().has(String(key))) return true;
+    const raw = findRaw(key);
+    const rec = fleetRec(raw);
+    if (rec && ownLabels().has(String(rec.label || "").toLowerCase())) return true;
+    return false;
+  }
+
+  function officialCardNodes() {
+    return Array.prototype.slice.call(
+      document.querySelectorAll('[class*="combatTargetCard"], [class*="_fleetCard_"]'),
+    );
+  }
+
+  function stealOfficialArt(label) {
+    const want = String(label || "").toLowerCase();
+    if (!want) return "";
+    const nodes = officialCardNodes();
+    for (let i = 0; i < nodes.length; i++) {
+      const t = String(nodes[i].textContent || "").toLowerCase();
+      if (t.indexOf(want) < 0) continue;
+      const img = nodes[i].querySelector("img");
+      if (img && img.src) return img.src;
+    }
+    return "";
+  }
+
+  function isOwnCardEl(el) {
+    const t = String((el && el.textContent) || "").toLowerCase();
+    const labs = ownLabels();
+    for (const l of labs) {
+      if (l && t.indexOf(l) >= 0) return true;
+    }
+    return false;
   }
 
   function findRaw(key) {
@@ -505,7 +565,9 @@
     const seen = {};
     const add = (f) => {
       if (!f || !f.key || seen[f.key] || f.state === "Destroyed") return;
+      if (isOwned(f.key)) return;
       if (me && f.owner && f.owner === me) return;
+      if (ownLabels().has(String(f.label || "").toLowerCase())) return;
       seen[f.key] = 1;
       out.push(f);
     };
@@ -1354,7 +1416,9 @@
       '">📍</button>';
     const img = card.querySelector(".art");
     if (img) {
-      const src = raw && (raw.image || (raw.data && raw.data.image));
+      const src =
+        stealOfficialArt(name) ||
+        (raw && (raw.imageUrl || raw.shipImage || raw.image || (raw.data && (raw.data.imageUrl || raw.data.image))));
       if (src) img.src = src;
       else img.style.opacity = ".35";
     }
@@ -1379,6 +1443,7 @@
     const n = enemies.keys.length;
     const title = listEl.querySelector("[data-title]");
     if (title) title.textContent = "⋮⋮ PINNED " + n;
+    const official = officialCardNodes().filter((el) => !isOwnCardEl(el) && !el.closest("#sa-tgt-dock"));
     if (cards) {
       cards.innerHTML = "";
       const order = [];
@@ -1386,14 +1451,39 @@
       enemies.keys.forEach((k) => {
         if (k !== currentTarget) order.push(k);
       });
-      order.forEach((k) => cards.appendChild(makeVictimCard(k, null, vis, true)));
+      order.forEach((k) => {
+        const lab = String(enemies.labels[k] || "").toLowerCase();
+        const src = official.find((el) => String(el.textContent || "").toLowerCase().indexOf(lab) >= 0);
+        if (src && lab) {
+          const clone = src.cloneNode(true);
+          clone.querySelectorAll("[data-sa-pin]").forEach((b) => b.remove());
+          const pin = document.createElement("button");
+          pin.type = "button";
+          pin.className = "pinbtn on";
+          pin.textContent = "📌";
+          pin.onclick = (e) => {
+            e.stopPropagation();
+            removeEnemy(k);
+          };
+          clone.style.position = "relative";
+          clone.appendChild(pin);
+          cards.appendChild(clone);
+        } else {
+          cards.appendChild(makeVictimCard(k, null, vis, true));
+        }
+      });
     }
     applyTgtScale();
-    scoutEl.classList.remove("hid");
+    decorateCombatCards();
+    officialCardNodes().forEach((el) => {
+      if (isOwnCardEl(el) && !el.closest("#sa-tgt-dock")) el.style.display = "none";
+    });
+    const useOfficial = official.length > 0;
+    scoutEl.classList.toggle("hid", useOfficial);
     const box = scoutEl.querySelector("[data-spots]");
-    if (box) {
+    if (box && !useOfficial) {
       box.innerHTML = "";
-      const shown = vis.slice(0, 24);
+      const shown = vis.filter((f) => !isOwned(f.key));
       if (!shown.length) {
         const e = document.createElement("div");
         e.className = "vcard";
