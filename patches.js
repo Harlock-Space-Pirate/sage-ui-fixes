@@ -13,7 +13,7 @@ globalThis.__SA_PATCHES__ = [
     id: "nearby-fleets",
     find: "get nearbyStarbases(){return ol()},get nearbyFleets(){return $c()}",
     replace:
-      "get nearbyStarbases(){return ol()},get nearbyFleets(){return (window.__SA_NEARBY_FLEETS__=$c)()}",
+      "get nearbyStarbases(){return (window.__SA_NEARBY_STARBASES__=ol)()},get nearbyFleets(){return (window.__SA_NEARBY_FLEETS__=$c)()}",
   },
   {
     id: "nearby-dead-filter",

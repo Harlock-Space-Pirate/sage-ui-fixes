@@ -430,6 +430,75 @@
     }
   }
 
+  function nearbyStarbases() {
+    try {
+      const fn = window.__SA_NEARBY_STARBASES__;
+      const all = typeof fn === "function" ? fn() : fn;
+      return Array.isArray(all) ? all : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function resolveCardTarget(card) {
+    const nameEl = card.querySelector('[class*="combatTargetName"], [class*="TargetName"]');
+    const name = String((nameEl && nameEl.textContent) || card.textContent || "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 48);
+    const low = name.toLowerCase();
+    const fleets = nearbyList();
+    for (let i = 0; i < fleets.length; i++) {
+      const n = fleets[i];
+      const lab = String((n && (n.fleetLabel || n.label || n.name)) || "").toLowerCase();
+      if (lab && low.indexOf(lab) >= 0) {
+        return { key: String(n.fleetKey || n.address || n.key || name), label: n.fleetLabel || name, raw: n };
+      }
+    }
+    const sbs = nearbyStarbases();
+    for (let i = 0; i < sbs.length; i++) {
+      const n = sbs[i];
+      const lab = String((n && (n.systemName || n.name || n.label)) || "").toLowerCase();
+      if (lab && low.indexOf(lab) >= 0) {
+        return { key: "sb:" + String(n.systemKey || n.address || name), label: n.systemName || name, raw: n };
+      }
+    }
+    return name ? { key: "name:" + name, label: name, raw: null } : null;
+  }
+
+  function decorateCombatCards() {
+    const cards = document.querySelectorAll('[class*="combatTargetCard"]');
+    cards.forEach((card) => {
+      let btn = card.querySelector("[data-sa-pin]");
+      if (!btn) {
+        btn = document.createElement("button");
+        btn.type = "button";
+        btn.dataset.saPin = "1";
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const hit = resolveCardTarget(card);
+          if (!hit) return;
+          if (enemies.keys.includes(hit.key)) {
+            removeEnemy(hit.key);
+            btn.classList.remove("on");
+            btn.textContent = "PIN";
+          } else {
+            addEnemy(hit);
+            setCurrentTarget(hit.key);
+            btn.classList.add("on");
+            btn.textContent = "PINNED";
+          }
+        });
+        card.appendChild(btn);
+      }
+      const hit = resolveCardTarget(card);
+      const on = !!(hit && enemies.keys.includes(hit.key));
+      btn.classList.toggle("on", on);
+      btn.textContent = on ? "PINNED" : "PIN";
+    });
+  }
+
   function visibleEnemies() {
     const me = profileKey();
     const out = [];
@@ -1638,6 +1707,7 @@
       const bar = document.getElementById("sa-action-bar");
       if (bar && !document.getElementById("sa-ops-row")) paint();
       noteZoomScan();
+      decorateCombatCards();
       placeEditor();
       injectOpt();
     } catch {
@@ -1647,6 +1717,7 @@
   setInterval(() => {
     try {
       watchSpots();
+      decorateCombatCards();
       paintTargets();
     } catch {
       /* ignore */

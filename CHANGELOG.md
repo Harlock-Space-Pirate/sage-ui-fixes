@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.21
+
+- List Targets shows **only official ship/starbase cards** (The Victim style). Sheet chrome hidden. PIN on each card. Starbase cards same 132px card size.
+
 ## 2.5.20
 
 - **LIST** tile + Attack hoist official **List Targets** / combat-target-browser (fleets + starbases) out of the hidden stock bar so it stays on screen.

@@ -24,15 +24,28 @@
     "padding-top:var(--sa-hud-pad-top,1.5rem)!important;box-sizing:border-box!important}",
     /* hide official Fleet Command overlay without clicking Close (Close unselects) */
     'html.sa-our-fleet-bar [data-panel="fleet-info"]{visibility:hidden!important;pointer-events:none!important}',
-    /* official List Targets — hoisted out of the hidden stock bar */
-    "#sa-combat-host{position:fixed;left:50%;bottom:var(--sa-hud-pad-bottom,8rem);transform:translateX(-50%);",
-    "z-index:2147483644;pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:8px;",
-    "max-width:min(520px,94vw);max-height:min(56vh,480px)}",
-    '#sa-combat-host [data-testid="combat-target-browser"],',
-    '#sa-combat-host [data-testid="combat-target-confirm-panel"]{',
-    "position:relative!important;visibility:visible!important;pointer-events:auto!important;",
-    "opacity:1!important;max-height:min(52vh,440px)!important;overflow:auto!important;",
+    /* official List Targets — cards only, no sheet chrome */
+    "#sa-combat-host{position:fixed;right:12px;bottom:var(--sa-hud-pad-bottom,8rem);left:auto;transform:none;",
+    "z-index:2147483644;pointer-events:auto;display:flex;flex-direction:column;gap:6px;",
+    "width:min(28rem,94vw);max-height:min(56vh,520px);overflow:auto;",
     "scrollbar-width:thin;scrollbar-color:rgb(86 152 255 / 28%) transparent}",
+    'html.sa-our-fleet-bar [class*="fleetStatsSheetScrim"],',
+    'html.sa-our-fleet-bar [class*="fleetStatsSheetHeader"],',
+    'html.sa-our-fleet-bar [class*="fleetStatsSheetClose"],',
+    'html.sa-our-fleet-bar [class*="fleetStatsSheetKicker"],',
+    'html.sa-our-fleet-bar [class*="combatBrowserSectionHeader"],',
+    'html.sa-our-fleet-bar [data-testid="combat-target-confirm-panel"]{display:none!important}',
+    'html.sa-our-fleet-bar [class*="fleetStatsSheetPanel"][class*="combatTargetBrowserPanel"],',
+    'html.sa-our-fleet-bar [data-testid="combat-target-browser"]{',
+    "position:relative!important;inset:auto!important;top:auto!important;right:auto!important;",
+    "bottom:auto!important;left:auto!important;width:100%!important;max-width:none!important;",
+    "height:auto!important;padding:0!important;border:none!important;background:transparent!important;",
+    "box-shadow:none!important;overflow:visible!important}",
+    'html.sa-our-fleet-bar [class*="combatTargetCard"]{min-height:132px!important;position:relative!important}',
+    "html.sa-our-fleet-bar [data-sa-pin]{position:absolute;top:8px;right:8px;z-index:4;",
+    "appearance:none;border:1px solid rgb(227 235 241 / 30%);background:#070d18cc;color:#ffbe4d;",
+    "font:800 8px Orbitron,sans-serif;letter-spacing:.1em;padding:3px 7px;cursor:pointer}",
+    "html.sa-our-fleet-bar [data-sa-pin].on{border-color:#ffbe4d;background:#2a2010}",
   ].join("");
   function inject() {
     let st = document.getElementById(ID);
