@@ -122,13 +122,16 @@
       "18%{opacity:1;transform:translate(-50%,-18px) scale(1.2)}",
       "70%{opacity:1;transform:translate(-50%,-42px) scale(1)}",
       "100%{opacity:0;transform:translate(-50%,-64px) scale(.85)}}",
-      "#sa-target-hud{position:fixed;left:50%;top:72px;transform:translateX(-50%);z-index:999980;",
-      "min-width:220px;max-width:min(360px,86vw);padding:8px 10px 9px;pointer-events:none;",
+      "#sa-target-hud{position:fixed;left:50%;top:72px;transform:translateX(-50%);z-index:2147483645;",
+      "min-width:180px;min-height:52px;width:240px;padding:6px 8px 8px;pointer-events:auto;box-sizing:border-box;",
       "background:linear-gradient(180deg,rgb(18 16 10 / 92%),rgb(8 10 14 / 94%));",
       "border:1px solid color-mix(in srgb,rgb(255 190 77) 45%,transparent);",
       "box-shadow:0 10px 28px rgb(0 0 0 / 45%);font-family:var(--font-family-display,Orbitron,sans-serif);",
       "color:#f4ecd0}",
+      "#sa-target-hud.placed{transform:none}",
       "#sa-target-hud[hidden]{display:none!important}",
+      "#sa-target-hud .sa-th-hd{cursor:grab;user-select:none;font:800 8px Orbitron,sans-serif;",
+      "letter-spacing:.14em;color:#ffbe4d;opacity:.7;margin:0 0 4px}",
       "#sa-target-hud .sa-th-name{font:800 10px Orbitron,sans-serif;letter-spacing:.12em;",
       "text-transform:uppercase;margin:0 0 6px;color:#ffbe4d}",
       "#sa-target-hud .sa-th-row{display:flex;align-items:center;gap:6px;margin-top:3px}",
@@ -138,6 +141,8 @@
       "#sa-target-hud .sa-th-bar.sp>i{background:#32feff}",
       "#sa-target-hud .sa-th-n{min-width:4.5rem;text-align:right;font:700 9px Orbitron,sans-serif}",
       "#sa-target-hud.crit .sa-th-name{color:#ff4960}",
+      "#sa-target-hud .sa-th-rs{position:absolute;right:0;bottom:0;width:12px;height:12px;cursor:nwse-resize;",
+      "background:linear-gradient(135deg,transparent 50%,#ffbe4d 50%)}",
     ].join("");
     (document.head || document.documentElement).appendChild(s);
   }
@@ -184,6 +189,92 @@
   }
 
   let lastTarget = null;
+  const HUD_POS_KEY = "saTargetHudPos.v1";
+
+  function loadHudGeom() {
+    try {
+      const p = JSON.parse(localStorage.getItem(HUD_POS_KEY) || "null");
+      if (!p || typeof p !== "object") return null;
+      return p;
+    } catch {
+      return null;
+    }
+  }
+
+  function saveHudGeom(el) {
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    try {
+      localStorage.setItem(
+        HUD_POS_KEY,
+        JSON.stringify({ x: r.left, y: r.top, w: r.width, h: r.height }),
+      );
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function applyHudGeom(el) {
+    const p = loadHudGeom();
+    if (!p || !el) return;
+    if (Number.isFinite(p.x) && Number.isFinite(p.y)) {
+      el.classList.add("placed");
+      el.style.left = Math.max(0, p.x) + "px";
+      el.style.top = Math.max(0, p.y) + "px";
+      el.style.right = "auto";
+      el.style.transform = "none";
+    }
+    if (Number.isFinite(p.w) && p.w >= 160) el.style.width = p.w + "px";
+    if (Number.isFinite(p.h) && p.h >= 48) el.style.height = p.h + "px";
+  }
+
+  function bindHudChrome(el) {
+    if (!el || el.__saHudBound) return;
+    el.__saHudBound = true;
+    el.style.position = "fixed";
+    applyHudGeom(el);
+    let mode = "";
+    let sx = 0;
+    let sy = 0;
+    let sl = 0;
+    let st = 0;
+    let sw = 0;
+    let sh = 0;
+    const onMove = (e) => {
+      if (mode === "drag") {
+        el.classList.add("placed");
+        el.style.left = Math.max(0, sl + (e.clientX - sx)) + "px";
+        el.style.top = Math.max(0, st + (e.clientY - sy)) + "px";
+        el.style.transform = "none";
+      } else if (mode === "resize") {
+        el.style.width = Math.max(160, sw + (e.clientX - sx)) + "px";
+        el.style.height = Math.max(48, sh + (e.clientY - sy)) + "px";
+      }
+    };
+    const onUp = () => {
+      mode = "";
+      window.removeEventListener("pointermove", onMove, true);
+      window.removeEventListener("pointerup", onUp, true);
+      saveHudGeom(el);
+    };
+    el.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0) return;
+      const rs = e.target && e.target.closest && e.target.closest(".sa-th-rs");
+      const hd = e.target && e.target.closest && e.target.closest(".sa-th-hd, .sa-th-name");
+      if (!rs && !hd) return;
+      e.preventDefault();
+      const r = el.getBoundingClientRect();
+      sx = e.clientX;
+      sy = e.clientY;
+      sl = r.left;
+      st = r.top;
+      sw = r.width;
+      sh = r.height;
+      mode = rs ? "resize" : "drag";
+      window.addEventListener("pointermove", onMove, true);
+      window.addEventListener("pointerup", onUp, true);
+    });
+  }
 
   function setTarget(o) {
     if (!o) return;
@@ -203,8 +294,14 @@
       el = document.createElement("div");
       el.id = "sa-target-hud";
       el.setAttribute("hidden", "");
+      el.innerHTML =
+        '<div class="sa-th-hd">⋮⋮ TARGET</div><div class="sa-th-body"></div><div class="sa-th-rs" title="Resize"></div>';
       (document.body || document.documentElement).appendChild(el);
+      bindHudChrome(el);
+    } else {
+      bindHudChrome(el);
     }
+    const body = el.querySelector(".sa-th-body") || el;
     const t = lastTarget;
     if (!t || Date.now() - t.t > 180000) {
       el.setAttribute("hidden", "");
@@ -216,7 +313,7 @@
     const mhp = f ? fleetMaxHp(f) : NaN;
     const msp = f ? fleetMaxSp(f) : NaN;
     if (!Number.isFinite(hp) && !Number.isFinite(sp)) {
-      el.innerHTML =
+      body.innerHTML =
         '<div class="sa-th-name">' +
         String(t.label || "TARGET") +
         "</div>" +
@@ -230,7 +327,7 @@
     const spPct = Number.isFinite(sp) ? Math.max(0, Math.min(100, (sp / spMax) * 100)) : 0;
     const crit = Number.isFinite(hp) && hpMax > 0 && hp / hpMax <= 0.25;
     el.classList.toggle("crit", crit);
-    el.innerHTML =
+    body.innerHTML =
       '<div class="sa-th-name">' +
       (crit ? "LOW HP · " : "") +
       String(t.label || "TARGET") +

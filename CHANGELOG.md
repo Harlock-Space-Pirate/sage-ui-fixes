@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.7
+
+- Top **TARGET** chip is draggable and resizable. Position and size persist (`saTargetHudPos.v1`).
+
 ## 2.5.6
 
 - Target lists use stock command scrollbars and checkbox tiles. **+/−** scales the HUD. IN VIEW grows **up** from the bottom (down from the top) and scrolls when still too long.
