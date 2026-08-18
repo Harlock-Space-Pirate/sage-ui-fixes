@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.25
+
+- Official Victim cards show whenever the selected fleet has hostiles in range — no Attack click required. LIST still opens the full target browser.
+
 ## 2.5.24
 
 - Removed homemade HOSTILES list. Only official Victim cards stay; PIN on those; PINNED clones them.

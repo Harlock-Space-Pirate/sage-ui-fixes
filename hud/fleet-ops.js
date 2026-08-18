@@ -1723,6 +1723,26 @@
     }
   }
 
+  let autoCombatFor = "";
+  function maybeShowOfficialTargets() {
+    const sel = window.__SA_SELECTED_FLEET__;
+    const key = sel && sel.key ? String(sel.key) : "";
+    if (!key) {
+      autoCombatFor = "";
+      return;
+    }
+    const cards = officialCardNodes().filter((el) => !isOwnCardEl(el) && !el.closest("#sa-tgt-dock"));
+    if (cards.length) {
+      autoCombatFor = key;
+      return;
+    }
+    const near = nearbyList().length + nearbyStarbases().length;
+    if (!near) return;
+    if (autoCombatFor === key) return;
+    const bar = window.__SA_ACTION_BAR__;
+    if (bar && typeof bar.enterCombat === "function" && bar.enterCombat()) autoCombatFor = key;
+  }
+
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
   else boot();
 
@@ -1751,6 +1771,7 @@
       const bar = document.getElementById("sa-action-bar");
       if (bar && !document.getElementById("sa-ops-row")) paint();
       noteZoomScan();
+      maybeShowOfficialTargets();
       decorateCombatCards();
       placeEditor();
       injectOpt();

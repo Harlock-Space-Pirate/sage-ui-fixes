@@ -857,7 +857,6 @@ function clickStock(action) {
       return true;
     }
     if (action.id === "attack") {
-      openOfficialTargetList();
       return true;
     }
     markPending(action.id);
@@ -1860,9 +1859,22 @@ function setVisible(on) {
   return visiblePref();
 }
 
+function enterCombatMode() {
+  const atk = ACTIONS.find((a) => a.id === "attack");
+  const stock = atk && findStock(atk);
+  if (!stock || stock.disabled) return false;
+  try {
+    stock.click();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 window.__SA_ACTION_BAR__ = {
   paint,
   fire: fireAction,
+  enterCombat: enterCombatMode,
   isVisible: visiblePref,
   setVisible,
   show: () => setVisible(true),
