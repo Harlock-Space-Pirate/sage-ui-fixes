@@ -1,0 +1,30 @@
+name: Report a problem
+description: Something broke or looks wrong while testing SAGE UI Fixes
+title: "[problem] "
+labels: ["tester"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Testers — you do not need the source code. Say what you clicked and what went wrong.
+  - type: input
+    id: version
+    attributes:
+      label: Extension version
+      description: From the zip name or chrome://extensions (e.g. 2.5.5)
+      placeholder: 2.5.5
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you were doing, and what you expected instead.
+      placeholder: Double-clicked fleet slot, camera jumped to the old system, HUD ring empty.
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Extra (optional)
+      description: Screenshot, fleet name, or “PvP / PvE / map / craft”.

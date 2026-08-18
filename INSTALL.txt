@@ -7,4 +7,7 @@ SAGE UI Fixes — install
 
 Update: download the newer zip from GitHub Releases, unzip over the old folder (or a new one), then click Reload on the extension card.
 
+Something wrong? Open an issue (no source needed):
+https://github.com/Harlock-Space-Pirate/sage-ui-fixes/issues/new/choose
+
 LEEKS / Produce Bandit ltd. Not affiliated with Star Atlas.

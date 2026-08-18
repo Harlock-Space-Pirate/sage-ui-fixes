@@ -88,6 +88,8 @@ Only published GitHub Releases for this repository are supported installs.
 
 A new Release is published automatically when `manifest.json` version changes on `main`. Testers only need the zip.
 
+**Report a problem:** [open an issue](https://github.com/Harlock-Space-Pirate/sage-ui-fixes/issues/new/choose) — version + what you clicked is enough.
+
 ## Permissions
 
 | Permission | Why |
