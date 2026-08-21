@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.30
+
+- Pinned dock (`#sa-tgt-dock`) hides itself while empty — no dead "PINNED 0" box on screen; reappears on first pin.
+
 ## 2.5.29
 
 - Repinned to SAGE **0.0.416** (`index-1rYn0BJE.js`): all 51 patches re-anchored, incl. the builder scroll-reset fix (claim-stake list no longer snaps back while scrolling).

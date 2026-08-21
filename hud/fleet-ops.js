@@ -1761,6 +1761,8 @@
       });
     }
     applyTgtScale();
+    // empty dock is dead weight on screen — hide it until something is pinned
+    if (listEl) listEl.style.display = enemies.keys.length ? "" : "none";
     decorateCombatCards();
     officialCardNodes().forEach((el) => {
       if (el.closest("#sa-tgt-dock")) return;
