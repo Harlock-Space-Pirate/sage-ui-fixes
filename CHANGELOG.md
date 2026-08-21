@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.5.29
+
+- Repinned to SAGE **0.0.416** (`index-1rYn0BJE.js`): all 51 patches re-anchored, incl. the builder scroll-reset fix (claim-stake list no longer snaps back while scrolling).
+- Master switch: extension is **disabled by default** (`localStorage.saEnabled`), popup toggle reloads the tab. OFF = no fetch/patch/HUD ticks; leftover DNR entry-block from an ON session is cleared (`sa-off`) so the stock game never blanks.
+- Efficiency (Grok-reviewed): entry fetch now honors the 30-day HTTP cache (hashed URL is immutable; HTML is no-store so deploys still detected), `apply()` counts via `indexOf` instead of allocating 7 MB `split`s per patch, HUD intervals pause when the tab is hidden, MAIN-world scripts moved to `document_idle`.
+- Compact combat overview: double-click slot opens a top strip with live official target cards (starbases included); click a card to pin a frozen pixel-perfect copy; clicking a pinned card attacks via the official confirm; FOLLOW button pursues. First pass — live iteration pending.
+
 ## 2.5.28
 
 - Ring/camera on ship for moving fleets: patch `pixel-to-game-squash` makes the official `pixelToGame` the true inverse of `gameToPixel` (it never divided Y back by `COORDINATE_Y_SQUASH`, parking the interaction ring of subwarp/warp fleets at `0.3*at+0.7*y` — upstream bug, official UI misparks too). Select/pan now also prefers the live pixi pin (`liveSpriteCoords`).

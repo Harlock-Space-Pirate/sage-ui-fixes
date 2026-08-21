@@ -70,6 +70,8 @@ try {
   console.warn("[sa-ui-fixes] popup", e);
 }
 
+const masterBtn = document.getElementById("master-toggle");
+const masterStatus = document.getElementById("master-status");
 const trailsBtn = document.getElementById("trails-toggle");
 const trailsStatus = document.getElementById("trails-status");
 const debugBtn = document.getElementById("debug-toggle");
@@ -93,6 +95,33 @@ const logStatus = document.getElementById("log-status");
     if (logBtn) logBtn.disabled = true;
     return;
   }
+
+  try {
+    const m = await pageEval(tab.id, () => ({ on: localStorage.getItem("saEnabled") === "1" }));
+    setToggle(masterBtn, masterStatus, !!m?.on, m?.on ? "ON — full HUD + patches." : "OFF — lightweight, stock game.");
+  } catch (e) {
+    setToggle(masterBtn, masterStatus, false, "Refresh the SAGE tab, then try again.");
+  }
+
+  masterBtn?.addEventListener("click", async () => {
+    masterBtn.disabled = true;
+    try {
+      const res = await pageEval(tab.id, () => {
+        const on = localStorage.getItem("saEnabled") === "1";
+        if (on) localStorage.removeItem("saEnabled");
+        else localStorage.setItem("saEnabled", "1");
+        return { on: !on };
+      });
+      setToggle(masterBtn, masterStatus, !!res?.on, res?.on ? "ON — reloading game tab…" : "OFF — reloading game tab…");
+      try {
+        await chrome.tabs.reload(tab.id);
+      } catch (e) {
+        /* user can reload manually */
+      }
+    } finally {
+      masterBtn.disabled = false;
+    }
+  });
 
   try {
     const log = await pageEval(tab.id, () => {

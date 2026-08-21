@@ -5,6 +5,7 @@
  * Modifier+click (default Shift) adds the nearest unowned fleet to Targets.
  */
 (function () {
+  if (localStorage.getItem("saEnabled") !== "1") return;
   const GRP_KEY = "saFleetGroups.v1";
   const EN_KEY = "saEnemyList.v1";
   const OPT_KEY = "saFleetOps.v1";
@@ -1205,6 +1206,21 @@
       "#sa-tgt-scout .spot.on .box{background:#14243ee0;border-color:#5292ff70;color:#66a2f8}",
       "#sa-tgt-scout .spot .box:after{content:'';width:.55em;height:.55em;background:transparent}",
       "#sa-tgt-scout .spot.on .box:after{background:#66a2f8}",
+      "#sa-enemy-strip{position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:2147483646;",
+      "display:none;flex-direction:row;gap:6px;align-items:stretch;max-width:92vw;overflow-x:auto;",
+      "background:#0b0e13;padding:6px;pointer-events:auto}",
+      "#sa-enemy-strip.on{display:flex}",
+      "#sa-enemy-strip .scard{flex:0 0 auto;cursor:pointer;position:relative}",
+      "#sa-enemy-strip .scard:hover{box-shadow:0 0 0 1px #c8a24a}",
+      "#sa-enemy-strip .scard.sa-sb .vcard{margin:0}",
+      "#sa-enemy-strip .sx{flex:0 0 auto;align-self:center;border:0;background:transparent;color:#deeef29e;",
+      "font:800 12px Orbitron,sans-serif;cursor:pointer;padding:0 4px}",
+      "#sa-enemy-strip .sx:hover{color:#ff4960}",
+      "#sa-enemy-strip .sempty{color:#deeef29e;font:700 9px Orbitron,sans-serif;letter-spacing:.14em;padding:8px 10px}",
+      "body.sa-strip-open [data-testid=\"combat-target-browser\"]{display:none!important}",
+      "#sa-tgt-dock .followbtn{position:absolute;bottom:2px;right:2px;border:0;background:transparent;",
+      "color:#32feff;font:800 8px Orbitron,sans-serif;letter-spacing:.08em;cursor:pointer;padding:1px 3px}",
+      "#sa-tgt-dock .followbtn:hover{color:#ffbe4d}",
       "html.sa-bar-top #sa-ops-banner{top:var(--sa-hud-pad-top,6rem);bottom:auto}",
       "#sa-ops-editor{position:fixed;left:50%;z-index:2147483640;display:none;flex-wrap:wrap;align-content:flex-start;",
       "gap:10px;padding:12px;background:#0a0e1a;border:1px solid #ffbe4d;color:#e8d9a8;",
@@ -1428,6 +1444,208 @@
     if (leftover) leftover.remove();
   }
 
+  // --- compact combat overview strip -------------------------------------
+  let stripEl = null;
+  let stripOpen = false;
+  let stripSig = "";
+  const snapHtml = {};
+
+  function ensureStrip() {
+    if (stripEl && stripEl.isConnected) return stripEl;
+    stripEl = document.createElement("div");
+    stripEl.id = "sa-enemy-strip";
+    stripEl.innerHTML = '<button type="button" class="sx" title="Close overview">×</button><div class="cards" data-cards style="display:contents"></div>';
+    document.body.appendChild(stripEl);
+    stripEl.querySelector(".sx").addEventListener("click", (e) => {
+      e.stopPropagation();
+      closeStrip();
+    });
+    return stripEl;
+  }
+
+  function browserAside() {
+    return document.querySelector('[data-testid="combat-target-browser"]');
+  }
+
+  function openStrip() {
+    ensureStrip();
+    stripOpen = true;
+    stripEl.classList.add("on");
+    document.body.classList.add("sa-strip-open");
+    mountBrowser(0);
+  }
+
+  function mountBrowser(n) {
+    if (!stripOpen) return;
+    if (browserAside()) return;
+    const b = document.querySelector('[data-testid="combat-target-list-button"]');
+    if (b) {
+      b.click();
+      return;
+    }
+    if (n < 12) window.setTimeout(() => mountBrowser(n + 1), 250);
+  }
+
+  function closeStrip() {
+    stripOpen = false;
+    stripSig = "";
+    if (stripEl) stripEl.classList.remove("on");
+    document.body.classList.remove("sa-strip-open");
+    if (browserAside()) {
+      const b = document.querySelector('[data-testid="combat-target-list-button"]');
+      if (b) b.click();
+    }
+  }
+
+  window.addEventListener("sa-open-combat-overview", () => {
+    try {
+      openStrip();
+    } catch {
+      /* ignore */
+    }
+  });
+
+  window.__SA_STRIP__ = {
+    open: openStrip,
+    close: closeStrip,
+    paint: paintStrip,
+    state: () => ({
+      open: stripOpen,
+      el: !!(stripEl && stripEl.isConnected),
+      cls: stripEl && stripEl.className,
+      cards: stripEl ? stripEl.querySelectorAll(".scard").length : -1,
+      aside: !!browserAside(),
+      listBtn: !!document.querySelector('[data-testid="combat-target-list-button"]'),
+    }),
+  };
+
+  function targetLabel(t) {
+    try {
+      const d =
+        t.kind === "fleet"
+          ? t.fleet && t.fleet.fleetAccount && t.fleet.fleetAccount.data
+          : t.starbase && t.starbase.starbaseAccount && t.starbase.starbaseAccount.data;
+      return String((d && (d.label || d.name)) || t.label || "");
+    } catch {
+      return "";
+    }
+  }
+
+  function paintStrip() {
+    if (!stripOpen || !stripEl) return;
+    const aside = browserAside();
+    const host = stripEl.querySelector("[data-cards]");
+    if (!host) return;
+    if (!aside) {
+      stripSig = "";
+      if (!host.querySelector(".sempty")) host.innerHTML = '<div class="sempty">…</div>';
+      return;
+    }
+    const fleet = [];
+    const sbs = [];
+    aside.querySelectorAll('[class*="combatBrowserTargetCard"]').forEach((el) => {
+      if (isOwnCardEl(el)) return;
+      if (el.closest('[class*="combatBrowserStarbaseList"]')) return;
+      fleet.push(el);
+    });
+    aside.querySelectorAll('[class*="combatBrowserStarbaseList"]').forEach((l) => {
+      for (let i = 0; i < l.children.length; i++) {
+        const c = l.children[i];
+        if (!isOwnCardEl(c)) sbs.push(c);
+      }
+    });
+    if (!fleet.length && !sbs.length) {
+      stripSig = "";
+      if (!host.querySelector(".sempty")) host.innerHTML = '<div class="sempty">NO TARGETS IN RANGE</div>';
+      return;
+    }
+    const sig =
+      fleet.map((el) => String(el.textContent || "").slice(0, 24)).join("|") +
+      "::" +
+      sbs.map((el) => String(el.textContent || "").slice(0, 24)).join("|");
+    if (sig !== stripSig) {
+      stripSig = sig;
+      host.innerHTML = "";
+      const tg = (window.__SA_COMBAT_TAB__ && window.__SA_COMBAT_TAB__.targets()) || [];
+      const keyFor = (el, kind) => {
+        const txt = String(el.textContent || "").toLowerCase();
+        for (let i = 0; i < tg.length; i++) {
+          if (tg[i].kind !== kind) continue;
+          const lb = targetLabel(tg[i]).toLowerCase();
+          if (lb && txt.indexOf(lb) >= 0) return { id: String(tg[i].id), label: targetLabel(tg[i]) };
+        }
+        return null;
+      };
+      const addWrap = (el, kind, cls) => {
+        const kk = keyFor(el, kind);
+        if (!kk) return;
+        const w = document.createElement("div");
+        w.className = cls;
+        w.setAttribute("data-sa-key", kk.id);
+        w.setAttribute("data-sa-label", kk.label);
+        w.appendChild(el.cloneNode(true));
+        w.addEventListener("click", (e) => {
+          e.stopPropagation();
+          pinFromStrip(w);
+        });
+        host.appendChild(w);
+      };
+      fleet.forEach((el) => addWrap(el, "fleet", "scard"));
+      sbs.forEach((el) => addWrap(el, "starbase", "scard sa-sb"));
+    } else {
+      // keep HP bars live without re-cloning structure
+      const wraps = host.querySelectorAll(".scard");
+      const srcs = fleet.concat(sbs);
+      wraps.forEach((w, i) => {
+        const s = srcs[i];
+        const inner = w.firstElementChild;
+        if (s && inner) inner.innerHTML = s.innerHTML;
+      });
+    }
+  }
+
+  function pinFromStrip(wrap) {
+    const inner = wrap && wrap.firstElementChild;
+    const key = (wrap && wrap.getAttribute("data-sa-key")) || "";
+    if (!inner || !key) return;
+    snapHtml[key] = inner.outerHTML;
+    addEnemy({ key: key, label: wrap.getAttribute("data-sa-label") || key.slice(0, 12), raw: findRaw(key) });
+  }
+
+  function attackTarget(k) {
+    const ct = window.__SA_COMBAT_TAB__;
+    if (!ct) return;
+    try {
+      ct.set("combat");
+      ct.selectTarget(k);
+    } catch {
+      /* ignore */
+    }
+    window.setTimeout(() => {
+      const b = document.querySelector('[data-testid="combat-confirm-attack-button"]');
+      if (b && !b.disabled) b.click();
+    }, 250);
+  }
+
+  function followTarget(k) {
+    const ct = window.__SA_COMBAT_TAB__;
+    if (!ct) return;
+    try {
+      ct.selectTarget(k);
+    } catch {
+      /* ignore */
+    }
+    window.setTimeout(() => {
+      const btns = document.querySelectorAll('[class*="fleetRail"] button');
+      for (let i = 0; i < btns.length; i++) {
+        if (String(btns[i].textContent || "").trim() === "Follow") {
+          btns[i].click();
+          break;
+        }
+      }
+    }, 250);
+  }
+
   function segs(pct, n) {
     const on = Math.round((Math.max(0, Math.min(100, pct)) / 100) * n);
     let h = "";
@@ -1502,20 +1720,41 @@
       order.forEach((k) => {
         const lab = String(enemies.labels[k] || "").toLowerCase();
         const src = official.find((el) => String(el.textContent || "").toLowerCase().indexOf(lab) >= 0);
-        if (src && lab) {
-          const clone = src.cloneNode(true);
-          clone.querySelectorAll("[data-sa-pin]").forEach((b) => b.remove());
+        if (!snapHtml[k] && src && lab) snapHtml[k] = src.outerHTML;
+        if (snapHtml[k]) {
+          // frozen pixel-perfect snapshot: no polling, click = attack
+          const holder = document.createElement("div");
+          holder.style.position = "relative";
+          holder.innerHTML = snapHtml[k];
+          const body = holder.firstElementChild;
+          if (body) {
+            body.style.cursor = "pointer";
+            body.addEventListener("click", (e) => {
+              if (e.target && e.target.closest && e.target.closest("button")) return;
+              attackTarget(k);
+            });
+          }
+          const fol = document.createElement("button");
+          fol.type = "button";
+          fol.className = "followbtn";
+          fol.textContent = "FOLLOW";
+          fol.title = "Pursue with selected fleet";
+          fol.onclick = (e) => {
+            e.stopPropagation();
+            followTarget(k);
+          };
           const pin = document.createElement("button");
           pin.type = "button";
           pin.className = "pinbtn on";
           pin.textContent = "📌";
           pin.onclick = (e) => {
             e.stopPropagation();
+            delete snapHtml[k];
             removeEnemy(k);
           };
-          clone.style.position = "relative";
-          clone.appendChild(pin);
-          cards.appendChild(clone);
+          holder.appendChild(fol);
+          holder.appendChild(pin);
+          cards.appendChild(holder);
         } else {
           cards.appendChild(makeVictimCard(k, null, vis, true));
         }
@@ -1798,6 +2037,7 @@
   }
 
   setInterval(() => {
+    if (document.visibilityState !== "visible") return;
     try {
       watchPlannerDest();
       const bar = document.getElementById("sa-action-bar");
@@ -1805,6 +2045,7 @@
       noteZoomScan();
       maybeForceCombatTab();
       decorateCombatCards();
+      paintStrip();
       placeEditor();
       injectOpt();
     } catch {
@@ -1812,6 +2053,7 @@
     }
   }, 400);
   setInterval(() => {
+    if (document.visibilityState !== "visible") return;
     try {
       watchSpots();
       decorateCombatCards();

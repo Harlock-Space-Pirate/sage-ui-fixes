@@ -1,5 +1,6 @@
 /** Dev probe: ring buffer I can dump from Brave console / popup. LEEKS */
 (function () {
+  if (localStorage.getItem("saEnabled") !== "1") return;
   const KEY = "saProbe.v1";
   const FLAG = "saProbe";
   const MAX = 80;

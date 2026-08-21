@@ -9,4 +9,4 @@ npm run fetch-stock   # refresh from live
 npm run probe         # apply patches + node --check
 ```
 
-Current target: **0.0.371** / `assets/index-DmmfP5d6.js` (2026-08-18).
+Current target: **0.0.416** / `assets/index-1rYn0BJE.js` (2026-08-21).

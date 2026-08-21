@@ -6,6 +6,13 @@
  * `fc-app-keybindings` once we append Fleet actions to BINDABLE_ACTIONS.
  * Second row: 8 fleet slots (`saFleetSlots.v1`) — click empty → list, drag to assign.
  */
+const SA_ON = (() => {
+  try {
+    return localStorage.getItem("saEnabled") === "1";
+  } catch (e) {
+    return false;
+  }
+})();
 const POS_KEY = "saActionBarPos.v1";
 const HIDE_KEY = "saHideActionBar";
 const LOOK_KEY = "saActionBarLook.v1";
@@ -1340,12 +1347,13 @@ function placeOptsPanel() {
 function clickFleetRowByLabel(label) {
   const want = String(label || "").replace(/\s+/g, " ").trim();
   if (!want) return false;
-  const rows = document.querySelectorAll('[class*="fleetRow"], [class*="fleetCard"]');
+  const rows = document.querySelectorAll('[class*="fleetRow"], [class*="fleetCard"], [class*="_row_"]');
+  const wl = want.toLowerCase();
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
     const name = row.querySelector('[class*="fleetName"], [class*="fleetLabel"]');
-    const t = ((name && name.textContent) || row.textContent || "").replace(/\s+/g, " ").trim();
-    if (t === want || t.indexOf(want) === 0) {
+    const t = ((name && name.textContent) || row.textContent || "").replace(/\s+/g, " ").trim().toLowerCase();
+    if (t && (t === wl || t.indexOf(wl) === 0 || t.includes(wl))) {
       row.click();
       return true;
     }
@@ -1453,7 +1461,8 @@ function selectFleet(key, pan) {
   }
   // Hook not fired yet: bind __SA_PIXI_MAP__ via getFleetWorldPosition, then select.
   if (okCoords && !window.__SA_PIXI_MAP__) bindMapAndSelect(key, coords, 0);
-  if (!picked && !okCoords && f) picked = clickFleetRowByLabel(f.label);
+  // Fresh load: official hooks unbound, so drive the official select via its My-Fleets row.
+  if (!picked && f) picked = clickFleetRowByLabel(f.label);
   if (pan && okCoords && mc && typeof mc.requestPanTo === "function") {
     try {
       // Without the fleet key: pan once, do not start the Follow lock.
@@ -1461,6 +1470,16 @@ function selectFleet(key, pan) {
     } catch {
       /* ignore */
     }
+  } else if (pan && picked) {
+    window.setTimeout(() => {
+      try {
+        const mc2 = window.__SA_MAP_CONTROL__;
+        const c2 = liveFleetCoords(key, raw);
+        if (mc2 && c2 && typeof mc2.requestPanTo === "function") mc2.requestPanTo(c2);
+      } catch {
+        /* ignore */
+      }
+    }, 400);
   }
   stopFollow();
   dismissFleetPanel();
@@ -1665,7 +1684,14 @@ function paintSlots() {
           clickTimer = 0;
         }
         const key = slotState.keys[i];
-        if (key) selectFleet(key, true);
+        if (key) {
+          selectFleet(key, true);
+          try {
+            window.dispatchEvent(new CustomEvent("sa-open-combat-overview", { detail: { key: String(key) } }));
+          } catch {
+            /* ignore */
+          }
+        }
       });
       b.addEventListener("contextmenu", (e) => {
         e.preventDefault();
@@ -1949,14 +1975,16 @@ window.__SA_ACTION_BAR__ = {
 };
 window.__SA_BAR_RESET__ = resetPos;
 
-hideCss();
+if (SA_ON) hideCss();
 function boot() {
+  if (!SA_ON) return;
   if (!document.body) {
     setTimeout(boot, 50);
     return;
   }
   ensure();
   setInterval(() => {
+    if (document.visibilityState !== "visible") return;
     try {
       paint();
     } catch {
@@ -1964,5 +1992,7 @@ function boot() {
     }
   }, 700);
 }
-if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
-else boot();
+if (SA_ON) {
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
+}

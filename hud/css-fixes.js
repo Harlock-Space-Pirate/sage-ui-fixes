@@ -1,5 +1,6 @@
 /** Hide official InkChat chrome — we render chats inside #sa-combat-log-box. LEEKS */
 (function () {
+  if (localStorage.getItem("saEnabled") !== "1") return;
   const ID = "sa-css-fixes";
   const CSS = [
     /* official Galia / contacts launchers — 355 opoyo + 371 1jl14 / dozn0 / npjv8 */

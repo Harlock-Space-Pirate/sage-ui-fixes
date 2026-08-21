@@ -76,23 +76,34 @@ async function entryUrl() {
   }
 }
 
+function countFind(src, find) {
+  let n = 0;
+  let i = 0;
+  while ((i = src.indexOf(find, i)) >= 0) {
+    n++;
+    i += find.length;
+    if (n > 1) break;
+  }
+  return n;
+}
+
 function apply(src, patches) {
-  let out = src;
   const landed = [];
   const missed = [];
+  const hits = [];
   for (const p of patches) {
-    const find = p.find;
-    if (typeof find !== "string" || !find) {
+    if (typeof p.find !== "string" || !p.find || countFind(src, p.find) !== 1) {
       missed.push(p.id || "?");
       continue;
     }
-    const n = out.split(find).length - 1;
-    if (n !== 1) {
-      missed.push(p.id || "?");
-      continue;
-    }
-    out = out.replace(find, p.replace);
-    landed.push(p.id || "?");
+    hits.push({ i: src.indexOf(p.find), p });
+  }
+  // apply right-to-left so earlier indices stay valid
+  hits.sort((a, b) => b.i - a.i);
+  let out = src;
+  for (const h of hits) {
+    out = out.slice(0, h.i) + h.p.replace + out.slice(h.i + h.p.find.length);
+    landed.push(h.p.id || "?");
   }
   return { out, landed, missed };
 }
@@ -135,11 +146,16 @@ console.log(
   "background:#111827;color:#e2e8f0;padding:2px 8px;font-family:ui-monospace,Menlo,monospace",
   "background:#00e5ff22;color:#00e5ff;padding:2px 8px;font-weight:800;font-family:ui-monospace,Menlo,monospace;border-radius:0 4px 4px 0",
 );
-slog("info", "🚀", "v2 patch engine online — intercepting SAGE entry");
-neutralize();
-
 (async () => {
   try {
+    if (localStorage.getItem("saEnabled") !== "1") {
+      console.log(`%c ${TAG} %c OFF — enable in the popup, then reload`, C.badge, C.dim);
+      // leftover dynamic block rule from an ON session would blank the stock game
+      await msg({ type: "sa-off" });
+      return;
+    }
+    slog("info", "🚀", "v2 patch engine online — intercepting SAGE entry");
+    neutralize();
     let entry = await entryUrl();
     for (let i = 0; !entry && i < 25; i++) {
       await new Promise((r) => setTimeout(r, 40));
@@ -153,7 +169,8 @@ neutralize();
     await msg({ type: "sa-fixes-set-entry-block", entryUrl: entry });
     slog("dim", "🛡️", "stock entry blocked (DNR)");
 
-    const res = await fetch(entry, { cache: "no-cache" });
+    // hashed entry URL is immutable (30d public cache); HTML is no-store so new deploys show up as new hashes
+    const res = await fetch(entry);
     if (!res.ok) throw new Error("fetch " + res.status);
     const patches = Array.isArray(globalThis.__SA_PATCHES__) ? globalThis.__SA_PATCHES__ : [];
     const { out, landed, missed } = apply(await res.text(), patches);

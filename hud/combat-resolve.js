@@ -5,6 +5,7 @@
  * FLEE = target started warp/subwarp. Official "HP CRIT" means low HP, not a crit hit.
  */
 (function () {
+  if (localStorage.getItem("saEnabled") !== "1") return;
   const FLEET_STEPS = [0, 120, 280, 500, 800, 1300, 2e3, 3200, 5e3, 8e3, 12e3];
   const SB_STEPS = [0, 200, 500, 1e3, 2e3, 3500, 6e3, 10e3, 16e3, 24e3];
 
@@ -472,6 +473,7 @@
   };
 
   setInterval(() => {
+    if (document.visibilityState !== "visible") return;
     try {
       paintHud();
     } catch {

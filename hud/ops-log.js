@@ -3,6 +3,7 @@
  * Minimized chip = motion-teardown `.typing`. Positions persist.
  */
 (function () {
+  if (localStorage.getItem("saEnabled") !== "1") return;
   const POS_KEY = "saCombatLogPos.v1";
   const CHIP_KEY = "saClChipPos.v1";
   const HIDE_KEY = "saHideCombatLog";
@@ -1153,7 +1154,10 @@
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mount);
   else mount();
-  setInterval(mount, 400);
+  setInterval(() => {
+    if (document.visibilityState !== "visible") return;
+    mount();
+  }, 400);
   window.addEventListener("resize", () => {
     placeChip();
   });

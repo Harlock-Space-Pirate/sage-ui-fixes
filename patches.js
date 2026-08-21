@@ -1,4 +1,4 @@
-/** SAGE UI Fixes v2 patches. Pinned to live 0.0.371 / assets/index-DmmfP5d6.js (2026-08-18).
+/** SAGE UI Fixes v2 patches. Pinned to live 0.0.416 / assets/index-1rYn0BJE.js (2026-08-21).
  * Each `find` must occur exactly once in the minified entry or the patch is skipped.
  * LEEKS / Produce Bandit ltd
  */
@@ -11,27 +11,27 @@ globalThis.__SA_PATCHES__ = [
   },
   {
     id: "nearby-fleets",
-    find: "get nearbyStarbases(){return ol()},get nearbyFleets(){return $c()}",
+    find: "get nearbyStarbases(){return bc()},get nearbyFleets(){return Tc()}",
     replace:
-      "get nearbyStarbases(){return (window.__SA_NEARBY_STARBASES__=ol)()},get nearbyFleets(){return (window.__SA_NEARBY_FLEETS__=$c)()}",
+      "get nearbyStarbases(){return (window.__SA_NEARBY_STARBASES__=bc)()},get nearbyFleets(){return (window.__SA_NEARBY_FLEETS__=Tc)()}",
   },
   {
     id: "nearby-dead-filter",
-    find: "return ee.nearbyFleets.filter(Fc=>{const fu=oc(ol,$c,Fc.coordinates[0],Fc.coordinates[1])<=Ac,sc=toFactionEnum(Fc.faction),fc=sc!==yi&&!(yi===w.Unaligned&&sc===w.Unaligned),ud=String(Fc.fleetKey)!==String(ee.fleetData?.fleetKey);return fu&&fc&&ud})",
+    find: "return ee.nearbyFleets.filter(Pc=>{const su=Wc(Ys,bc,Pc.coordinates[0],Pc.coordinates[1])<=Tc,rc=toFactionEnum(Pc.faction),dc=rc!==pi&&!(pi===w.Unaligned&&rc===w.Unaligned),gd=String(Pc.fleetKey)!==String(ee.fleetData?.fleetKey);return su&&dc&&gd})",
     replace:
-      'return ee.nearbyFleets.filter(Fc=>{const fu=oc(ol,$c,Fc.coordinates[0],Fc.coordinates[1])<=Ac,sc=toFactionEnum(Fc.faction),fc=sc!==yi&&!(yi===w.Unaligned&&sc===w.Unaligned),ud=String(Fc.fleetKey)!==String(ee.fleetData?.fleetKey),dead=Fc.fleetAccount?.data?.state?.__kind==="Destroyed"||Number(Fc.fleetAccount?.data?.hp??0)<=0;return fu&&fc&&ud&&!dead})',
+      "return ee.nearbyFleets.filter(Pc=>{const su=Wc(Ys,bc,Pc.coordinates[0],Pc.coordinates[1])<=Tc,rc=toFactionEnum(Pc.faction),dc=rc!==pi&&!(pi===w.Unaligned&&rc===w.Unaligned),gd=String(Pc.fleetKey)!==String(ee.fleetData?.fleetKey),dead=Pc.fleetAccount?.data?.state?.__kind===\"Destroyed\"||Number(Pc.fleetAccount?.data?.hp??0)<=0;return su&&dc&&gd&&!dead})",
   },
   {
     id: "starbase-hp-bar",
-    find: "if(Jc){const gu=Jc.hp+Jc.pendingHp;Od=gu>0?Jc.hp/gu:0}",
+    find: "if(Lc){const Zd=Lc.hp+Lc.pendingHp;Hc=Zd>0?Lc.hp/Zd:0}",
     replace:
-      "if(Jc){const gu=Math.max(1,520+Number(Jc.level||0)*180);Od=Math.min(1,Math.max(0,Number(Jc.hp||0)/gu))}",
+      "if(Lc){const Zd=Math.max(1,520+Number(Lc.level||0)*180);Hc=Math.min(1,Math.max(0,Number(Lc.hp||0)/Zd))}",
   },
   {
     id: "fingerprint-hp",
-    find: "Object.values(Qc).map(_c=>`${_c.name}@${_c.coordinates[0]},${_c.coordinates[1]}:${_c.owner??\"none\"}:L${_c.starbaseLevel??0}:${_c.core?\"core\":\"not\"}:${_c.planetCount}:${_c.asteroidCount}:${(_c.stars??[]).length}`)",
+    find: "Object.values(Cc).map(hc=>`${hc.name}@${hc.coordinates[0]},${hc.coordinates[1]}:${hc.owner??\"none\"}:L${hc.starbaseLevel??0}:${hc.core?\"core\":\"not\"}:${hc.planetCount}:${hc.asteroidCount}:${(hc.stars??[]).length}:${hc.bannerCode??\"none\"}`)",
     replace:
-      "Object.values(Qc).map(_c=>`${_c.name}@${_c.coordinates[0]},${_c.coordinates[1]}:${_c.owner??\"none\"}:L${_c.starbaseLevel??0}:H${((_c.starbaseHpFraction??0)*100)|0}:${_c.core?\"core\":\"not\"}:${_c.planetCount}:${_c.asteroidCount}:${(_c.stars??[]).length}`)",
+      "Object.values(Cc).map(hc=>`${hc.name}@${hc.coordinates[0]},${hc.coordinates[1]}:${hc.owner??\"none\"}:L${hc.starbaseLevel??0}:H${((hc.starbaseHpFraction??0)*100)|0}:${hc.core?\"core\":\"not\"}:${hc.planetCount}:${hc.asteroidCount}:${(hc.stars??[]).length}:${hc.bannerCode??\"none\"}`)",
   },
   {
     id: "resolve-display-owner",
@@ -64,9 +64,9 @@ globalThis.__SA_PATCHES__ = [
   },
   {
     id: "glow-create-alpha",
-    find: 'An.alpha=SYSTEM_STAR_CONFIG.GLOW.ALPHA,An.blendMode="add",An.zIndex=10,wn.addChild(An),wn._starGlow=An',
+    find: "Hn.alpha=SYSTEM_STAR_CONFIG.GLOW.ALPHA,Hn.blendMode=\"add\",Hn.zIndex=10,pn.addChild(Hn),pn._starGlow=Hn",
     replace:
-      'An.alpha=Math.min(.05,SYSTEM_STAR_CONFIG.GLOW.ALPHA),An.blendMode="add",An.zIndex=10,wn.addChild(An),wn._starGlow=An',
+      "Hn.alpha=Math.min(.05,SYSTEM_STAR_CONFIG.GLOW.ALPHA),Hn.blendMode=\"add\",Hn.zIndex=10,pn.addChild(Hn),pn._starGlow=Hn",
   },
   {
     id: "detail-glow-base",
@@ -75,9 +75,9 @@ globalThis.__SA_PATCHES__ = [
   },
   {
     id: "detail-outer-glow",
-    find: 'Fs=Math.max(SYSTEM_DETAIL_CONFIG.STAR.GLOW_RADIUS*4,It*4.65)*Gr.glowRadiusMultiplier*Ar/Pr,Ns.scale.set(Fs,Fs*vt),Ns.tint=new Color(Dt).toNumber(),Vs=Math.min(.56,SYSTEM_DETAIL_CONFIG.STAR.GLOW_BASE_ALPHA*1.02*Gr.glowAlphaMultiplier),Ns.alpha=Vs*.72,Ns.blendMode="screen"',
+    find: "Xr=Math.max(SYSTEM_DETAIL_CONFIG.STAR.GLOW_RADIUS*4,It*4.65)*Mo.glowRadiusMultiplier*Di/yr,Hs.scale.set(Xr,Xr*vt),Hs.tint=new Color(Dt).toNumber(),Pr=Math.min(.56,SYSTEM_DETAIL_CONFIG.STAR.GLOW_BASE_ALPHA*1.02*Mo.glowAlphaMultiplier),Hs.alpha=Pr*.72,Hs.blendMode=\"screen\"",
     replace:
-      'Fs=Math.max(SYSTEM_DETAIL_CONFIG.STAR.GLOW_RADIUS*1.45,It*1.7)*Gr.glowRadiusMultiplier*Ar/Pr,Ns.scale.set(Fs,Fs*vt),Ns.tint=new Color(Dt).toNumber(),Vs=Math.min(.1,SYSTEM_DETAIL_CONFIG.STAR.GLOW_BASE_ALPHA*.22*Gr.glowAlphaMultiplier),Ns.alpha=Vs*.22,Ns.blendMode="screen"',
+      "Xr=Math.max(SYSTEM_DETAIL_CONFIG.STAR.GLOW_RADIUS*1.45,It*1.7)*Mo.glowRadiusMultiplier*Di/yr,Hs.scale.set(Xr,Xr*vt),Hs.tint=new Color(Dt).toNumber(),Pr=Math.min(.1,SYSTEM_DETAIL_CONFIG.STAR.GLOW_BASE_ALPHA*.22*Mo.glowAlphaMultiplier),Hs.alpha=Pr*.22,Hs.blendMode=\"screen\"",
   },
   {
     id: "culler-gate",
@@ -99,15 +99,15 @@ globalThis.__SA_PATCHES__ = [
   },
   {
     id: "systems-memo",
-    find: "const Hn=On.reduce((Ur,os)=>(Ur.set(os.address,{...os.data,key:os.address}),Ur),new Map)",
+    find: "const Gn=An.reduce((Gr,ls)=>(Gr.set(ls.address,{...ls.data,key:ls.address}),Gr),new Map)",
     replace:
-      'const Hn=typeof __saSysMemo=="function"?__saSysMemo():On.reduce((Ur,os)=>(Ur.set(os.address,{...os.data,key:os.address}),Ur),new Map)',
+      "const Gn=typeof __saSysMemo==\"function\"?__saSysMemo():An.reduce((Gr,ls)=>(Gr.set(ls.address,{...ls.data,key:ls.address}),Gr),new Map)",
   },
   {
     id: "regions-memo",
-    find: "regions:gn.flatMap(Ur=>Ur.data.regions.unsizedList)",
+    find: "regions:yn.flatMap(Gr=>Gr.data.regions.unsizedList)",
     replace:
-      'regions:typeof __saRegionMemo=="function"?__saRegionMemo():gn.flatMap(Ur=>Ur.data.regions.unsizedList)',
+      "regions:typeof __saRegionMemo==\"function\"?__saRegionMemo():yn.flatMap(Gr=>Gr.data.regions.unsizedList)",
   },
   {
     id: "post-attack-poll",
@@ -116,9 +116,9 @@ globalThis.__SA_PATCHES__ = [
   },
   {
     id: "pin-retint",
-    find: "if(!shouldRecreateStarSystemVisuals(Ft,os,Wr))continue;Ft.parent?.removeChild(Ft),Ft.destroy({children:!0}),Rt(Xr=>{const pi=new Map(Xr);return pi.delete(Pt),pi})}",
+    find: "if(!shouldRecreateStarSystemVisuals(Ft,ls,jr))continue;Ft.parent?.removeChild(Ft),Ft.destroy({children:!0}),Rt(pa=>{const go=new Map(pa);return go.delete(Pt),go})}",
     replace:
-      "if(!shouldRecreateStarSystemVisuals(Ft,os,Wr))continue;Ft._systemOwner=os;Ft._baseSize=Wr;const _saT=cachedColorNumber(getFactionColorFromOwner(Lt.owner));if(Ft._starGlow){Ft._starGlow.tint=_saT;Ft._starGlow.alpha=.04}if(Ft._starCore)Ft._starCore.tint=_saT;if(Ft._softHalo)Ft._softHalo.tint=_saT;continue}",
+      "if(!shouldRecreateStarSystemVisuals(Ft,ls,jr))continue;Ft._systemOwner=ls;Ft._baseSize=jr;const _saT=cachedColorNumber(getFactionColorFromOwner(Lt.owner));if(Ft._starGlow){Ft._starGlow.tint=_saT;Ft._starGlow.alpha=.04}if(Ft._starCore)Ft._starCore.tint=_saT;if(Ft._softHalo)Ft._softHalo.tint=_saT;continue}",
   },
   {
     id: "update-detail-faction",
@@ -134,27 +134,27 @@ globalThis.__SA_PATCHES__ = [
   },
   {
     id: "attack-sb-hook",
-    find: 'W1.afterStarbaseAttack(String(go.systemKey))',
+    find: "V0.afterStarbaseAttack(String(uo.systemKey))",
     replace:
-      'W1.afterStarbaseAttack(String(go.systemKey)),(()=>{try{window.__SA_ON_ATTACK__?.({kind:"STARBASE",systemKey:go.systemKey,systemName:go.systemName,x:Fg?.target?.x,y:Fg?.target?.y,sx:Fg?.source?.x,sy:Fg?.source?.y})}catch(_sa){}})()',
+      "V0.afterStarbaseAttack(String(uo.systemKey)),(()=>{try{window.__SA_ON_ATTACK__?.({kind:\"STARBASE\",systemKey:uo.systemKey,systemName:uo.systemName,x:op(String(uo.systemKey),\"starbase\")?.x,y:op(String(uo.systemKey),\"starbase\")?.y,sx:op(String(fu.fleetKey),\"fleet\")?.x,sy:op(String(fu.fleetKey),\"fleet\")?.y})}catch(_sa){}})()",
   },
   {
     id: "attack-fl-hook",
-    find: '$n(`Attack order submitted against ${go.fleetLabel}.`,"success",{presentation:"feed",title:"Fleet attack launched",targets:[lp(go)]}),console.log("✅ Attack fleet transaction sent")',
+    find: "On(`Attack order submitted against ${uo.fleetLabel}.`,\"success\",{presentation:\"feed\",title:\"Fleet attack launched\",targets:[Sp(uo)]}),console.log(\"✅ Attack fleet transaction sent\")",
     replace:
-      '$n(`Attack order submitted against ${go.fleetLabel}.`,"success",{presentation:"feed",title:"Fleet attack launched",targets:[lp(go)]}),console.log("✅ Attack fleet transaction sent"),(()=>{try{window.__SA_ON_ATTACK__?.({kind:"FLEET",fleetKey:String(go.fleetKey||go.fleetAccount?.address||""),fleetLabel:go.fleetLabel,x:hg?.target?.x,y:hg?.target?.y,sx:hg?.source?.x,sy:hg?.source?.y,preHp:Number(go.fleetAccount?.data?.hp),preSp:Number(go.fleetAccount?.data?.sp)})}catch(_sa){}})()',
+      "On(`Attack order submitted against ${uo.fleetLabel}.`,\"success\",{presentation:\"feed\",title:\"Fleet attack launched\",targets:[Sp(uo)]}),console.log(\"✅ Attack fleet transaction sent\"),(()=>{try{window.__SA_ON_ATTACK__?.({kind:\"FLEET\",fleetKey:String(uo.fleetKey||uo.fleetAccount?.address||\"\"),fleetLabel:uo.fleetLabel,x:op(String(uo.fleetKey||uo.fleetAccount?.address||\"\"),\"fleet\")?.x,y:op(String(uo.fleetKey||uo.fleetAccount?.address||\"\"),\"fleet\")?.y,sx:op(String(fu.fleetKey),\"fleet\")?.x,sy:op(String(fu.fleetKey),\"fleet\")?.y,preHp:Number(uo.fleetAccount?.data?.hp),preSp:Number(uo.fleetAccount?.data?.sp)})}catch(_sa){}})()",
   },
   {
     id: "attack-sb-error",
-    find: 'console.error("Failed to attack starbase:",Rh),$n(bp(Rh),"error",{title:"Starbase attack failed",targets:[sp(go)]})',
+    find: "console.error(\"Failed to attack starbase:\",bf),On(lv(bf),\"error\",{title:\"Starbase attack failed\",targets:[ip(uo)]})",
     replace:
-      'console.error("Failed to attack starbase:",Rh);const _errStr=String(Rh?.message||Rh?.stack||JSON.stringify(Rh)||"");if(/1367933016|0x51890058|Starbase contested/i.test(_errStr)){$n(`🛡️ ${go.systemName} starbase is CONTESTED and under protection/cooldown! (0x51890058)`,"error",{title:`Starbase Contested — ${go.systemName}`,targets:[sp(go)]})}else if(/Not within range/i.test(_errStr)){$n("📡 Fleet is not in range of that starbase. Idle on the target system first.","error",{title:"Out of range",targets:[sp(go)]})}else if(/npc_attacker_ownership_missing/i.test(_errStr)){$n("This hull has no Jorvik/Baron faction tag. Tag it on console.leeks.ink (Fleet tab) then retry.","error",{title:"No faction tag",targets:[sp(go)]})}else if(/0x51890057|faction_economics_config required/i.test(_errStr)){$n("Reload SAGE UI Fixes 2.3.9+ — capture needs FactionEconomicsConfig.","error",{title:"NPC capture accounts",targets:[sp(go)]})}else if(/1367933091|0x51890023|resource=ap/i.test(_errStr)){$n("⚡ Insufficient AP! Reload fleet AP or top up ammo.","error",{title:"AP Depleted",targets:[sp(go)]})}else{$n(bp(Rh),"error",{title:"Starbase attack failed",targets:[sp(go)]})}',
+      "console.error(\"Failed to attack starbase:\",bf);const _errStr=String(bf?.message||bf?.stack||JSON.stringify(bf)||\"\");if(/1367933016|0x51890058|Starbase contested/i.test(_errStr)){On(`🛡️ ${uo.systemName} starbase is CONTESTED and under protection/cooldown! (0x51890058)`,\"error\",{title:`Starbase Contested — ${uo.systemName}`,targets:[ip(uo)]})}else if(/Not within range/i.test(_errStr)){On(\"📡 Fleet is not in range of that starbase. Idle on the target system first.\",\"error\",{title:\"Out of range\",targets:[ip(uo)]})}else if(/npc_attacker_ownership_missing/i.test(_errStr)){On(\"This hull has no Jorvik/Baron faction tag. Tag it on console.leeks.ink (Fleet tab) then retry.\",\"error\",{title:\"No faction tag\",targets:[ip(uo)]})}else if(/0x51890057|faction_economics_config required/i.test(_errStr)){On(\"Reload SAGE UI Fixes 2.3.9+ — capture needs FactionEconomicsConfig.\",\"error\",{title:\"NPC capture accounts\",targets:[ip(uo)]})}else if(/1367933091|0x51890023|resource=ap/i.test(_errStr)){On(\"⚡ Insufficient AP! Reload fleet AP or top up ammo.\",\"error\",{title:\"AP Depleted\",targets:[ip(uo)]})}else{On(lv(bf),\"error\",{title:\"Starbase attack failed\",targets:[ip(uo)]})}",
   },
   {
     id: "attack-fl-error",
-    find: 'console.error("Failed to attack fleet:",Wf),$n(bp(Wf),"error",{title:"Fleet attack failed",targets:[lp(go)]})',
+    find: "console.error(\"Failed to attack fleet:\",Sf),On(lv(Sf),\"error\",{title:\"Fleet attack failed\",targets:[Sp(uo)]})",
     replace:
-      'console.error("Failed to attack fleet:",Wf);const _errStr=String(Wf?.message||Wf?.stack||JSON.stringify(Wf)||"");if(/1367933091|0x51890023|resource=ap/i.test(_errStr)){$n("⚡ Insufficient AP! Reload fleet AP or top up ammo.","error",{title:"AP Depleted",targets:[lp(go)]})}else if(/xp\\.rs:132|overflow/i.test(_errStr)){$n("⚠️ SAGE Program Panic (XP Overflow). Retrying attack may succeed.","error",{title:"Program Panic",targets:[lp(go)]})}else{$n(bp(Wf),"error",{title:"Fleet attack failed",targets:[lp(go)]})}',
+      "console.error(\"Failed to attack fleet:\",Sf);const _errStr=String(Sf?.message||Sf?.stack||JSON.stringify(Sf)||\"\");if(/1367933091|0x51890023|resource=ap/i.test(_errStr)){On(\"⚡ Insufficient AP! Reload fleet AP or top up ammo.\",\"error\",{title:\"AP Depleted\",targets:[Sp(uo)]})}else if(/xp\\.rs:132|overflow/i.test(_errStr)){On(\"⚠️ SAGE Program Panic (XP Overflow). Retrying attack may succeed.\",\"error\",{title:\"Program Panic\",targets:[Sp(uo)]})}else{On(lv(Sf),\"error\",{title:\"Fleet attack failed\",targets:[Sp(uo)]})}",
   },
   {
     id: "builder-pulse",
@@ -163,7 +163,7 @@ globalThis.__SA_PATCHES__ = [
   },
   {
     id: "builder-autoscroll",
-    find: 'Yn.recordProgrammaticScrollTarget(uu),Cc.scrollTo({top:uu,behavior:"smooth"})',
+    find: 'Yn.recordProgrammaticScrollTarget(nm),$c.scrollTo({top:nm,behavior:"smooth"})',
     replace: "0",
   },
   {
@@ -180,21 +180,21 @@ globalThis.__SA_PATCHES__ = [
   },
   {
     id: "map-control",
-    find: "{requestGoHome:um,requestOpenMovementPlanner:Rc,requestPanTo:dd,requestSelectFleet:Vd,publishVisibleFleetOrder:Yc,toggleFleetListRequest:Io,clearToggleFleetListRequest:uc}=useMapControl()",
+    find: "publishMapInteractionBlocked:An,visibleFleetOrder:pn",
     replace:
-      "{requestGoHome:um,requestOpenMovementPlanner:Rc,requestPanTo:dd,requestSelectFleet:Vd,publishVisibleFleetOrder:Yc,toggleFleetListRequest:Io,clearToggleFleetListRequest:uc,requestFocusSelectedFleet:_saFf,publishMapInteractionBlocked:_saBlk}=useMapControl(),_saMC=(window.__SA_MAP_CONTROL__={requestPanTo:dd,requestSelectFleet:Vd,requestOpenMovementPlanner:Rc,requestFocusSelectedFleet:_saFf,unblockMap:()=>_saBlk(!1)})",
+      "publishMapInteractionBlocked:An,_saMC:(window.__SA_MAP_CONTROL__={requestPanTo:ft,requestSelectFleet:Ct,unblockMap:()=>An(!1)}),visibleFleetOrder:pn",
   },
   {
     id: "derived-fleets",
-    find: "{pixiMapHoverEventsDisabled:Ft}=usePixiMapHover(),Dt=useRpcDataStore(),Ht=useDerivedFleetStore()",
+    find: "{pixiMapHoverEventsDisabled:Dt}=usePixiMapHover(),Ht=useRpcDataStore(),Kt=useDerivedFleetStore()",
     replace:
-      "{pixiMapHoverEventsDisabled:Ft}=usePixiMapHover(),Dt=useRpcDataStore(),Ht=useDerivedFleetStore(),_saDF=(window.__SA_DERIVED_FLEETS__=Ht)",
+      "{pixiMapHoverEventsDisabled:Dt}=usePixiMapHover(),Ht=useRpcDataStore(),Kt=useDerivedFleetStore(),_saDF=(window.__SA_DERIVED_FLEETS__=Kt)",
   },
   {
     id: "expose-combat-tab",
-    find: "[Wr,Xr]=createSignal(760),[pi,Or]=createSignal(360);let Wi,Xi,po;",
+    find: "[jr,pa]=createSignal(760),[go,Dr]=createSignal(360);let Pi,bo,Oo;",
     replace:
-      "[Wr,Xr]=createSignal(760),[pi,Or]=createSignal(360);window.__SA_COMBAT_TAB__={get:()=>Hn(),set:An,derived:()=>yh(),targets:()=>Ec()};let Wi,Xi,po;",
+      "[jr,pa]=createSignal(760),[go,Dr]=createSignal(360);window.__SA_COMBAT_TAB__={get:()=>Gn(),set:Hn,derived:()=>Xf(),targets:()=>Ec(),getTarget:()=>Jn(),selectTarget:t=>_r(t)};let Pi,bo,Oo;",
   },
   {
     // gameToPixel multiplies Y by COORDINATE_Y_SQUASH; the class inverse never divided it
@@ -207,9 +207,9 @@ globalThis.__SA_PATCHES__ = [
   },
   {
     id: "planner-dispatch",
-    find: "const Au=go=>{hd()||bc(hl=>movementPlannerReducer(hl,go))},gd={active:!1,type:\"warp\"",
+    find: "const rm=uo=>{Xd()||md(zs=>movementPlannerReducer(zs,uo))},ym={active:!1,type:\"warp\"",
     replace:
-      "const Au=go=>{hd()||bc(hl=>movementPlannerReducer(hl,go));try{window.__SA_PLANNER__=Object.assign(window.__SA_PLANNER__||{},{dispatch:Au,set:bc,getState:ed,openWing:function(keys,m){return bc({active:!0,destination:null,mapTargeting:!0,mode:m||\"warp\",origin:\"fleet\",searchQuery:\"\",selectedFleetKeys:(keys||[]).map(String)})},primeBatch:function(keys,m,dest){return bc({active:!0,destination:dest||null,mapTargeting:!dest,mode:m||\"warp\",origin:\"fleet\",searchQuery:\"\",selectedFleetKeys:(keys||[]).map(String)})}})}catch(_sa){}},gd={active:!1,type:\"warp\"",
+      "const rm=uo=>{Xd()||md(zs=>movementPlannerReducer(zs,uo));try{window.__SA_PLANNER__=Object.assign(window.__SA_PLANNER__||{},{dispatch:rm,set:md,getState:Hc,openWing:function(keys,m){return md({active:!0,destination:null,mapTargeting:!0,mode:m||\"warp\",origin:\"fleet\",searchQuery:\"\",selectedFleetKeys:(keys||[]).map(String)})},primeBatch:function(keys,m,dest){return md({active:!0,destination:dest||null,mapTargeting:!dest,mode:m||\"warp\",origin:\"fleet\",searchQuery:\"\",selectedFleetKeys:(keys||[]).map(String)})}})}catch(_sa){}},ym={active:!1,type:\"warp\"",
   },
   {
     id: "expose-inkchat",
@@ -219,9 +219,9 @@ globalThis.__SA_PATCHES__ = [
   },
   {
     id: "expose-inkdm",
-    find: "const An={conversations:nt,contacts:yn,openDM:Ut,",
+    find: "const Hn={conversations:nt,contacts:dn,openDM:Ut,",
     replace:
-      "const An=window.__SA_INK_DM__={conversations:nt,contacts:yn,openDM:Ut,",
+      "const Hn=window.__SA_INK_DM__={conversations:nt,contacts:dn,openDM:Ut,",
   },
   {
     id: "expose-identity",
@@ -237,33 +237,33 @@ globalThis.__SA_PATCHES__ = [
   },
   {
     id: "peek-fleets",
-    find: "peekFleets:()=>vt,subscribeFleetChanges:",
+    find: "peekFleets:()=>wt,subscribeFleetChanges:",
     replace:
-      "peekFleets:()=>(window.__SA_PEEK_FLEETS__=()=>vt,vt),subscribeFleetChanges:",
+      "peekFleets:()=>(window.__SA_PEEK_FLEETS__=()=>wt,wt),subscribeFleetChanges:",
   },
   {
     id: "player-profile",
-    find: 'hl&&console.log("[PixiMap] Player profile set:",hl)',
+    find: 'zs&&console.log("[PixiMap] Player profile set:",zs)',
     replace:
-      'hl&&(window.__SA_PLAYER_PROFILE__=hl,console.log("[PixiMap] Player profile set:",hl))',
+      'zs&&(window.__SA_PLAYER_PROFILE__=zs,console.log("[PixiMap] Player profile set:",zs))',
   },
   {
     id: "selected-fleet",
-    find: "mm=createMemo(()=>{const go=vs(),hl=kc();if(!go||!hl)return null;const gc=wt.getFleet(go);return gc?.exists?{...hl,fleetAccount:gc}:null})",
+    find: "Cm=createMemo(()=>{const uo=us(),zs=$d();if(!uo||!zs)return null;const lc=wt.getFleet(uo);return lc?.exists?{...zs,fleetAccount:lc}:null})",
     replace:
-      "mm=createMemo(()=>{const go=vs(),hl=kc();if(!go||!hl){try{window.__SA_SELECTED_FLEET__=null}catch{}return null}const gc=wt.getFleet(go);const _out=gc?.exists?{...hl,fleetAccount:gc}:null;try{window.__SA_SELECTED_FLEET__=_out?{key:String(go),label:String(hl.fleetLabel||_out.fleetLabel||go).slice(0,48)}:null}catch{}return _out})",
+      "Cm=createMemo(()=>{const uo=us(),zs=$d();if(!uo||!zs){try{window.__SA_SELECTED_FLEET__=null}catch{}return null}const lc=wt.getFleet(uo);const _out=lc?.exists?{...zs,fleetAccount:lc}:null;try{window.__SA_SELECTED_FLEET__=_out?{key:String(uo),label:String(zs.fleetLabel||_out.fleetLabel||uo).slice(0,48)}:null}catch{}return _out})",
   },
   {
     id: "planner-submit",
-    find: "Hi=async()=>{if(xd||hd())return;const go=ed(),hl=Object.freeze([...go.selectedFleetKeys])",
+    find: "Hl=async()=>{if(Yd||Xd())return;const uo=Hc(),zs=Object.freeze([...uo.selectedFleetKeys])",
     replace:
-      "Hi=async()=>{if(window.__SA_PLANNER__)window.__SA_PLANNER__.submit=Hi;if(xd||hd())return;const go=ed(),hl=Object.freeze([...go.selectedFleetKeys])",
+      "Hl=async()=>{if(window.__SA_PLANNER__)window.__SA_PLANNER__.submit=Hl;if(Yd||Xd())return;const uo=Hc(),zs=Object.freeze([...uo.selectedFleetKeys])",
   },
   {
     id: "map-follow",
-    find: "yf=()=>{const go=vs();if(go){if(us()===go){Ch();return}cg()&&(Bc=null,Hc=null,ns=null,Ys=null,bs(go),wh(Date.now()/1e3-Dt.ledgerTimeDrift()))}}",
+    find: "Zh=()=>{const uo=us();if(uo){if($s()===uo){vh();return}Rg()&&(pc=null,Id=null,Zl=null,gc=null,_l(uo),Bh(Date.now()/1e3-Ht.ledgerTimeDrift()))}}",
     replace:
-      "yf=()=>{const go=vs();if(go){if(us()===go){Ch();return}cg()&&(Bc=null,Hc=null,ns=null,Ys=null,bs(go),wh(Date.now()/1e3-Dt.ledgerTimeDrift()))}},_saMF=(window.__SA_MAP_FOLLOW__={stop:Ch,toggle:yf,key:()=>us()})",
+      "Zh=()=>{const uo=us();if(uo){if($s()===uo){vh();return}Rg()&&(pc=null,Id=null,Zl=null,gc=null,_l(uo),Bh(Date.now()/1e3-Ht.ledgerTimeDrift()))}},_saMF=(window.__SA_MAP_FOLLOW__={stop:vh,toggle:Zh,key:()=>us()})",
   },
   {
     id: "map-viewport",
@@ -277,9 +277,15 @@ globalThis.__SA_PATCHES__ = [
   },
   {
     id: "expose-starbase-menu",
-    find: "openStarbaseMenu:Yt,starbaseMenuOpenRequest:wt",
+    find: "openStarbaseMenu:Ct,setIsStarbaseMenuOpen:$t}=useStarbaseMenu()",
     replace:
-      "openStarbaseMenu:(window.__SA_STARBASE_MENU__={open:Yt,systemId:()=>vt}).open,starbaseMenuOpenRequest:wt",
+      "openStarbaseMenu:Ct,_saSB1=(window.__SA_STARBASE_MENU__=Object.assign(window.__SA_STARBASE_MENU__||{},{open:Ct})),setIsStarbaseMenuOpen:$t}=useStarbaseMenu()",
+  },
+  {
+    id: "expose-starbase-menu-sysid",
+    find: "starbaseMenuOpenRequest:mt,clearStarbaseMenuOpenRequest:ft}=useStarbaseMenu()",
+    replace:
+      "starbaseMenuOpenRequest:mt,clearStarbaseMenuOpenRequest:ft,_saSB2=(window.__SA_STARBASE_MENU__=Object.assign(window.__SA_STARBASE_MENU__||{},{systemId:()=>nt}))}=useStarbaseMenu()",
   },
   {
     id: "keybind-actions-category",
@@ -295,8 +301,8 @@ globalThis.__SA_PATCHES__ = [
   },
   {
     id: "keybind-dispatch-fire",
-    find: 'Zi&&($s.preventDefault(),lr(Zi))};window.addEventListener("keydown",Ss)',
+    find: 'os&&(qa.preventDefault(),Di(os))};window.addEventListener("keydown",Po)',
     replace:
-      'Zi&&($s.preventDefault(),lr(Zi),(()=>{try{window.__SA_ACTION_BAR__?.fire(Zi)}catch(_sa){}})())};window.__SA_KEYBIND_HOOK__=!0;window.addEventListener("keydown",Ss)',
+      'os&&(qa.preventDefault(),Di(os),(()=>{try{window.__SA_ACTION_BAR__?.fire(os)}catch(_sa){}})())};window.__SA_KEYBIND_HOOK__=!0;window.addEventListener("keydown",Po)',
   },
 ];

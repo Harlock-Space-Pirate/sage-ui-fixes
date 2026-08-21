@@ -20,6 +20,13 @@ async function block(entryUrl) {
 }
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg?.type === "sa-off") {
+    chrome.declarativeNetRequest
+      .updateDynamicRules({ removeRuleIds: [RULE] })
+      .then(() => sendResponse({ ok: true }))
+      .catch((e) => sendResponse({ ok: false, error: String(e) }));
+    return true;
+  }
   if (msg?.type === "sa-fixes-set-entry-block") {
     block(msg.entryUrl)
       .then(() => sendResponse({ ok: true }))

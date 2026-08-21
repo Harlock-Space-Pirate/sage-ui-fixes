@@ -4,6 +4,7 @@
  * exposed, reopen CRAFTING / Bays on the current station so you don't hunt the map.
  */
 (function () {
+  if (localStorage.getItem("saEnabled") !== "1") return;
   function menu() {
     return window.__SA_STARBASE_MENU__ || null;
   }
