@@ -15,12 +15,21 @@ function slog(kind, emoji, msg, extra) {
   const style = kind === "ok" ? C.ok : kind === "warn" ? C.warn : kind === "err" ? C.err : kind === "dim" ? C.dim : C.info;
   const fn = kind === "err" ? console.error : kind === "warn" ? console.warn : console.log;
   const plain = `${emoji} ${msg}`;
+  // chrome://extensions shows console.error's first arg as the error title — no %c there
+  if (kind === "err") {
+    const detail = extra instanceof Error ? extra.message : extra !== undefined ? extra : "";
+    if (detail) fn(`${TAG} ${plain}: ${detail}`, extra);
+    else fn(`${TAG} ${plain}`);
+    return;
+  }
   if (extra !== undefined) fn(`%c ${TAG} %c ${plain}`, C.badge, style, extra);
   else fn(`%c ${TAG} %c ${plain}`, C.badge, style);
 }
 
-const msg = (m) =>
-  new Promise((resolve) => {
+const TRANSIENT_MSG = /message channel closed|Receiving end does not exist|asynchronous response/i;
+
+function msgOnce(m) {
+  return new Promise((resolve) => {
     try {
       chrome.runtime.sendMessage(m, (r) =>
         resolve(chrome.runtime.lastError ? { ok: false, error: chrome.runtime.lastError.message } : r || { ok: false }),
@@ -29,6 +38,35 @@ const msg = (m) =>
       resolve({ ok: false, error: String(e) });
     }
   });
+}
+
+async function msg(m, tries = 4) {
+  let last = { ok: false, error: "no attempt" };
+  for (let i = 0; i < tries; i++) {
+    last = await msgOnce(m);
+    if (last?.ok) return last;
+    if (!TRANSIENT_MSG.test(String(last?.error || ""))) return last;
+    await new Promise((r) => setTimeout(r, 40 * (i + 1)));
+  }
+  return last;
+}
+
+function waitPageMessage(pred, ms, label) {
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => {
+      window.removeEventListener("message", on);
+      reject(new Error(label));
+    }, ms);
+    function on(ev) {
+      if (ev.source !== window) return;
+      if (!pred(ev.data)) return;
+      window.removeEventListener("message", on);
+      clearTimeout(t);
+      resolve(ev.data);
+    }
+    window.addEventListener("message", on);
+  });
+}
 
 function killStock(node) {
   if (!node || node.nodeType !== 1 || node.tagName !== "SCRIPT" || node.dataset?.saFixes === "patched") return;
@@ -147,13 +185,19 @@ console.log(
   "background:#00e5ff22;color:#00e5ff;padding:2px 8px;font-weight:800;font-family:ui-monospace,Menlo,monospace;border-radius:0 4px 4px 0",
 );
 (async () => {
+  let bootPort = null;
   try {
     if (localStorage.getItem("saEnabled") !== "1") {
-      console.log(`%c ${TAG} %c OFF — enable in the popup, then reload`, C.badge, C.dim);
+      slog("dim", "⏻", "OFF — enable in the popup, then reload");
       // leftover dynamic block rule from an ON session would blank the stock game
-      await msg({ type: "sa-off" });
+      const off = await msg({ type: "sa-off" });
+      if (!off?.ok) slog("warn", "⚠️", "could not clear leftover entry block", off?.error);
       return;
     }
+    try {
+      bootPort = chrome.runtime.connect({ name: "sa-boot" });
+    } catch (_) {}
+    await msg({ type: "sa-ping" });
     slog("info", "🚀", "v2 patch engine online — intercepting SAGE entry");
     neutralize();
     let entry = await entryUrl();
@@ -166,7 +210,8 @@ console.log(
     const entryName = String(entry).split("/").pop() || entry;
     slog("info", "📦", `entry found → ${entryName}`);
 
-    await msg({ type: "sa-fixes-set-entry-block", entryUrl: entry });
+    const blocked = await msg({ type: "sa-fixes-set-entry-block", entryUrl: entry });
+    if (!blocked?.ok) throw new Error(blocked?.error || "entry block failed");
     slog("dim", "🛡️", "stock entry blocked (DNR)");
 
     // hashed entry URL is immutable (30d public cache); HTML is no-store so new deploys show up as new hashes
@@ -191,11 +236,30 @@ console.log(
     }
     neutralize();
 
-    const r = await msg({ type: "sa-fixes-inject-module", code, entryUrl: entry });
+    // Isolated → MAIN postMessage for the bundle; SW only gets a nonce (see background.js).
+    const nonce =
+      (globalThis.crypto && crypto.randomUUID && crypto.randomUUID()) || `n${Date.now()}-${Math.random()}`;
+    const ready = waitPageMessage((d) => d && d.__saFixes === "ready" && d.nonce === nonce, 12000, "inject bootstrap timeout");
+    const injectWait = msg({ type: "sa-fixes-inject-module", nonce, entryUrl: entry }, 1);
+    const first = await Promise.race([ready.then(() => ({ kind: "ready" })), injectWait.then((r) => ({ kind: "inject", r }))]);
+    if (first.kind === "inject") {
+      if (!first.r?.ok) throw new Error(first.r?.error || "inject failed");
+      if (first.r?.skipped) {
+        slog("warn", "♻️", "module already booted — skipped re-inject");
+        return;
+      }
+    } else {
+      window.postMessage({ __saFixes: "module", nonce, code }, "*");
+    }
+    const r = first.kind === "inject" ? first.r : await injectWait;
     if (!r?.ok) throw new Error(r?.error || "inject failed");
     if (r?.skipped) slog("warn", "♻️", "module already booted — skipped re-inject");
-    else slog("ok", "✅", "patched MAIN module live — SAGE 0.0.371 + LEEKS v2");
+    else slog("ok", "✅", "patched MAIN module live");
   } catch (e) {
     slog("err", "💥", "patch boot failed", e);
+  } finally {
+    try {
+      bootPort?.disconnect();
+    } catch (_) {}
   }
 })();

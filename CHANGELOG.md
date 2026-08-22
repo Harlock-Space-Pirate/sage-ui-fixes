@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.31
+
+- Fix extension Errors page: patched bundle no longer travels isolated → service worker → MAIN (that 7.6 MB clone killed the SW mid-`sendResponse`). MAIN now pulls the source via `postMessage`; SW only gets a nonce. Retry transient MV3 channel errors; keep-alive port during boot; `console.error` titles are plain text.
+
 ## 2.5.30
 
 - Pinned dock (`#sa-tgt-dock`) hides itself while empty — no dead "PINNED 0" box on screen; reappears on first pin.

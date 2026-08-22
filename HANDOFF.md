@@ -6,7 +6,7 @@ LEEKS / Produce Bandit ltd. Next session: start here, then `CHANGELOG.md`.
 
 | | |
 |--|--|
-| **Version** | **2.5.30** on `main` |
+| **Version** | **2.5.31** on `main` |
 | **Repo** | https://github.com/Harlock-Space-Pirate/sage-ui-fixes (**public**) |
 | **Testers** | https://github.com/Harlock-Space-Pirate/sage-ui-fixes/releases/latest — zip only, not Source code |
 | **Issues** | https://github.com/Harlock-Space-Pirate/sage-ui-fixes/issues/new/choose |
