@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "SAGE UI Fixes",
-  "version": "2.5.33",
+  "version": "2.5.41",
   "description": "Client UI fixes for sage.staratlas.com 0.0.416 (map, combat, builder, ownership). LEEKS / Produce Bandit ltd",
   "author": "LEEKS",
   "icons": {
@@ -13,7 +13,8 @@
     "declarativeNetRequestWithHostAccess"
   ],
   "host_permissions": [
-    "https://sage.staratlas.com/*"
+    "https://sage.staratlas.com/*",
+    "https://solana.fm/*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -54,6 +55,16 @@
       ],
       "run_at": "document_idle",
       "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://solana.fm/*"
+      ],
+      "js": [
+        "solana-fm.js"
+      ],
+      "run_at": "document_start",
+      "world": "ISOLATED"
     }
   ],
   "action": {

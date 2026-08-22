@@ -1,5 +1,38 @@
 # Changelog
 
+## 2.5.41
+
+- Solana.fm: `?cluster=custom-rpc1.z.ink` does not stick unless that slug is already in `localStorage["explorer-settings"].customRPCList` — otherwise the explorer rewrites to `mainnet-alpha`. A `document_start` script on `solana.fm` now inserts the Zink RPC (`https://rpc1.z.ink`) and sets `currentRPC` when the combat-log ↗ link is opened.
+
+## 2.5.40
+
+- Combat log: ↗ opens the tx on Solana.fm (`cluster=custom-rpc1.z.ink`); ⧉ copies only the signature. Font A+/A− actually scales rows (the `font:` shorthand had pinned 11px over `--sa-cl-fs`).
+
+## 2.5.39
+
+- Combat log ⧉ copies a Solana.fm explorer URL with Zink custom cluster: `https://solana.fm/tx/<sig>?cluster=custom-rpc1.z.ink`. If there is no signature (RPC error only), it still copies the error text.
+
+## 2.5.38
+
+- Combat icons: draw shield/heart/miss as real SVG nodes (innerHTML was stripped by the page). Fixed 22px size + fill so they show on the map floats and in the log.
+
+## 2.5.37
+
+- Combat wording: drop "PROTECTED". Shield-only drop = **ABSORBED** (cyan shield −SP + heart −HP). No drop after confirm = **MISS**. Hull drop = **HIT**.
+
+## 2.5.36
+
+- HIT floats and combat-log rows show **both** damage kinds: cyan shield −SP and red heart −HP (0 if that pool didn't drop).
+
+## 2.5.35
+
+- Combat floats: drop "RESOLVING" / "FIRE" (looked like your ship was shooting while the starbase returned fire). Outcome sits on the **target** only: `HIT −300 HP`, `MISS`, or `PROTECTED` when a starbase soaks the shot. Combat log: "Pendul protected — no damage".
+
+## 2.5.34
+
+- Starbase attacks no longer leave a stuck **Pendul / Waiting for scan…** TARGET chip (that HUD peeks fleet HP; a starbase key never matches). Hide it when there are no bars — official combat card already has HP. HIT/MISS floats stay.
+- Minimized combat/comms chip (and the open log) cannot be dragged off-screen; minimize snaps it back into the viewport.
+
 ## 2.5.33
 
 - Starbase attack: extra NPC capture accounts (`attacker_fleet_ownership` etc.) are injected **only** for Jorvik/Baron-tagged hulls (`npcFactionId` 4/5). Player fleets use the stock account set — the previous always-on inject passed a 0-byte PDA and failed `AccountDataTooSmall`. Failures show a short readable toast, not the raw RPC dump; ⧉ in the combat log copies the technical error/tx.

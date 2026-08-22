@@ -1,8 +1,8 @@
 /** Combat resolve + map floats + target HP/SP. MAIN. LEEKS / Produce Bandit ltd
  *
- * Hit/miss is NOT known before the chain. We show RESOLVING on send, then poll
- * the live fleet store (__SA_PEEK_FLEETS__) for HP/SP. HIT = drop, MISS = timeout,
- * FLEE = target started warp/subwarp. Official "HP CRIT" means low HP, not a crit hit.
+ * Hit/miss is NOT known before the chain. Log "is attacking…" on send, then poll
+ * HP/SP. HIT = hull drop, ABSORBED = shield-only drop, MISS = no drop,
+ * FLEE = target started warp/subwarp. Floats sit on the target only.
  */
 (function () {
   if (localStorage.getItem("saEnabled") !== "1") return;
@@ -132,10 +132,13 @@
   }
 
   function ensureAnim() {
-    if (document.getElementById("sa-c-style")) return;
-    const s = document.createElement("style");
-    s.id = "sa-c-style";
-    s.textContent = [
+    let s = document.getElementById("sa-c-style");
+    if (!s) {
+      s = document.createElement("style");
+      s.id = "sa-c-style";
+      (document.head || document.documentElement).appendChild(s);
+    }
+    const css = [
       "@keyframes saFloatUp{0%{opacity:0;transform:translate(-50%,0) scale(.6)}",
       "18%{opacity:1;transform:translate(-50%,-18px) scale(1.2)}",
       "70%{opacity:1;transform:translate(-50%,-42px) scale(1)}",
@@ -161,28 +164,69 @@
       "#sa-target-hud.crit .sa-th-name{color:#ff4960}",
       "#sa-target-hud .sa-th-rs{position:absolute;right:0;bottom:0;width:12px;height:12px;cursor:nwse-resize;",
       "background:linear-gradient(135deg,transparent 50%,#ffbe4d 50%)}",
+      ".sa-c-float{display:flex;flex-direction:column;align-items:center;gap:3px;pointer-events:none;",
+      "text-shadow:0 0 8px #000,2px 2px 0 #000;font-family:Orbitron,ui-monospace,monospace;font-weight:900;",
+      "letter-spacing:.04em;white-space:nowrap}",
+      ".sa-c-float .row{display:flex;align-items:center;gap:6px;line-height:1}",
+      ".sa-c-float .row.hp{color:#f87171}",
+      ".sa-c-float .row.sp{color:#32feff}",
+      ".sa-c-float .row svg{display:block;width:22px;height:22px;flex:0 0 22px;overflow:visible;",
+      "filter:drop-shadow(0 1px 2px #000)}",
     ].join("");
-    (document.head || document.documentElement).appendChild(s);
+    if (s.textContent !== css) s.textContent = css;
   }
 
-  function spawnFloat(pt, txt, col, scale) {
-    if (!pt || !txt) return;
+  const PATH_HEART =
+    "M12.1 21.35S2.4 14.2 2.4 8.7C2.4 5.6 4.8 3.5 7.7 3.5c1.7 0 3.2.8 4.4 2.2C13.3 4.3 14.8 3.5 16.5 3.5c2.9 0 5.3 2.1 5.3 5.2 0 5.5-9.7 12.65-9.7 12.65z";
+  const PATH_SHIELD =
+    "M12 2.2l8.2 3.2v6.4c0 5.5-3.6 10.5-8.2 12-4.6-1.5-8.2-6.5-8.2-12V5.4L12 2.2z";
+  const PATH_MISS =
+    "M5.5 5.5l13 13M18.5 5.5l-13 13";
+
+  function svgIcon(d, color, size, stroke) {
+    const ns = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(ns, "svg");
+    const px = String(size || 22);
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("width", px);
+    svg.setAttribute("height", px);
+    svg.style.display = "block";
+    svg.style.width = px + "px";
+    svg.style.height = px + "px";
+    svg.style.flex = "0 0 " + px + "px";
+    const p = document.createElementNS(ns, "path");
+    p.setAttribute("d", d);
+    if (stroke) {
+      p.setAttribute("fill", "none");
+      p.setAttribute("stroke", color);
+      p.setAttribute("stroke-width", "3");
+      p.setAttribute("stroke-linecap", "round");
+    } else {
+      p.setAttribute("fill", color);
+    }
+    svg.appendChild(p);
+    return svg;
+  }
+
+  function spawnFloat(pt, inner, col, scale) {
+    if (!pt || inner == null || inner === "") return;
     ensureAnim();
     const pop = document.createElement("div");
-    pop.textContent = txt;
-    pop.style.cssText =
-      "position:fixed;left:" +
-      pt.x +
-      "px;top:" +
-      (pt.y - 24) +
-      "px;transform:translate(-50%,-50%) scale(" +
-      (scale || 1) +
-      ");font:900 " +
-      (scale > 1 ? 22 : 18) +
-      "px Orbitron,monospace;letter-spacing:.06em;color:" +
-      col +
-      ";text-shadow:0 0 8px #000,2px 2px 0 #000;pointer-events:none;z-index:999999;" +
-      "animation:saFloatUp 1.35s cubic-bezier(.2,.8,.2,1) forwards";
+    pop.className = "sa-c-float";
+    if (typeof inner === "string") {
+      pop.textContent = inner;
+      pop.style.color = col || "#f4ecd0";
+    } else {
+      pop.appendChild(inner);
+    }
+    const fs = scale > 1 ? 22 : 18;
+    pop.style.position = "fixed";
+    pop.style.left = pt.x + "px";
+    pop.style.top = pt.y - 24 + "px";
+    pop.style.transform = "translate(-50%,-50%) scale(" + (scale || 1) + ")";
+    pop.style.fontSize = fs + "px";
+    pop.style.zIndex = "2147483646";
+    pop.style.animation = "saFloatUp 1.55s cubic-bezier(.2,.8,.2,1) forwards";
     document.body.appendChild(pop);
     setTimeout(() => {
       try {
@@ -190,20 +234,49 @@
       } catch {
         /* ignore */
       }
-    }, 1400);
+    }, 1600);
   }
 
-  function floats(o, tgtTxt, srcTxt, col) {
+  function dmgNode(hp, sp) {
+    const box = document.createElement("div");
+    box.style.cssText = "display:flex;flex-direction:column;align-items:center;gap:4px";
+    const mk = (color, d, n) => {
+      const row = document.createElement("div");
+      row.className = "row";
+      row.style.cssText =
+        "display:flex;align-items:center;gap:6px;color:" + color + ";font:900 22px Orbitron,sans-serif";
+      row.appendChild(svgIcon(d, color, 22));
+      const lab = document.createElement("span");
+      lab.textContent = "−" + Math.max(0, Math.round(Number(n) || 0)).toLocaleString();
+      row.appendChild(lab);
+      box.appendChild(row);
+    };
+    mk("#32feff", PATH_SHIELD, sp);
+    mk("#f87171", PATH_HEART, hp);
+    return box;
+  }
+
+  function missNode() {
+    const row = document.createElement("div");
+    row.style.cssText =
+      "display:flex;align-items:center;gap:6px;color:#9ca3af;font:900 20px Orbitron,sans-serif";
+    row.appendChild(svgIcon(PATH_MISS, "#9ca3af", 20, true));
+    const lab = document.createElement("span");
+    lab.textContent = "MISS";
+    row.appendChild(lab);
+    return row;
+  }
+
+  function floats(o, tgtInner, srcTxt, col) {
     if (!floatsOn()) return;
     const tgt = toClient(o.x, o.y);
     const src = toClient(o.sx, o.sy);
-    if (tgt || src) {
-      spawnFloat(tgt, tgtTxt, col, 1.15);
-      spawnFloat(src, srcTxt, col === "#f87171" ? "#67e8f9" : col, 0.95);
-    } else {
+    if (tgtInner && tgt) spawnFloat(tgt, tgtInner, col, 1.15);
+    if (srcTxt && src) spawnFloat(src, srcTxt, col, 0.95);
+    if (tgtInner && !tgt && !src) {
       const vw = window.innerWidth || 800;
       const vh = window.innerHeight || 600;
-      spawnFloat({ x: vw / 2, y: vh * 0.32 }, tgtTxt, col, 1);
+      spawnFloat({ x: vw / 2, y: vh * 0.32 }, tgtInner, col, 1);
     }
   }
 
@@ -332,18 +405,45 @@
       el.setAttribute("hidden", "");
       return;
     }
-    const f = t.key ? peekOne(t.key) : null;
-    const hp = f ? fleetHp(f) : NaN;
-    const sp = f ? fleetSp(f) : NaN;
-    const mhp = f ? fleetMaxHp(f) : NaN;
-    const msp = f ? fleetMaxSp(f) : NaN;
+    let hp = NaN;
+    let sp = NaN;
+    let mhp = NaN;
+    let msp = NaN;
+    if (t.kind === "STARBASE") {
+      try {
+        const fn = window.__SA_NEARBY_STARBASES__;
+        const all = typeof fn === "function" ? fn() : fn;
+        const want = String(t.key || t.label || "");
+        if (Array.isArray(all) && want) {
+          for (let i = 0; i < all.length; i++) {
+            const s = all[i];
+            if (!s) continue;
+            if (
+              String(s.systemKey || s.key || s.address || "") !== want &&
+              String(s.systemName || s.name || s.label || "") !== want
+            )
+              continue;
+            hp = num(s.hp ?? (s.data && s.data.hp) ?? s.starbaseHp);
+            sp = num(s.sp ?? (s.data && s.data.sp) ?? s.starbaseSp);
+            mhp = num(s.maxHp ?? (s.data && s.data.maxHp));
+            msp = num(s.maxSp ?? (s.data && s.data.maxSp));
+            break;
+          }
+        }
+      } catch {
+        /* ignore */
+      }
+    } else {
+      const f = t.key ? peekOne(t.key) : null;
+      hp = f ? fleetHp(f) : NaN;
+      sp = f ? fleetSp(f) : NaN;
+      mhp = f ? fleetMaxHp(f) : NaN;
+      msp = f ? fleetMaxSp(f) : NaN;
+    }
+    // Official combat card already has HP/SP. Don't park a "Waiting for scan…" chip
+    // for starbases (Pendul etc.) whose key is not in the fleet peek store.
     if (!Number.isFinite(hp) && !Number.isFinite(sp)) {
-      body.innerHTML =
-        '<div class="sa-th-name">' +
-        String(t.label || "TARGET") +
-        "</div>" +
-        '<div class="sa-th-n" style="opacity:.55">Waiting for scan…</div>';
-      el.removeAttribute("hidden");
+      el.setAttribute("hidden", "");
       return;
     }
     const hpMax = Number.isFinite(mhp) && mhp > 0 ? mhp : Number.isFinite(hp) ? Math.max(hp, 1) : 1;
@@ -393,7 +493,6 @@
     if (!Number.isFinite(preHp) && o.fleetKey) preHp = fleetHp(peekOne(o.fleetKey));
     if (!Number.isFinite(preSp) && o.fleetKey) preSp = fleetSp(peekOne(o.fleetKey));
     log({ type: "PENDING", ...base, damage: 0 });
-    floats(base, "RESOLVING", "FIRE", "#ffbe4d");
 
     const steps = base.kind === "STARBASE" ? SB_STEPS : FLEET_STEPS;
     let peakHp = Number.isFinite(preHp) ? preHp : NaN;
@@ -402,6 +501,7 @@
     let troughSp = peakSp;
     let flee = false;
     let prev = 0;
+    let hitAt = -1;
 
     for (let i = 0; i < steps.length; i++) {
       const t = steps[i];
@@ -430,36 +530,44 @@
       }
       const dHp = Number.isFinite(peakHp) && Number.isFinite(troughHp) ? Math.max(0, peakHp - troughHp) : 0;
       const dSp = Number.isFinite(peakSp) && Number.isFinite(troughSp) ? Math.max(0, peakSp - troughSp) : 0;
-      if (dHp > 0 || dSp > 0) break;
+      if (dHp > 0 || dSp > 0) {
+        if (hitAt < 0) hitAt = i;
+        else break;
+      }
       paintHud();
     }
 
     const dHp = Number.isFinite(peakHp) && Number.isFinite(troughHp) ? Math.max(0, peakHp - troughHp) : 0;
     const dSp = Number.isFinite(peakSp) && Number.isFinite(troughSp) ? Math.max(0, peakSp - troughSp) : 0;
+    // SP-only drop = shields ate it (ABSORBED). No drop = MISS. Never invent "PROTECTED".
     let type = "MISS";
-    let dmg = 0;
-    let kind = "HP";
     if (flee) type = "FLEE";
-    else if (dHp > 0) {
-      type = "HIT";
-      dmg = dHp;
-      kind = "HP";
-    } else if (dSp > 0) {
-      type = "HIT";
-      dmg = dSp;
-      kind = "SP";
-    }
-    log({ type, ...base, damage: dmg, damageKind: kind });
-    const col = type === "HIT" ? "#f87171" : type === "FLEE" ? "#fbbf24" : "#9ca3af";
-    const tgtTxt =
-      type === "HIT"
-        ? "-" + dmg.toLocaleString() + " " + kind
-        : type === "FLEE"
-          ? "FLED"
-          : "MISS";
-    const srcTxt = type === "HIT" ? "HIT!" : type === "FLEE" ? "FLED" : "MISS";
-    floats(base, tgtTxt, srcTxt, col);
+    else if (dHp > 0) type = "HIT";
+    else if (dSp > 0) type = "ABSORBED";
+    const kind = dHp > 0 && dSp > 0 ? "HP+SP" : dHp > 0 ? "HP" : dSp > 0 ? "SP" : "HP";
+    log({
+      type,
+      ...base,
+      damage: dHp || dSp,
+      damageKind: kind,
+      damageHp: dHp,
+      damageSp: dSp,
+    });
+    const col =
+      type === "HIT" ? "#f87171" : type === "ABSORBED" ? "#32feff" : type === "FLEE" ? "#fbbf24" : "#9ca3af";
+    let tgtInner = missNode();
+    if (type === "HIT" || type === "ABSORBED") tgtInner = dmgNode(dHp, dSp);
+    else if (type === "FLEE") tgtInner = "FLED";
+    floats(base, tgtInner, "", col);
     paintHud();
+    if (base.kind === "STARBASE") {
+      window.setTimeout(() => {
+        if (lastTarget && lastTarget.key === String(base.fleetKey || "")) {
+          lastTarget = null;
+          paintHud();
+        }
+      }, 2500);
+    }
   }
 
   window.__SA_RESOLVE_COMBAT__ = resolve;

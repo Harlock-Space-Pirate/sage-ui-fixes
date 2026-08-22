@@ -63,8 +63,8 @@
     "border:1px solid rgba(255,190,77,.28);background:#141008;color:#c8b88a;",
     "font:700 11px Orbitron,sans-serif;letter-spacing:.1em;text-transform:uppercase;border-radius:3px}",
     "#sa-combat-log-box .sa-cl-sub button.on{color:#0a0e1a;background:#ffbe4d;border-color:#ffbe4d}",
-    "#sa-combat-log-box .sa-cl-row,#sa-combat-log-box .sa-cl-msg,#sa-combat-log-box .sa-cl-empty{",
-    "font-size:var(--sa-cl-fs,11px)}",
+    "#sa-combat-log-box .sa-cl-row,#sa-combat-log-box .sa-cl-msg,#sa-combat-log-box .sa-cl-empty,",
+    "#sa-combat-log-box .sa-cl-msgs{font-size:var(--sa-cl-fs,11px)}",
     "#sa-combat-log-box .sa-cl-chip{appearance:none;cursor:pointer;padding:3px 7px;border-radius:99px;",
     "border:1px solid rgba(255,255,255,.16);background:rgba(0,0,0,.35);color:#e8d9a8;",
     "font:700 8px Orbitron,sans-serif;letter-spacing:.06em;text-transform:uppercase}",
@@ -72,7 +72,8 @@
     "#sa-combat-log-box .sa-cl-chip.dim{opacity:.4}",
     "#sa-combat-log-box .sa-cl-msgs{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;gap:4px}",
     "#sa-combat-log-box .sa-cl-msg{padding:3px 2px 4px;border-bottom:1px solid rgba(255,190,77,.08);",
-    "font:600 11px/1.35 ui-sans-serif,system-ui,sans-serif;color:rgba(232,217,168,.9);cursor:context-menu}",
+    "font-weight:600;line-height:1.35;font-family:ui-sans-serif,system-ui,sans-serif;",
+    "color:rgba(232,217,168,.9);cursor:context-menu}",
     "#sa-combat-log-box .sa-cl-msg .who{color:#7ac8ffe5;font:700 9px Orbitron,sans-serif;letter-spacing:.04em}",
     "#sa-combat-log-box .sa-cl-msg .when{color:rgba(200,184,138,.4);font:600 9px ui-monospace,Menlo,monospace;margin-left:6px}",
     "#sa-combat-log-box .sa-cl-msg .sa-fac{display:inline-flex;align-items:center;justify-content:center;",
@@ -98,11 +99,18 @@
     "#sa-combat-log-box .sa-cl-emo b{display:block;color:#ffbe4d;font:700 8px Orbitron,sans-serif;margin:4px 0 2px}",
     "#sa-combat-log-box .sa-cl-emo i{cursor:pointer;font-style:normal;font-size:16px;padding:2px}",
     "#sa-combat-log-box .sa-cl-row{line-height:1.4;border-bottom:1px solid rgba(255,190,77,.1);padding:4px 2px 6px;",
-    "font:600 11px/1.4 ui-sans-serif,system-ui,sans-serif;color:rgba(232,217,168,.85);overflow-wrap:anywhere}",
-    "#sa-combat-log-box .sa-cl-row .t{color:rgba(200,184,138,.45);font:600 10px ui-monospace,Menlo,monospace}",
-    "#sa-combat-log-box .sa-cl-row .sa-cl-copy{appearance:none;margin-left:6px;padding:0 5px;border:1px solid rgba(255,190,77,.35);",
-    "background:transparent;color:#ffbe4d;cursor:pointer;font:700 10px ui-sans-serif,sans-serif;vertical-align:middle}",
-    "#sa-combat-log-box .sa-cl-row .sa-cl-copy:hover{background:rgba(255,190,77,.12)}",
+    "font-weight:600;font-family:ui-sans-serif,system-ui,sans-serif;color:rgba(232,217,168,.85);overflow-wrap:anywhere}",
+    "#sa-combat-log-box .sa-cl-row .t{color:rgba(200,184,138,.45);font:600 .9em ui-monospace,Menlo,monospace}",
+    "#sa-combat-log-box .sa-cl-acts{display:inline-flex;align-items:center;gap:3px;margin-left:6px;vertical-align:middle}",
+    "#sa-combat-log-box .sa-cl-copy{appearance:none;display:inline-flex;align-items:center;justify-content:center;",
+    "width:20px;height:20px;padding:0;border:1px solid rgba(255,190,77,.35);background:transparent;color:#ffbe4d;cursor:pointer}",
+    "#sa-combat-log-box .sa-cl-copy:hover{background:rgba(255,190,77,.12)}",
+    "#sa-combat-log-box .sa-cl-copy svg{width:12px;height:12px;display:block}",
+    "#sa-combat-log-box .sa-cl-dmg{display:inline-flex;align-items:center;gap:8px;margin-left:6px;vertical-align:middle}",
+    "#sa-combat-log-box .sa-cl-dmg i{display:inline-flex;align-items:center;gap:3px;font:800 11px Orbitron,sans-serif;font-style:normal}",
+    "#sa-combat-log-box .sa-cl-dmg i.hp{color:#f87171}",
+    "#sa-combat-log-box .sa-cl-dmg i.sp{color:#32feff}",
+    "#sa-combat-log-box .sa-cl-dmg svg{width:12px;height:12px}",
     "#sa-combat-log-box .sa-cl-empty{color:rgba(200,184,138,.4)}",
     "#sa-combat-log-box .sa-cl-resize{position:absolute;right:2px;bottom:2px;width:14px;height:14px;cursor:nwse-resize;z-index:4;",
     "background:linear-gradient(135deg,transparent 50%,rgba(255,190,77,.55) 50%)}",
@@ -190,7 +198,7 @@
   function fontPx() {
     try {
       const v = parseFloat(localStorage.getItem(FONT_KEY));
-      if (Number.isFinite(v)) return Math.max(9, Math.min(16, v));
+      if (Number.isFinite(v)) return Math.max(9, Math.min(22, v));
     } catch (_) {}
     return 11;
   }
@@ -201,7 +209,7 @@
   }
 
   function bumpFont(delta) {
-    const next = Math.max(9, Math.min(16, fontPx() + delta));
+    const next = Math.max(9, Math.min(22, fontPx() + delta));
     try {
       localStorage.setItem(FONT_KEY, String(next));
     } catch (_) {}
@@ -769,16 +777,38 @@
     const tgt = e.target || "target";
     const type = String(e.type || "");
     if (type === "PENDING") return (who ? who + " is attacking " : "Attacking ") + tgt + "…";
-    if (type === "HIT") {
-      const n = Number(e.damage) || 0;
-      const k = e.damageKind || "HP";
-      return (who ? who + " hit " : "Hit ") + tgt + (n ? " (−" + n.toLocaleString() + " " + k + ")" : "");
-    }
+    if (type === "HIT") return (who ? who + " hit " : "Hit ") + tgt;
+    if (type === "ABSORBED") return tgt + " absorbed the hit";
     if (type === "MISS") return (who ? who + " missed " : "Missed ") + tgt;
     if (type === "FLEE") return tgt + " fled";
     if (type === "CAPTURE") return "Captured " + tgt;
     if (type === "FAIL") return e.msg || ("Attack on " + tgt + " failed");
     return e.msg || type;
+  }
+
+  const EXPLORER_TX = "https://solana.fm/tx/";
+  const EXPLORER_QS = "?cluster=custom-rpc1.z.ink";
+  const SIG_RE = /[1-9A-HJ-NP-Za-km-z]{80,90}/;
+
+  function sigFromTx(raw) {
+    const s = String(raw || "").trim();
+    if (!s) return "";
+    if (/^[1-9A-HJ-NP-Za-km-z]{80,90}$/.test(s)) return s;
+    try {
+      const o = JSON.parse(s);
+      const cand = o.signature || o.txid || o.signatureStatus || (o.result && o.result.signature);
+      if (typeof cand === "string") {
+        const m = cand.match(SIG_RE);
+        if (m) return m[0];
+      }
+    } catch (_) {}
+    const m = s.match(SIG_RE);
+    return m ? m[0] : "";
+  }
+
+  function explorerLink(raw) {
+    const sig = sigFromTx(raw);
+    return sig ? EXPLORER_TX + sig + EXPLORER_QS : "";
   }
 
   function copyText(t) {
@@ -823,6 +853,7 @@
       let col = "rgba(232,217,168,.85)";
       if (type === "PENDING") col = "#ffbe4d";
       else if (type === "HIT") col = "#f87171";
+      else if (type === "ABSORBED") col = "#32feff";
       else if (type === "MISS") col = "#9ca3af";
       else if (type === "FLEE") col = "#fbbf24";
       else if (type === "CAPTURE") col = "#34d399";
@@ -835,21 +866,94 @@
       body.textContent = combatSentence(e);
       r.appendChild(time);
       r.appendChild(body);
+      if (type === "HIT" || type === "ABSORBED") {
+        const hp = Number.isFinite(Number(e.damageHp)) ? Math.round(Number(e.damageHp)) : 0;
+        const sp = Number.isFinite(Number(e.damageSp)) ? Math.round(Number(e.damageSp)) : 0;
+        const dmg = document.createElement("span");
+        dmg.className = "sa-cl-dmg";
+        const ns = "http://www.w3.org/2000/svg";
+        const icon = (d, color) => {
+          const svg = document.createElementNS(ns, "svg");
+          svg.setAttribute("viewBox", "0 0 24 24");
+          svg.setAttribute("width", "12");
+          svg.setAttribute("height", "12");
+          svg.style.width = "12px";
+          svg.style.height = "12px";
+          const p = document.createElementNS(ns, "path");
+          p.setAttribute("d", d);
+          p.setAttribute("fill", color);
+          svg.appendChild(p);
+          return svg;
+        };
+        const pill = (cls, color, d, n) => {
+          const i = document.createElement("i");
+          i.className = cls;
+          i.style.color = color;
+          i.appendChild(icon(d, color));
+          i.appendChild(document.createTextNode(" −" + n.toLocaleString()));
+          return i;
+        };
+        const heart =
+          "M12.1 21.35S2.4 14.2 2.4 8.7C2.4 5.6 4.8 3.5 7.7 3.5c1.7 0 3.2.8 4.4 2.2C13.3 4.3 14.8 3.5 16.5 3.5c2.9 0 5.3 2.1 5.3 5.2 0 5.5-9.7 12.65-9.7 12.65z";
+        const shield = "M12 2.2l8.2 3.2v6.4c0 5.5-3.6 10.5-8.2 12-4.6-1.5-8.2-6.5-8.2-12V5.4L12 2.2z";
+        dmg.appendChild(pill("sp", "#32feff", shield, sp));
+        dmg.appendChild(pill("hp", "#f87171", heart, hp));
+        r.appendChild(dmg);
+      }
       if (e.tx) {
-        const b = document.createElement("button");
-        b.type = "button";
-        b.className = "sa-cl-copy";
-        b.title = "Copy transaction / error";
-        b.textContent = "⧉";
-        b.addEventListener("click", (ev) => {
-          ev.stopPropagation();
-          copyText(e.tx);
-          b.textContent = "✓";
-          setTimeout(() => {
-            b.textContent = "⧉";
-          }, 900);
-        });
-        r.appendChild(b);
+        const sig = sigFromTx(e.tx);
+        const link = explorerLink(e.tx);
+        const acts = document.createElement("span");
+        acts.className = "sa-cl-acts";
+        const iconBtn = (title, svgChild, onClick) => {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "sa-cl-copy";
+          b.title = title;
+          b.appendChild(svgChild);
+          b.addEventListener("click", (ev) => {
+            ev.stopPropagation();
+            onClick(b);
+          });
+          return b;
+        };
+        const ns = "http://www.w3.org/2000/svg";
+        const path = (d, stroke) => {
+          const svg = document.createElementNS(ns, "svg");
+          svg.setAttribute("viewBox", "0 0 24 24");
+          svg.setAttribute("width", "12");
+          svg.setAttribute("height", "12");
+          const p = document.createElementNS(ns, "path");
+          p.setAttribute("d", d);
+          if (stroke) {
+            p.setAttribute("fill", "none");
+            p.setAttribute("stroke", "currentColor");
+            p.setAttribute("stroke-width", "2");
+            p.setAttribute("stroke-linecap", "round");
+            p.setAttribute("stroke-linejoin", "round");
+          } else {
+            p.setAttribute("fill", "currentColor");
+          }
+          svg.appendChild(p);
+          return svg;
+        };
+        if (link) {
+          acts.appendChild(
+            iconBtn("Open in Solana.fm (Zink)", path("M14 5h5v5M19 5l-7 7M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4", true), () => {
+              window.open(link, "_blank", "noopener,noreferrer");
+            }),
+          );
+        }
+        acts.appendChild(
+          iconBtn(sig ? "Copy transaction ID" : "Copy error", path("M8 4h8v2H8V4zm-2 4h12a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V10a2 2 0 012-2z", true), (b) => {
+            copyText(sig || e.tx);
+            b.title = "Copied";
+            setTimeout(() => {
+              b.title = sig ? "Copy transaction ID" : "Copy error";
+            }, 900);
+          }),
+        );
+        r.appendChild(acts);
       }
       pane.appendChild(r);
     });
@@ -900,6 +1004,8 @@
       tx: (e && e.tx) || "",
       damage: Number(e && e.damage) || 0,
       damageKind: (e && e.damageKind) || "HP",
+      damageHp: Number(e && e.damageHp) || 0,
+      damageSp: Number(e && e.damageSp) || 0,
       id: e && e.id,
     };
     if (ev.id && ev.type !== "PENDING") {
@@ -909,6 +1015,8 @@
         combat[i] = Object.assign({}, prev, ev);
         if (!ev.tx) combat[i].tx = prev.tx;
         if (!ev.attacker) combat[i].attacker = prev.attacker;
+        if (!ev.damageHp && prev.damageHp) combat[i].damageHp = prev.damageHp;
+        if (!ev.damageSp && prev.damageSp) combat[i].damageSp = prev.damageSp;
         if (tab === "combat" && !min) paintCombat();
         ping("combat");
         return;
@@ -938,17 +1046,32 @@
     });
   }
 
-  function clampBox() {
-    if (!box) return;
-    const r = box.getBoundingClientRect();
+  function clampIntoView(el, pad) {
+    if (!el) return;
+    const p = pad == null ? 8 : pad;
+    const r = el.getBoundingClientRect();
     const vw = window.innerWidth || 800;
     const vh = window.innerHeight || 600;
-    const maxL = Math.max(8, vw - Math.min(r.width || 240, vw - 16) - 8);
-    const maxT = Math.max(8, vh - 48);
-    const L = parseFloat(box.style.left);
-    const T = parseFloat(box.style.top);
-    if (Number.isFinite(L)) box.style.left = Math.min(maxL, Math.max(8, L)) + "px";
-    if (Number.isFinite(T)) box.style.top = Math.min(maxT, Math.max(8, T)) + "px";
+    const w = Math.max(40, Math.min(r.width || 80, vw - p * 2));
+    const h = Math.max(28, Math.min(r.height || 40, vh - p * 2));
+    let L = parseFloat(el.style.left);
+    let T = parseFloat(el.style.top);
+    if (!Number.isFinite(L)) L = r.left;
+    if (!Number.isFinite(T)) T = r.top;
+    const maxL = Math.max(p, vw - w - p);
+    const maxT = Math.max(p, vh - h - p);
+    el.style.left = Math.min(maxL, Math.max(p, L)) + "px";
+    el.style.top = Math.min(maxT, Math.max(p, T)) + "px";
+    el.style.right = "auto";
+    el.style.bottom = "auto";
+  }
+
+  function clampBox() {
+    clampIntoView(box, 8);
+  }
+
+  function clampChip() {
+    clampIntoView(chip, 8);
   }
 
   function applySavedBox() {
@@ -973,6 +1096,7 @@
       chip.style.top = p.top + "px";
       chip.style.bottom = "auto";
     }
+    clampChip();
   }
 
   function setMin(on) {
@@ -987,6 +1111,7 @@
       if (pop) pop.classList.remove("on");
     }
     placeChip();
+    if (min) clampChip();
   }
 
   function placeChip() {
@@ -1028,11 +1153,12 @@
       if (Math.abs(dx) > 2 || Math.abs(dy) > 2) moved = true;
       el.style.left = sx + dx + "px";
       el.style.top = sy + dy + "px";
+      clampIntoView(el, 8);
     });
     const up = () => {
       if (!drag) return;
       drag = false;
-      if (el === box) clampBox();
+      clampIntoView(el, 8);
       if (moved && onSave) onSave();
     };
     handle.addEventListener("pointerup", up);
@@ -1077,8 +1203,8 @@
         '<button type="button" class="sa-cl-ico" data-more title="Text size">⋮</button>' +
         '<button type="button" class="sa-cl-ico" data-min title="Minimize">−</button>' +
         '<div class="sa-cl-fontpop" data-fontpop>' +
-        '<button type="button" data-font="down" title="Smaller text">a</button>' +
-        '<button type="button" data-font="up" title="Bigger text">A</button></div></span>' +
+        '<button type="button" data-font="down" title="Smaller text">A−</button>' +
+        '<button type="button" data-font="up" title="Bigger text">A+</button></div></span>' +
         "</div>" +
         '<div class="sa-cl-body on" data-pane="combat"></div>' +
         '<div class="sa-cl-body" data-pane="flight"></div>' +
@@ -1209,6 +1335,8 @@
   }, 400);
   window.addEventListener("resize", () => {
     placeChip();
+    clampChip();
+    clampBox();
   });
   document.addEventListener(
     "pointerdown",
