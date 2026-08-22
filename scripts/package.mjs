@@ -21,6 +21,7 @@ const include = [
   "background.js",
   "patches.js",
   "content.js",
+  "solana-fm.js",
   "hud",
   "popup.html",
   "popup.css",

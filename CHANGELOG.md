@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.42
+
+- Include `solana-fm.js` in the release zip (2.5.41 listed it in the manifest but the packer allow-list omitted it, so Load unpacked failed).
+
 ## 2.5.41
 
 - Solana.fm: `?cluster=custom-rpc1.z.ink` does not stick unless that slug is already in `localStorage["explorer-settings"].customRPCList` — otherwise the explorer rewrites to `mainnet-alpha`. A `document_start` script on `solana.fm` now inserts the Zink RPC (`https://rpc1.z.ink`) and sets `currentRPC` when the combat-log ↗ link is opened.
