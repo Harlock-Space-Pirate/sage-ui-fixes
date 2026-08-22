@@ -100,6 +100,9 @@
     "#sa-combat-log-box .sa-cl-row{line-height:1.4;border-bottom:1px solid rgba(255,190,77,.1);padding:4px 2px 6px;",
     "font:600 11px/1.4 ui-sans-serif,system-ui,sans-serif;color:rgba(232,217,168,.85);overflow-wrap:anywhere}",
     "#sa-combat-log-box .sa-cl-row .t{color:rgba(200,184,138,.45);font:600 10px ui-monospace,Menlo,monospace}",
+    "#sa-combat-log-box .sa-cl-row .sa-cl-copy{appearance:none;margin-left:6px;padding:0 5px;border:1px solid rgba(255,190,77,.35);",
+    "background:transparent;color:#ffbe4d;cursor:pointer;font:700 10px ui-sans-serif,sans-serif;vertical-align:middle}",
+    "#sa-combat-log-box .sa-cl-row .sa-cl-copy:hover{background:rgba(255,190,77,.12)}",
     "#sa-combat-log-box .sa-cl-empty{color:rgba(200,184,138,.4)}",
     "#sa-combat-log-box .sa-cl-resize{position:absolute;right:2px;bottom:2px;width:14px;height:14px;cursor:nwse-resize;z-index:4;",
     "background:linear-gradient(135deg,transparent 50%,rgba(255,190,77,.55) 50%)}",
@@ -761,6 +764,50 @@
     if (id === "contacts") paintContacts();
   }
 
+  function combatSentence(e) {
+    const who = e.attacker || "";
+    const tgt = e.target || "target";
+    const type = String(e.type || "");
+    if (type === "PENDING") return (who ? who + " is attacking " : "Attacking ") + tgt + "…";
+    if (type === "HIT") {
+      const n = Number(e.damage) || 0;
+      const k = e.damageKind || "HP";
+      return (who ? who + " hit " : "Hit ") + tgt + (n ? " (−" + n.toLocaleString() + " " + k + ")" : "");
+    }
+    if (type === "MISS") return (who ? who + " missed " : "Missed ") + tgt;
+    if (type === "FLEE") return tgt + " fled";
+    if (type === "CAPTURE") return "Captured " + tgt;
+    if (type === "FAIL") return e.msg || ("Attack on " + tgt + " failed");
+    return e.msg || type;
+  }
+
+  function copyText(t) {
+    const s = String(t || "");
+    if (!s) return;
+    const done = () => {};
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(s).then(done).catch(() => {
+        const ta = document.createElement("textarea");
+        ta.value = s;
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand("copy");
+        } catch (_) {}
+        ta.remove();
+      });
+      return;
+    }
+    const ta = document.createElement("textarea");
+    ta.value = s;
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand("copy");
+    } catch (_) {}
+    ta.remove();
+  }
+
   function paintCombat() {
     const pane = q('[data-pane="combat"]', box);
     if (!pane) return;
@@ -773,41 +820,37 @@
       const r = document.createElement("div");
       r.className = "sa-cl-row";
       const type = String(e.type || "EVENT");
-      const tgt = e.target || "";
-      const dmg = Number(e.damage || 0);
-      const kind = e.damageKind || "HP";
       let col = "rgba(232,217,168,.85)";
-      let tag = type;
-      if (type === "PENDING") {
-        col = "#ffbe4d";
-        tag = "RESOLVING";
-      } else if (type === "HIT") {
-        col = "#f87171";
-        tag = "HIT";
-      } else if (type === "MISS") {
-        col = "#9ca3af";
-        tag = "MISS";
-      } else if (type === "FLEE") {
-        col = "#fbbf24";
-        tag = "FLEE";
-      } else if (type === "CAPTURE") {
-        col = "#34d399";
-        tag = "CAPTURE";
+      if (type === "PENDING") col = "#ffbe4d";
+      else if (type === "HIT") col = "#f87171";
+      else if (type === "MISS") col = "#9ca3af";
+      else if (type === "FLEE") col = "#fbbf24";
+      else if (type === "CAPTURE") col = "#34d399";
+      else if (type === "FAIL") col = "#f87171";
+      const time = document.createElement("span");
+      time.className = "t";
+      time.textContent = "[" + (e.at || "") + "] ";
+      const body = document.createElement("span");
+      body.style.color = col;
+      body.textContent = combatSentence(e);
+      r.appendChild(time);
+      r.appendChild(body);
+      if (e.tx) {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "sa-cl-copy";
+        b.title = "Copy transaction / error";
+        b.textContent = "⧉";
+        b.addEventListener("click", (ev) => {
+          ev.stopPropagation();
+          copyText(e.tx);
+          b.textContent = "✓";
+          setTimeout(() => {
+            b.textContent = "⧉";
+          }, 900);
+        });
+        r.appendChild(b);
       }
-      const extra =
-        type === "HIT" && dmg > 0
-          ? ' <span style="color:#f87171;font-weight:800">−' + dmg.toLocaleString() + " " + esc(kind) + "</span>"
-          : "";
-      r.innerHTML =
-        '<span class="t">[' +
-        esc(e.at || "") +
-        ']</span> <span class="tag" style="color:' +
-        col +
-        ';font:800 10px Orbitron,sans-serif;letter-spacing:.08em">' +
-        esc(tag) +
-        "</span> " +
-        (tgt ? "<b>" + esc(tgt) + "</b>" : "") +
-        extra;
       pane.appendChild(r);
     });
   }
@@ -852,6 +895,9 @@
       at: clock(),
       type: (e && (e.type || e.kind)) || "EVENT",
       target: (e && (e.target || e.systemName || e.fleetLabel)) || "",
+      attacker: (e && e.attacker) || "",
+      msg: (e && e.msg) || "",
+      tx: (e && e.tx) || "",
       damage: Number(e && e.damage) || 0,
       damageKind: (e && e.damageKind) || "HP",
       id: e && e.id,
@@ -859,7 +905,10 @@
     if (ev.id && ev.type !== "PENDING") {
       const i = combat.findIndex((x) => x.id && String(x.id) === String(ev.id));
       if (i >= 0) {
-        combat[i] = Object.assign({}, combat[i], ev);
+        const prev = combat[i];
+        combat[i] = Object.assign({}, prev, ev);
+        if (!ev.tx) combat[i].tx = prev.tx;
+        if (!ev.attacker) combat[i].attacker = prev.attacker;
         if (tab === "combat" && !min) paintCombat();
         ping("combat");
         return;

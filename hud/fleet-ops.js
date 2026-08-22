@@ -699,11 +699,23 @@
 
   // Official Victim cards mount only when the panel tab is "combat" and Ec() has targets.
   // Set the tab signal directly (never click Attack) when hostiles are in range.
+  // Skip when our action bar is hidden — stock 3-row Attack would light up on mere select.
   let combatTabSig = "";
   let combatTabKey = "";
   let combatTabForces = 0;
 
+  function ourActionBarOn() {
+    try {
+      const bar = window.__SA_ACTION_BAR__;
+      if (bar && typeof bar.isVisible === "function") return !!bar.isVisible();
+      return localStorage.getItem("saHideActionBar") !== "1";
+    } catch {
+      return true;
+    }
+  }
+
   function maybeForceCombatTab() {
+    if (!ourActionBarOn()) return;
     const ct = window.__SA_COMBAT_TAB__;
     if (!ct || typeof ct.set !== "function") return;
     const sel = selectedOwned();

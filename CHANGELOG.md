@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.5.33
+
+- Starbase attack: extra NPC capture accounts (`attacker_fleet_ownership` etc.) are injected **only** for Jorvik/Baron-tagged hulls (`npcFactionId` 4/5). Player fleets use the stock account set — the previous always-on inject passed a 0-byte PDA and failed `AccountDataTooSmall`. Failures show a short readable toast, not the raw RPC dump; ⧉ in the combat log copies the technical error/tx.
+- Combat log rows are plain English (`LEEKS One hit Ghost Wolf (−120 HP)`). HIT/MISS map floats + target chip are a popup toggle (default ON).
+
+## 2.5.32
+
+- Fleet click no longer auto-enters Attack when the custom action bar is OFF (stock 3-row panel stays on Actions). Silent combat-tab force is only for our bar, so Victim cards can still appear without an Attack click.
+
 ## 2.5.31
 
 - Fix extension Errors page: patched bundle no longer travels isolated → service worker → MAIN (that 7.6 MB clone killed the SW mid-`sendResponse`). MAIN now pulls the source via `postMessage`; SW only gets a nonce. Retry transient MV3 channel errors; keep-alive port during boot; `console.error` titles are plain text.

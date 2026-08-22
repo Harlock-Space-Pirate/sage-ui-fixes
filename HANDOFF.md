@@ -6,7 +6,7 @@ LEEKS / Produce Bandit ltd. Next session: start here, then `CHANGELOG.md`.
 
 | | |
 |--|--|
-| **Version** | **2.5.31** on `main` |
+| **Version** | **2.5.33** on `main` |
 | **Repo** | https://github.com/Harlock-Space-Pirate/sage-ui-fixes (**public**) |
 | **Testers** | https://github.com/Harlock-Space-Pirate/sage-ui-fixes/releases/latest — zip only, not Source code |
 | **Issues** | https://github.com/Harlock-Space-Pirate/sage-ui-fixes/issues/new/choose |
@@ -71,7 +71,7 @@ Hooks: `__SA_PIXI_MAP__`, `__SA_DERIVED_FLEETS__`, `__SA_MAP_CONTROL__` (`unbloc
 
 ## Open / do not regress
 
-1. **Always-on Victim cards** — shipped 2.5.27 via `__SA_COMBAT_TAB__` + `maybeForceCombatTab()`. Verified live. Superseded by the compact combat overview spec (see Open feature below).
+1. **Always-on Victim cards** — shipped 2.5.27 via `__SA_COMBAT_TAB__` + `maybeForceCombatTab()`. **2.5.32:** skip when the custom action bar is OFF so stock Attack does not auto-light. Superseded by the compact combat overview spec (see Open feature below).
 2. **HUD ring** — FIXED 2.5.28 (`pixel-to-game-squash` patch + pin-first select). Verified live in subwarp.
 3. **Pending clock** — FIXED 2.5.28 (stale-journey clear + 30s fail-safe; verified live in saProbe log).
 4. **Live client bump** — done 2.5.29 (0.0.416, 51/51). Repeat after next SAGE deploy: `node scripts/fetch-stock.mjs && npm run probe`.

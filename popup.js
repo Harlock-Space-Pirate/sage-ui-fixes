@@ -81,6 +81,8 @@ const barStatus = document.getElementById("bar-status");
 const barReset = document.getElementById("bar-reset");
 const logBtn = document.getElementById("log-toggle");
 const logStatus = document.getElementById("log-status");
+const fxBtn = document.getElementById("fx-toggle");
+const fxStatus = document.getElementById("fx-status");
 
 (async () => {
   const tab = await getSageTab();
@@ -89,10 +91,12 @@ const logStatus = document.getElementById("log-status");
     setToggle(debugBtn, debugStatus, false, "Open sage.staratlas.com first.");
     setToggle(barBtn, barStatus, true, "Open sage.staratlas.com first.");
     setToggle(logBtn, logStatus, true, "Open sage.staratlas.com first.");
+    setToggle(fxBtn, fxStatus, true, "Open sage.staratlas.com first.");
     if (trailsBtn) trailsBtn.disabled = true;
     if (debugBtn) debugBtn.disabled = true;
     if (barBtn) barBtn.disabled = true;
     if (logBtn) logBtn.disabled = true;
+    if (fxBtn) fxBtn.disabled = true;
     return;
   }
 
@@ -183,6 +187,18 @@ const logStatus = document.getElementById("log-status");
     setToggle(debugBtn, debugStatus, false, "Refresh the SAGE tab, then try again.");
   }
 
+  try {
+    const fx = await pageEval(tab.id, () => {
+      const api = window.__SA_COMBAT_FX__;
+      const off = localStorage.getItem("saCombatFloats") === "0";
+      const on = api && typeof api.isEnabled === "function" ? !!api.isEnabled() : !off;
+      return { on };
+    });
+    setToggle(fxBtn, fxStatus, !!fx?.on, fx?.on ? "Floats ON — HIT/MISS on the map." : "Floats OFF — stock SAGE only.");
+  } catch (e) {
+    setToggle(fxBtn, fxStatus, true, "Refresh the SAGE tab, then try again.");
+  }
+
   logBtn?.addEventListener("click", async () => {
     logBtn.disabled = true;
     try {
@@ -198,6 +214,24 @@ const logStatus = document.getElementById("log-status");
       setToggle(logBtn, logStatus, !!res?.on, res?.on ? "Log ON." : "Log OFF.");
     } finally {
       logBtn.disabled = false;
+    }
+  });
+
+  fxBtn?.addEventListener("click", async () => {
+    fxBtn.disabled = true;
+    try {
+      const res = await pageEval(tab.id, () => {
+        const api = window.__SA_COMBAT_FX__;
+        const cur = api && typeof api.isEnabled === "function" ? api.isEnabled() : localStorage.getItem("saCombatFloats") !== "0";
+        const next = !cur;
+        if (api?.setEnabled) api.setEnabled(next);
+        else if (next) localStorage.removeItem("saCombatFloats");
+        else localStorage.setItem("saCombatFloats", "0");
+        return { on: next };
+      });
+      setToggle(fxBtn, fxStatus, !!res?.on, res?.on ? "Floats ON — HIT/MISS on the map." : "Floats OFF — stock SAGE only.");
+    } finally {
+      fxBtn.disabled = false;
     }
   });
 

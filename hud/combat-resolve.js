@@ -65,6 +65,23 @@
     return (st && (st.__kind || st.kind)) || "";
   }
 
+  function floatsOn() {
+    try {
+      return localStorage.getItem("saCombatFloats") !== "0";
+    } catch {
+      return true;
+    }
+  }
+
+  function attackerName(ev) {
+    if (ev && ev.attacker) return String(ev.attacker);
+    try {
+      return String((window.__SA_SELECTED_FLEET__ && window.__SA_SELECTED_FLEET__.label) || "");
+    } catch {
+      return "";
+    }
+  }
+
   function log(e) {
     try {
       if (typeof window.__SA_LOG_COMBAT_EVENT === "function") window.__SA_LOG_COMBAT_EVENT(e);
@@ -177,6 +194,7 @@
   }
 
   function floats(o, tgtTxt, srcTxt, col) {
+    if (!floatsOn()) return;
     const tgt = toClient(o.x, o.y);
     const src = toClient(o.sx, o.sy);
     if (tgt || src) {
@@ -278,6 +296,7 @@
   }
 
   function setTarget(o) {
+    if (!floatsOn()) return;
     if (!o) return;
     lastTarget = {
       key: o.fleetKey ? String(o.fleetKey) : "",
@@ -289,6 +308,11 @@
   }
 
   function paintHud() {
+    if (!floatsOn()) {
+      const old = document.getElementById("sa-target-hud");
+      if (old) old.setAttribute("hidden", "");
+      return;
+    }
     ensureAnim();
     let el = document.getElementById("sa-target-hud");
     if (!el) {
@@ -355,6 +379,8 @@
       id,
       kind: o.kind || "FLEET",
       target: o.target || o.fleetLabel || "Target",
+      attacker: o.attacker || attackerName(o),
+      tx: o.tx || "",
       fleetKey: o.fleetKey,
       x: o.x,
       y: o.y,
@@ -442,6 +468,19 @@
     get: () => lastTarget,
     paint: paintHud,
   };
+  window.__SA_COMBAT_FX__ = {
+    isEnabled: floatsOn,
+    setEnabled: (on) => {
+      try {
+        if (on) localStorage.removeItem("saCombatFloats");
+        else localStorage.setItem("saCombatFloats", "0");
+      } catch {
+        /* ignore */
+      }
+      paintHud();
+      return floatsOn();
+    },
+  };
 
   const prev = window.__SA_ON_ATTACK__;
   window.__SA_ON_ATTACK__ = function (ev) {
@@ -451,6 +490,8 @@
         resolve({
           kind: "FLEET",
           target: ev.fleetLabel || ev.target,
+          attacker: attackerName(ev),
+          tx: ev.tx || "",
           fleetKey: ev.fleetKey,
           x: ev.x,
           y: ev.y,
@@ -459,11 +500,42 @@
           preHp: ev.preHp,
           preSp: ev.preSp,
         });
-      } else if (ev && ev.kind === "STARBASE") {
-        log({
-          type: "PENDING",
+      } else if (ev && ev.kind === "STARBASE" && !ev._resolved) {
+        ev._resolved = true;
+        const sk = ev.systemKey || ev.systemName;
+        resolve({
           kind: "STARBASE",
           target: ev.systemName || ev.target,
+          attacker: attackerName(ev),
+          tx: ev.tx || "",
+          fleetKey: sk,
+          x: ev.x,
+          y: ev.y,
+          sx: ev.sx,
+          sy: ev.sy,
+          readHp: () => {
+            try {
+              const fn = window.__SA_NEARBY_STARBASES__;
+              const all = typeof fn === "function" ? fn() : fn;
+              const want = String(sk || "");
+              if (!Array.isArray(all) || !want) return NaN;
+              for (let i = 0; i < all.length; i++) {
+                const s = all[i];
+                if (!s) continue;
+                if (
+                  String(s.systemKey || s.key || s.address || "") === want ||
+                  String(s.systemName || s.name || "") === want
+                ) {
+                  return num(s.hp ?? (s.data && s.data.hp) ?? s.starbaseHp);
+                }
+              }
+            } catch {
+              /* ignore */
+            }
+            return NaN;
+          },
+          readSp: () => NaN,
+          readState: () => "",
         });
       }
     } catch {

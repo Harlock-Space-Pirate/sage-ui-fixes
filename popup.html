@@ -41,13 +41,26 @@
       <div class="debug-head">
         <div>
           <h2 id="log-title">Combat / Comms log</h2>
-          <p class="debug-sub">Combat · Flight · Comms · Contacts. Minimize = typing chip.</p>
+          <p class="debug-sub">Readable HIT/MISS/flight lines. ⧉ copies the tx or error. Minimize = typing chip.</p>
         </div>
         <button type="button" id="log-toggle" class="toggle on" aria-pressed="true" title="Show or hide the log">
           ON
         </button>
       </div>
       <p id="log-status" class="debug-status">Open sage.staratlas.com, then toggle.</p>
+    </section>
+
+    <section class="debug-card combat-card" aria-labelledby="fx-title">
+      <div class="debug-head">
+        <div>
+          <h2 id="fx-title">HIT / MISS floats</h2>
+          <p class="debug-sub">Map popups + target HP chip after you fire. Off = stock SAGE only.</p>
+        </div>
+        <button type="button" id="fx-toggle" class="toggle on" aria-pressed="true" title="Show or hide HIT/MISS map floats">
+          ON
+        </button>
+      </div>
+      <p id="fx-status" class="debug-status">Open sage.staratlas.com, then toggle.</p>
     </section>
 
     <section class="debug-card bar-card" aria-labelledby="bar-title">
